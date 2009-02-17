@@ -1,0 +1,9 @@
+# Copyright David Abrahams 2003. See accompanying LICENSE for terms
+# and conditions of use.
+
+# Edit this path to point at the tools/build/v1 subdirectory of your
+# Boost installation.  Absolute paths work, too.
+
+#boost-build /tmp/boost_1_34_1/tools/build/v2 ;
+boost-build /home/tiago/tmp/32bits/boost_1_35_0/tools/build/v2 ;
+

@@ -1,0 +1,50 @@
+project-root ;
+
+import python ;
+
+extension _PyTango                   
+:
+    # sources
+    conversion_utils.cpp
+    device_proxy.cpp
+    py_device_proxy1.cpp
+    py_device_proxy2.cpp
+    py_device_proxy3.cpp
+    py_device_proxy4.cpp
+    py_device_proxy5.cpp
+    py_device_proxy6.cpp
+    py_device_proxy7.cpp
+    tangodb_utils.cpp
+    tangodb.cpp
+    py_tangodb1.cpp
+    py_tangodb2.cpp
+    py_tangodb3.cpp
+    py_tangodb4.cpp
+    attribute_proxy.cpp
+    py_attribute_proxy.cpp
+    group_utils.cpp
+    device_group.cpp
+    py_device_group1.cpp
+    py_device_group2.cpp
+    py_ds.cpp
+    cppdeviceclass.cpp
+    from_py.cpp
+    ClassFactory.cpp
+    rw_attr.cpp
+    py_ev.cpp
+    templates.cpp
+    <template>@boost/libs/python/build/extension
+:   
+    # dependencies
+    <include>.
+    <include>$(PYTHON_INCLUDES)
+    <include>$(TANGO_ROOT)/include
+    <include>$(OMNI_ROOT)/include
+    <library-file>$(TANGO_ROOT)/lib/libtango.so
+    <library-file>$(TANGO_ROOT)/lib/liblog4tango.so
+    <library-file>$(OMNI_ROOT)/lib/libomniORB4.so
+    <library-file>$(OMNI_ROOT)/lib/libomniDynamic4.so
+    <library-file>$(OMNI_ROOT)/lib/libomnithread.so
+    <library-file>$(OMNI_ROOT)/lib/libCOS4.so
+;
+

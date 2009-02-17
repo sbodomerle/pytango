@@ -1,0 +1,7 @@
+
+cp /home/tiago/tmp/32bits/boost_1_35_0/bin.v2/libs/python/build/gcc-4.2.3/release/libboost_python-gcc42-1_35.so.1.35.0 /usr/local/lib
+ln -fs /usr/local/lib/libboost_python-gcc42-1_35.so.1.35.0 /usr/local/lib/libboost_python.so.1.35.0
+ln -fs /usr/local/lib/libboost_python.so.1.35.0 /usr/local/lib/libboost_python.so.1.35
+ln -fs /usr/local/lib/libboost_python.so.1.35 /usr/local/lib/libboost_python.so
+cp ../modules/*.py /usr/lib/python2.5/site-packages/PyTango/
+cp bin/gcc-4.2.3/release/_PyTango.so /usr/lib/python2.5/site-packages/PyTango/
