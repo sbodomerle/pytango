@@ -1,0 +1,14 @@
+Source: pytango
+Section: extra
+Priority: extra
+Maintainer: picca <picca@mordor>
+Build-Depends: python-support (>= 0.6), debhelper (>= 7), python-all-dev, liblog4tango4-dev, libtango6-dev, libboost-python-dev
+Standards-Version: 3.8.0
+Homepage: http://www.tango-controls.org
+
+Package: pytango
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Provides: ${python:Provides}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
