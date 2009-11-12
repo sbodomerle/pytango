@@ -2,4 +2,4 @@ pytango (3.0.4-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
- -- picca <picca@mordor>  Tue, 17 Feb 2009 22:35:15 +0100
+ -- picca frederic <picca@synchrotron-soleil.fr>  Tue, 17 Feb 2009 22:35:15 +0100

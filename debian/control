@@ -1,14 +1,21 @@
 Source: pytango
-Section: extra
+Section: python
 Priority: extra
-Maintainer: picca <picca@mordor>
-Build-Depends: python-support (>= 0.6), debhelper (>= 7), python-all-dev, liblog4tango4-dev, libtango6-dev, libboost-python-dev
+Maintainer: picca frederic <picca@synchrotron-soleil.fr>
+Build-Depends: debhelper (>= 7),
+	       python-support (>= 0.7.6),
+	       python-dev,
+	       liblog4tango4-dev,
+	       libtango6-dev,
+	       libboost-python-dev
 Standards-Version: 3.8.0
 Homepage: http://www.tango-controls.org
 
 Package: pytango
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Depends: ${shlibs:Depends},
+	 ${misc:Depends},
+	 ${python:Depends}
 Provides: ${python:Provides}
-Description: <insert up to 60 chars description>
+Description: The Tango Control System python binding
  <insert long description, indented with spaces>
