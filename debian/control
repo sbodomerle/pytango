@@ -1,7 +1,7 @@
 Source: pytango
 Section: python
 Priority: extra
-Maintainer: picca frederic <picca@synchrotron-soleil.fr>
+Maintainer: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 Build-Depends: debhelper (>= 7.0.50),
 	       python-support (>= 0.7.6),
 	       python-dev,
