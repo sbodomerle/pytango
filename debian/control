@@ -12,11 +12,12 @@ Build-Depends: debhelper (>= 7.0.50),
 Standards-Version: 3.8.4
 Homepage: http://www.tango-controls.org
 
-Package: pytango
+Package: python-pytango
 Architecture: any
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
-	 ${python:Depends}
+	 ${python:Depends},
+	 libjs-jquery
 Provides: ${python:Provides}
 Description: The Tango Control System python binding
  <insert long description, indented with spaces>
