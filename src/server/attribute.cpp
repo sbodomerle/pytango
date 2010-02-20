@@ -94,15 +94,15 @@ namespace PyAttribute
         {
             throw_wrong_python_data_type(att.get_name(), "set_value()");
         }
-        extract<Tango::DevUChar*> val(data.ptr());
+        extract<Tango::DevString> val(data.ptr());
         if (!val.check())
         {
             throw_wrong_python_data_type(att.get_name(), "set_value()");
         }
 
         Tango::DevString val_str_real = val_str;
-        Tango::DevUChar *val_real = val;
-        att.set_value(&val_str_real, val_real, (long)len(data));
+        Tango::DevString val_real = val;
+        att.set_value(&val_str_real, (Tango::DevUChar*)val_real, (long)len(data));
     }
 
 
@@ -359,10 +359,14 @@ namespace PyAttribute
 
         if (!PySequence_Check(value.ptr()))
         {
+            // avoid bug in tango 7.0 to 7.1.1: DevEncoded is not defined in CmdArgTypeName
+            const char *arg_type = tangoTypeConst == Tango::DEV_ENCODED ? 
+                "DevEncoded" : 
+                Tango::CmdArgTypeName[tangoTypeConst];
+                
             TangoSys_OMemStream o;
             o << "Wrong Python type for attribute " << att.get_name()
-                << "of type " << Tango::CmdArgTypeName[tangoTypeConst]
-                << ". Expected a sequence." << ends;
+                << "of type " << arg_type << ". Expected a sequence." << ends;
 
             Tango::Except::throw_exception(
                     "PyDs_WrongPythonDataTypeForAttribute",
@@ -490,8 +494,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(set_archive_event_overloads,
 
 void export_attribute()
 {
-    enum_<Tango::Attribute::alarm_flags>("alarm_flags",
-        "an enumerated for the alarm flags")
+    enum_<Tango::Attribute::alarm_flags>("alarm_flags")
         .value("min_level", Tango::Attribute::min_level)
         .value("max_level", Tango::Attribute::max_level)
         .value("rds", Tango::Attribute::rds)
@@ -536,9 +539,6 @@ void export_attribute()
         .def("get_y", &Tango::Attribute::get_y)
         .def("get_max_dim_y", &Tango::Attribute::get_max_dim_y)
         .def("get_polling_period", &Tango::Attribute::get_polling_period)
-        //TODO .def("get_properties", &Tango::Attribute::get_properties)
-        //TODO .def("get_properties_2", &Tango::Attribute::get_properties_2)
-        //TODO .def("get_properties_3", &Tango::Attribute::get_properties_3)
         .def("set_attr_serial_model", &Tango::Attribute::set_attr_serial_model)
         .def("get_attr_serial_model", &Tango::Attribute::get_attr_serial_model)
         

@@ -94,13 +94,7 @@ include_dirs = [
     os.path.join(NUMPY_ROOT, 'include'),
 ]
 
-if please_debug:
-    libraries = [
-        'tangod.7.1.0',
-        'log4tangod',
-    ]
-else:
-    libraries = [
+libraries = [
         'tango',
         'log4tango',
     ]
@@ -232,11 +226,9 @@ class build_doc(Command):
                                    ('force', 'force'))
 
     def run (self):
-        if not sphinx:
+        if sphinx is None:
             print "Sphinx is not available. Documentation will not be generated"
             return
-
-        print self.doc_fmt
 
         build_dir = os.path.join(self.build_lib, 'doc', self.doc_fmt)
         build_dir = os.path.join('build_doc', self.doc_fmt)

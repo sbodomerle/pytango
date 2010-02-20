@@ -156,7 +156,7 @@ struct CORBA_sequence_to_list
 template<>
 struct CORBA_sequence_to_list<Tango::DevVarStringArray>
 {
-    static PyObject* convert(Tango::DevVarStringArray const& a)
+    static boost::python::list to_list(Tango::DevVarStringArray const& a)
     {
         unsigned long size = a.length();
         boost::python::list ret;
@@ -164,7 +164,12 @@ struct CORBA_sequence_to_list<Tango::DevVarStringArray>
         {
             ret.append(a[i].in());
         }
-        return boost::python::incref(ret.ptr());
+        return ret;
+    }
+    
+    static PyObject* convert(Tango::DevVarStringArray const& a)
+    {
+        return boost::python::incref(to_list(a).ptr());
     }
 
     static const PyTypeObject* get_pytype() { return &PyList_Type; }
@@ -236,6 +241,16 @@ struct CORBA_String_member_to_str
     static const PyTypeObject* get_pytype() { return &PyString_Type; }
 };
 
+struct CORBA_String_member_to_str2
+{
+    static inline PyObject* convert(_CORBA_String_member const& cstr)
+    {
+        return boost::python::incref(boost::python::str(cstr.in()).ptr());
+    }
+
+    static const PyTypeObject* get_pytype() { return &PyString_Type; }
+};
+
 struct CORBA_String_element_to_str
 {
     static inline PyObject* convert(_CORBA_String_element const& cstr)
@@ -246,3 +261,16 @@ struct CORBA_String_element_to_str
     static const PyTypeObject* get_pytype() { return &PyString_Type; }
 };
 
+boost::python::object to_py(const Tango::AttributeAlarm &);
+boost::python::object to_py(const Tango::ChangeEventProp &);
+boost::python::object to_py(const Tango::PeriodicEventProp &);
+boost::python::object to_py(const Tango::ArchiveEventProp &);
+boost::python::object to_py(const Tango::EventProperties &);
+
+boost::python::object to_py(const Tango::AttributeConfig &);
+boost::python::object to_py(const Tango::AttributeConfig_2 &);
+boost::python::object to_py(const Tango::AttributeConfig_3 &);
+
+boost::python::list to_py(const Tango::AttributeConfigList &);
+boost::python::list to_py(const Tango::AttributeConfigList_2 &);
+boost::python::list to_py(const Tango::AttributeConfigList_3 &);

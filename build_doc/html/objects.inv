@@ -28,7 +28,6 @@ PyTango.MultiAttribute class server/attribute.html
 PyTango.DeviceProxy.set_timeout_millis method client/device_proxy.html
 PyTango.Attr class server/attribute.html
 PyTango.Database.register_service method database.html
-PyTango.Attribute.is_polled method server/attribute.html
 PyTango.LogLevel class client/other.html
 PyTango.DevError class exception.html
 PyTango.Attr.is_check_archive_criteria method server/attribute.html
@@ -74,7 +73,7 @@ PyTango.MessBoxType class client/other.html
 PyTango.UserDefaultAttrProp.set_delta_t method server/attribute.html
 PyTango.DeviceProxy.get_timeout_millis method client/device_proxy.html
 PyTango.Device_2Impl.push_event method server/device.html
-PyTango.DeviceImpl.add_attribute method server/device.html
+PyTango.Device_3Impl class server/device.html
 PyTango.Attr.set_memorized method server/attribute.html
 PyTango.Group.is_enabled method client/group.html
 PyTango.Device_4Impl.warn_stream method server/device.html
@@ -102,11 +101,10 @@ PyTango.Util.get_device_list_by_class method server/util.html
 PyTango.DeviceProxy.is_locked method client/device_proxy.html
 PyTango.DeviceProxy.attribute_list_query_ex method client/device_proxy.html
 PyTango.Device_2Impl.register_signal method server/device.html
-PyTango.DeviceData.except_flags class client/miscellaneous.html
 PyTango.Device_2Impl.dev_status method server/device.html
 PyTango.UserDefaultAttrProp.set_description method server/attribute.html
 PyTango.AttributeProxy.event_queue_size method client/attribute_proxy.html
-PyTango.Attr.get_disp_level method server/attribute.html
+PyTango.Attr.set_memorized_init method server/attribute.html
 PyTango.Device_2Impl.get_device_properties method server/device.html
 PyTango.Attribute.set_change_event method server/attribute.html
 PyTango.Device_2Impl.warn_stream method server/device.html
@@ -134,7 +132,6 @@ PyTango.AttributeProxy.subscribe_event method client/attribute_proxy.html
 PyTango.Database.delete_server_info method database.html
 PyTango.DbDatum class database.html
 PyTango.DeviceAttribute.get_err_stack method client/miscellaneous.html
-PyTango.Attribute.set_archive_event method server/attribute.html
 PyTango.UserDefaultAttrProp.set_standard_unit method server/attribute.html
 PyTango.Device_2Impl.set_change_event method server/device.html
 PyTango.DeviceProxy.set_source method client/device_proxy.html
@@ -147,13 +144,12 @@ PyTango.DeviceProxy.cancel_asynch_request method client/device_proxy.html
 PyTango.Group.write_attribute_asynch method client/group.html
 PyTango.DeviceProxy.ping method client/device_proxy.html
 PyTango.Database.delete_device_alias method database.html
-PyTango.Attr.set_memorized_init method server/attribute.html
 PyTango.EventData.get_date method client/miscellaneous.html
 PyTango.DeviceProxy.read_attribute_asynch method client/device_proxy.html
 PyTango.GroupCmdReply class client/group.html
 PyTango.DeviceProxy.is_command_polled method client/device_proxy.html
 PyTango.Attribute class server/attribute.html
-PyTango.DeviceClass.device_factory method server/device_class.html
+PyTango.Attribute.remove_configuration method server/attribute.html
 PyTango.AttributeProxy.get_last_event_date method client/attribute_proxy.html
 PyTango.Util.get_device_by_name method server/util.html
 PyTango.Database.write_filedatabase method database.html
@@ -169,6 +165,7 @@ PyTango.Database.get_device_name method database.html
 PyTango.Attr.set_change_event method server/attribute.html
 PyTango.Device_3Impl.fatal_stream method server/device.html
 PyTango.Database.get_server_name_list method database.html
+PyTango.DeviceImpl.add_attribute method server/device.html
 PyTango.DeviceUnlocked exception exception.html
 PyTango.Util.unregister_server method server/util.html
 PyTango.Database.delete_server method database.html
@@ -180,7 +177,7 @@ PyTango.Attr.set_polling_period method server/attribute.html
 PyTango.DeviceProxy.attribute_history method client/device_proxy.html
 PyTango.WAttribute.set_min_value method server/attribute.html
 PyTango.Database.get_device_class_list method database.html
-PyTango.Database.get_device_attribute_property_history method database.html
+PyTango.Device_3Impl.read_attr_hardware method server/device.html
 PyTango.cb_sub_model class client/other.html
 PyTango.Device_4Impl.append_status method server/device.html
 PyTango.DeviceProxy.unsubscribe_event method client/device_proxy.html
@@ -255,13 +252,12 @@ PyTango.Device_4Impl.get_prev_state method server/device.html
 PyTango.Database.get_host_server_list method database.html
 PyTango.DbHistory.get_value method database.html
 PyTango.Database.put_server_info method database.html
-PyTango.Group.read_attribute_asynch method client/group.html
+PyTango.Group.set_timeout_millis method client/group.html
 PyTango.DbHistory.get_date method database.html
 PyTango.Attr.set_archive_event method server/attribute.html
 PyTango.DeviceAttributeHistory class client/miscellaneous.html
 PyTango.Attr.is_assoc method server/attribute.html
 PyTango.LockCmdCode class client/other.html
-PyTango.Device_3Impl class server/device.html
 PyTango.DeviceProxy.write_read_attribute method client/device_proxy.html
 PyTango.Device_4Impl.info_stream method server/device.html
 PyTango.Group.ping method client/group.html
@@ -275,7 +271,7 @@ PyTango.DeviceDataHistory class client/miscellaneous.html
 PyTango.DeviceImpl.py_exec_wir method server/device.html
 PyTango.DeviceProxy.get_asynch_replies method client/device_proxy.html
 PyTango.GroupCmdReply.get_data_raw method client/group.html
-PyTango.DeviceProxy class client/device_proxy.html
+PyTango.DeviceProxy.name method client/device_proxy.html
 PyTango.Database.get_device_exported method database.html
 PyTango.MultiAttribute.get_w_attr_by_ind method server/attribute.html
 PyTango.Device_3Impl.py_exec_wir method server/device.html
@@ -299,7 +295,6 @@ PyTango.Device_3Impl.set_archive_event method server/device.html
 PyTango.DeviceProxy.read_attribute method client/device_proxy.html
 PyTango.AttributeProxy.put_property method client/attribute_proxy.html
 PyTango.Attribute.get_name method server/attribute.html
-PyTango.DeviceProxy.get_events method client/device_proxy.html
 PyTango.Device_2Impl.set_archive_event method server/device.html
 PyTango.Database.get_class_inheritance_for_device method database.html
 PyTango.UserDefaultAttrProp.set_archive_rel_change method server/attribute.html
@@ -310,7 +305,6 @@ PyTango.Device_4Impl.register_signal method server/device.html
 PyTango.ArchiveEventInfo class client/miscellaneous.html
 PyTango.Util.get_pid method server/util.html
 PyTango.Database.get_access_except_errors method database.html
-PyTango.Database.get_property_forced method database.html
 PyTango.AttributeDimension class client/miscellaneous.html
 PyTango.Group.write_attribute method client/group.html
 PyTango.Device_2Impl.remove_attribute method server/device.html
@@ -322,7 +316,7 @@ PyTango.Attribute.get_polling_period method server/attribute.html
 PyTango.Device_4Impl.fatal_stream method server/device.html
 PyTango.DbHistory.get_attribute_name method database.html
 PyTango.DeviceProxy.read_attributes method client/device_proxy.html
-PyTango.DeviceProxy.get_db_port method client/device_proxy.html
+PyTango.DeviceProxy.get_events method client/device_proxy.html
 PyTango.AttributeProxy.set_transparency_reconnection method client/attribute_proxy.html
 PyTango.DServer class server/device.html
 PyTango.UserDefaultAttrProp.set_display_unit method server/attribute.html
@@ -337,7 +331,7 @@ PyTango.Device_4Impl.dev_state method server/device.html
 PyTango.DeviceProxy.read_attribute_reply method client/device_proxy.html
 PyTango.Device_4Impl.get_logger method server/device.html
 PyTango.AttributeProxy.ping method client/attribute_proxy.html
-PyTango.Attribute.remove_configuration method server/attribute.html
+PyTango.DeviceClass.device_factory method server/device_class.html
 PyTango.DeviceData.insert method client/miscellaneous.html
 PyTango.WAttribute.get_min_value method server/attribute.html
 PyTango.Group.remove method client/group.html
@@ -376,7 +370,6 @@ PyTango.Database.delete_device method database.html
 PyTango.AttributeProxy.get_events method client/attribute_proxy.html
 PyTango.AttributeProxy.read_reply method client/attribute_proxy.html
 PyTango.DeviceImpl.get_status method server/device.html
-PyTango.Group.set_timeout_millis method client/group.html
 PyTango.DataReadyEventData.get_date method client/miscellaneous.html
 PyTango.AttributeProxy.read method client/attribute_proxy.html
 PyTango.Device_3Impl.get_state method server/device.html
@@ -384,6 +377,7 @@ PyTango.DeviceInfo class client/miscellaneous.html
 PyTango.DeviceProxy.subscribe_event method client/device_proxy.html
 PyTango.Database.get_attribute_alias method database.html
 PyTango.DeviceImpl.append_status method server/device.html
+PyTango.DeviceProxy.get_db_port method client/device_proxy.html
 PyTango.DeviceProxy.read_attributes_reply method client/device_proxy.html
 PyTango.Group.contains method client/group.html
 PyTango.Device_3Impl.get_device_properties method server/device.html
@@ -420,6 +414,7 @@ PyTango.AttrReadEvent class client/miscellaneous.html
 PyTango.Device_3Impl.get_status method server/device.html
 PyTango.Util.get_polling_threads_pool_size method server/util.html
 PyTango.AttributeProxy.set_config method client/attribute_proxy.html
+PyTango.Attr.get_disp_level method server/attribute.html
 PyTango.Database.get_device_member method database.html
 PyTango.Util.server_run method server/util.html
 PyTango.Attribute.get_max_dim_x method server/attribute.html
@@ -430,10 +425,12 @@ PyTango.NonSupportedFeature exception exception.html
 PyTango.Device_4Impl.push_change_event method server/device.html
 PyTango.DeviceAttributeConfig class client/miscellaneous.html
 PyTango.Database.get_device_property method database.html
+PyTango.Group.get_fully_qualified_name method client/group.html
 PyTango.Database.check_access_control method database.html
 PyTango.Device_4Impl.set_change_event method server/device.html
 PyTango.AttrWriteType class client/other.html
 PyTango.Database.get_server_class_list method database.html
+PyTango.Group.read_attribute_asynch method client/group.html
 PyTango.PeriodicEventInfo class client/miscellaneous.html
 PyTango.DeviceProxy.write_attributes_asynch method client/device_proxy.html
 PyTango.Device_3Impl.dev_status method server/device.html
@@ -445,12 +442,12 @@ PyTango.WAttribute.get_write_value_length method server/attribute.html
 PyTango.Device_3Impl.warn_stream method server/device.html
 PyTango.DeviceImpl.get_name method server/device.html
 PyTango.Release class client/other.html
-PyTango.Database.add_server method database.html
+PyTango.Database.get_property_forced method database.html
 PyTango.AttributeProxy.is_event_queue_empty method client/attribute_proxy.html
 PyTango.Database.get_device_attribute_property method database.html
 PyTango.UserDefaultAttrProp.set_abs_change method server/attribute.html
 PyTango.Device_2Impl.set_state method server/device.html
-PyTango.Group.get_fully_qualified_name method client/group.html
+PyTango.Attribute.set_archive_event method server/attribute.html
 PyTango.Group.name_equals method client/group.html
 PyTango.Database.add_device method database.html
 PyTango.Except.print_exception staticmethod exception.html
@@ -472,7 +469,7 @@ PyTango.Device_4Impl.unregister_signal method server/device.html
 PyTango.NotAllowed exception exception.html
 PyTango.DeviceProxy.cancel_all_polling_asynch_request method client/device_proxy.html
 PyTango.AttributeEventInfo class client/miscellaneous.html
-PyTango.DeviceProxy.name method client/device_proxy.html
+PyTango.DeviceProxy class client/device_proxy.html
 PyTango.AsynReplyNotArrived exception exception.html
 PyTango.Device_3Impl.push_change_event method server/device.html
 PyTango.DbDatum.is_empty method database.html
@@ -509,10 +506,9 @@ PyTango.Database.unexport_server method database.html
 PyTango.DeviceProxy.get_attribute_poll_period method client/device_proxy.html
 PyTango.DeviceImpl.debug_stream method server/device.html
 PyTango.Attribute.get_date method server/attribute.html
-PyTango.DeviceAttribute.except_flags class client/miscellaneous.html
 PyTango.Attribute.get_data_format method server/attribute.html
-PyTango.Device_3Impl.read_attr_hardware method server/device.html
-PyTango.Attr.get_polling_period method server/attribute.html
+PyTango.Database.get_device_attribute_property_history method database.html
+PyTango.Attribute.is_polled method server/attribute.html
 PyTango.DeviceImpl.set_state method server/device.html
 PyTango.asyn_req_type class client/other.html
 PyTango.Util.get_device_list method server/util.html
@@ -524,6 +520,7 @@ PyTango.AttributeProxy.get_device_proxy method client/attribute_proxy.html
 PyTango.DeviceProxy.get_locker method client/device_proxy.html
 PyTango.DevFailed exception exception.html
 PyTango.Attribute.get_attr_serial_model method server/attribute.html
+PyTango.Attr.get_polling_period method server/attribute.html
 PyTango.Util.trigger_attr_polling method server/util.html
 PyTango.Database.delete_device_attribute_property method database.html
 PyTango.DeviceData.get_type method client/miscellaneous.html
@@ -581,6 +578,7 @@ PyTango.DeviceProxy.get_attribute_config method client/device_proxy.html
 PyTango.Attribute.set_date method server/attribute.html
 PyTango.DeviceProxy.write_attribute method client/device_proxy.html
 PyTango.DeviceProxy.is_event_queue_empty method client/device_proxy.html
+PyTango.Database.add_server method database.html
 PyTango.DeviceImpl.dev_status method server/device.html
 PyTango.DeviceImpl.info_stream method server/device.html
 PyTango.Device_3Impl.push_archive_event method server/device.html

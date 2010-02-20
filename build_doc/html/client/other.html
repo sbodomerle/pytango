@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -18,6 +20,7 @@
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="PyTango v7.1.0 documentation" href="../index.html" />
     <link rel="up" title="The Tango Device Python API" href="index.html" />
@@ -46,39 +49,39 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/logo.png" alt="Logo"/>
             </a></p>
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Enumerations &amp; other classes</a><ul>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference external" href="#">Enumerations &amp; other classes</a><ul>
 <li><a class="reference external" href="#enumerations">Enumerations</a></li>
 <li><a class="reference external" href="#other-classes">Other classes</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="miscellaneous.html"
-                                  title="previous chapter">Information classes</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="../database.html"
-                                  title="next chapter">The Tango Database Python API</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../_sources/client/other.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="miscellaneous.html"
+                        title="previous chapter">Information classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../database.html"
+                        title="next chapter">The Tango Database Python API</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/client/other.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -93,8 +96,7 @@
 <h2>Enumerations<a class="headerlink" href="#enumerations" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="PyTango.LockerLanguage">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LockerLanguage</tt><a class="headerlink" href="#PyTango.LockerLanguage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LockerLanguage</tt><a class="headerlink" href="#PyTango.LockerLanguage" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the programming language in which the
 client application who locked is written.</p>
 <blockquote>
@@ -108,8 +110,7 @@ client application who locked is written.</p>
 
 <dl class="class">
 <dt id="PyTango.CmdArgType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">CmdArgType</tt><a class="headerlink" href="#PyTango.CmdArgType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">CmdArgType</tt><a class="headerlink" href="#PyTango.CmdArgType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the command argument type.</p>
 <blockquote>
 <ul class="simple">
@@ -148,8 +149,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">CmdArgTyp
 
 <dl class="class">
 <dt id="PyTango.MessBoxType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">MessBoxType</tt><a class="headerlink" href="#PyTango.MessBoxType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">MessBoxType</tt><a class="headerlink" href="#PyTango.MessBoxType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the MessBoxType</p>
 <blockquote>
 <ul class="simple">
@@ -162,8 +162,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">MessBoxTy
 
 <dl class="class">
 <dt id="PyTango.PollObjType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollObjType</tt><a class="headerlink" href="#PyTango.PollObjType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollObjType</tt><a class="headerlink" href="#PyTango.PollObjType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the PollObjType</p>
 <blockquote>
 <ul class="simple">
@@ -178,8 +177,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollObjTy
 
 <dl class="class">
 <dt id="PyTango.PollCmdCode">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollCmdCode</tt><a class="headerlink" href="#PyTango.PollCmdCode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollCmdCode</tt><a class="headerlink" href="#PyTango.PollCmdCode" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the PollCmdCode</p>
 <blockquote>
 <ul class="simple">
@@ -200,8 +198,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">PollCmdCo
 
 <dl class="class">
 <dt id="PyTango.SerialModel">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">SerialModel</tt><a class="headerlink" href="#PyTango.SerialModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">SerialModel</tt><a class="headerlink" href="#PyTango.SerialModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the type of serialization performed by the device server</p>
 <blockquote>
 <ul class="simple">
@@ -215,8 +212,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">SerialMod
 
 <dl class="class">
 <dt id="PyTango.AttReqType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttReqType</tt><a class="headerlink" href="#PyTango.AttReqType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttReqType</tt><a class="headerlink" href="#PyTango.AttReqType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the type of attribute request</p>
 <blockquote>
 <ul class="simple">
@@ -228,8 +224,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttReqTyp
 
 <dl class="class">
 <dt id="PyTango.LockCmdCode">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LockCmdCode</tt><a class="headerlink" href="#PyTango.LockCmdCode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LockCmdCode</tt><a class="headerlink" href="#PyTango.LockCmdCode" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the LockCmdCode</p>
 <blockquote>
 <ul class="simple">
@@ -244,8 +239,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LockCmdCo
 
 <dl class="class">
 <dt id="PyTango.LogLevel">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogLevel</tt><a class="headerlink" href="#PyTango.LogLevel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogLevel</tt><a class="headerlink" href="#PyTango.LogLevel" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the LogLevel</p>
 <blockquote>
 <ul class="simple">
@@ -262,8 +256,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogLevel<
 
 <dl class="class">
 <dt id="PyTango.LogTarget">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogTarget</tt><a class="headerlink" href="#PyTango.LogTarget" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogTarget</tt><a class="headerlink" href="#PyTango.LogTarget" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the LogTarget</p>
 <blockquote>
 <ul class="simple">
@@ -277,8 +270,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">LogTarget
 
 <dl class="class">
 <dt id="PyTango.EventType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">EventType</tt><a class="headerlink" href="#PyTango.EventType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">EventType</tt><a class="headerlink" href="#PyTango.EventType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing event type</p>
 <blockquote>
 <ul class="simple">
@@ -296,8 +288,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">EventType
 
 <dl class="class">
 <dt id="PyTango.KeepAliveCmdCode">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">KeepAliveCmdCode</tt><a class="headerlink" href="#PyTango.KeepAliveCmdCode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">KeepAliveCmdCode</tt><a class="headerlink" href="#PyTango.KeepAliveCmdCode" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the KeepAliveCmdCode</p>
 <blockquote>
 <ul class="simple">
@@ -309,8 +300,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">KeepAlive
 
 <dl class="class">
 <dt id="PyTango.AccessControlType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AccessControlType</tt><a class="headerlink" href="#PyTango.AccessControlType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AccessControlType</tt><a class="headerlink" href="#PyTango.AccessControlType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the AccessControlType</p>
 <blockquote>
 <ul class="simple">
@@ -323,8 +313,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AccessCon
 
 <dl class="class">
 <dt id="PyTango.asyn_req_type">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">asyn_req_type</tt><a class="headerlink" href="#PyTango.asyn_req_type" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">asyn_req_type</tt><a class="headerlink" href="#PyTango.asyn_req_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the asynchronous request type</p>
 <blockquote>
 <ul class="simple">
@@ -337,8 +326,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">asyn_req_
 
 <dl class="class">
 <dt id="PyTango.cb_sub_model">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">cb_sub_model</tt><a class="headerlink" href="#PyTango.cb_sub_model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">cb_sub_model</tt><a class="headerlink" href="#PyTango.cb_sub_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing callback sub model</p>
 <blockquote>
 <ul class="simple">
@@ -350,8 +338,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">cb_sub_mo
 
 <dl class="class">
 <dt id="PyTango.AttrQuality">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrQuality</tt><a class="headerlink" href="#PyTango.AttrQuality" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrQuality</tt><a class="headerlink" href="#PyTango.AttrQuality" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the attribute quality</p>
 <blockquote>
 <ul class="simple">
@@ -366,8 +353,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrQuali
 
 <dl class="class">
 <dt id="PyTango.AttrWriteType">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrWriteType</tt><a class="headerlink" href="#PyTango.AttrWriteType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrWriteType</tt><a class="headerlink" href="#PyTango.AttrWriteType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the attribute type</p>
 <blockquote>
 <ul class="simple">
@@ -381,8 +367,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrWrite
 
 <dl class="class">
 <dt id="PyTango.AttrDataFormat">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrDataFormat</tt><a class="headerlink" href="#PyTango.AttrDataFormat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrDataFormat</tt><a class="headerlink" href="#PyTango.AttrDataFormat" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the attribute format</p>
 <blockquote>
 <ul class="simple">
@@ -396,8 +381,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">AttrDataF
 
 <dl class="class">
 <dt id="PyTango.DevSource">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevSource</tt><a class="headerlink" href="#PyTango.DevSource" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevSource</tt><a class="headerlink" href="#PyTango.DevSource" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the device source for data</p>
 <blockquote>
 <ul class="simple">
@@ -410,8 +394,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevSource
 
 <dl class="class">
 <dt id="PyTango.ErrSeverity">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">ErrSeverity</tt><a class="headerlink" href="#PyTango.ErrSeverity" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">ErrSeverity</tt><a class="headerlink" href="#PyTango.ErrSeverity" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the error severity</p>
 <blockquote>
 <ul class="simple">
@@ -424,8 +407,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">ErrSeveri
 
 <dl class="class">
 <dt id="PyTango.DevState">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevState</tt><a class="headerlink" href="#PyTango.DevState" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevState</tt><a class="headerlink" href="#PyTango.DevState" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the device state</p>
 <blockquote>
 <ul class="simple">
@@ -449,8 +431,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevState<
 
 <dl class="class">
 <dt id="PyTango.DispLevel">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DispLevel</tt><a class="headerlink" href="#PyTango.DispLevel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DispLevel</tt><a class="headerlink" href="#PyTango.DispLevel" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration representing the display level</p>
 <blockquote>
 <ul class="simple">
@@ -465,8 +446,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DispLevel
 <h2>Other classes<a class="headerlink" href="#other-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="PyTango.Release">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Release</tt><a class="headerlink" href="#PyTango.Release" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Release</tt><a class="headerlink" href="#PyTango.Release" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Release information:</dt>
 <dd><ul class="first last simple">
@@ -489,8 +469,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Release</
 
 <dl class="class">
 <dt id="PyTango.TimeVal">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">TimeVal</tt><a class="headerlink" href="#PyTango.TimeVal" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">TimeVal</tt><big>(</big><em>a=None</em>, <em>b=None</em>, <em>c=None</em><big>)</big><a class="headerlink" href="#PyTango.TimeVal" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Time value structure with the following members</dt>
 <dd><ul class="first last simple">
@@ -528,8 +507,8 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">TimeVal</
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, ALBA - CELLS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+        &copy; Copyright 2009, ALBA - CELLS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
     </div>
   </body>
 </html>

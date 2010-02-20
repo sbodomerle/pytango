@@ -136,8 +136,7 @@ void export_device_data()
     scope scope_dd = DeviceData;
 
     /// @todo get rid of except_flags everywhere... or really use and export them everywhere!
-    enum_<Tango::DeviceData::except_flags>("except_flags",
-        "an enumerated for the exception flags")
+    enum_<Tango::DeviceData::except_flags>("except_flags")
         .value("isempty_flag", Tango::DeviceData::isempty_flag)
         .value("wrongtype_flag", Tango::DeviceData::wrongtype_flag)
         .value("numFlags", Tango::DeviceData::numFlags)

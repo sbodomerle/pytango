@@ -1,3 +1,4 @@
+import copy
 
 from utils import document_method as __document_method
 from utils import document_enum as __document_enum
@@ -6,9 +7,18 @@ from _PyTango import DeviceAttribute, ExtractAs
 def __DeviceAttribute__get_data(self):
     return self.get_data_raw().extract()
 
-def __init_DeviceAttribute():
-    DeviceAttribute.ExtractAs = ExtractAs
-    pass
+def __DeviceAttribute__init__(self, da=None):
+    DeviceAttribute.__init_orig__(self)
+    if da is not None:
+        try: self.value = copy.deepcopy(da.value)
+        except: pass
+        try: self.w_value = copy.deepcopy(da.w_value)
+        except: pass
+        try: self.scalar_w_value = da.scalar_w_value
+        except: pass
+        self.type = da.type
+        self.is_empty = da.is_empty
+        self.has_failed = da.has_failed
 
 def __doc_DeviceAttribute():
     def document_method(method_name, desc, append=True):
@@ -18,7 +28,7 @@ def __doc_DeviceAttribute():
         This is the fundamental type for RECEIVING data from device attributes.
 
         It contains several fields. The most important ones depend on the
-        ExtractAs method used to theg the value. Normally they are:
+        ExtractAs method used to get the value. Normally they are:
         
             - value   : Normal scalar value or numpy array of values.
             - w_value : The write part of the attribute.
@@ -65,6 +75,12 @@ def __doc_DeviceAttribute():
         Parameters : None
         Return     : (sequence<DevError>)
     """ )
+
+def __init_DeviceAttribute():
+    DeviceAttribute.__init_orig__ = DeviceAttribute.__init__
+    DeviceAttribute.__init__ = __DeviceAttribute__init__
+    DeviceAttribute.ExtractAs = ExtractAs
+    pass
 
 def init_DeviceAttribute():
     __init_DeviceAttribute()

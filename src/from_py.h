@@ -1,12 +1,23 @@
 #pragma once
 
-#include "defs.h"
-#include "tgutils.h"
-
 #include <boost/python.hpp>
 #include <tango.h>
 
+#include "defs.h"
+#include "tgutils.h"
+#include "pyutils.h"
 #include "tango_numpy.h"
+#include "exception.h"
+
+extern const char *param_must_be_seq;
+
+/**
+ * Converter from python sequence of strings to a std::vector<std::string>
+ *
+ * @param[in] py_value python sequence object or a single string
+ * @param[out] result std string vector to be filled
+ */
+void convert2array(const boost::python::object &py_value, StdStringVector & result);
 
 /**
  * Converter from python sequence to a Tango CORBA sequence
@@ -27,17 +38,10 @@ void convert2array(const boost::python::object &py_value, _CORBA_Sequence<TangoE
 /**
  * Converter from python sequence of strings to a Tango DevVarStringArray
  *
- * @param[in] py_value python sequence object
+ * @param[in] py_value python sequence object or a single string
  * @param[out] result Tango string array to be filled
  */
-inline void convert2array(const boost::python::object &py_value, Tango::DevVarStringArray & result)
-{
-    size_t size = boost::python::len(py_value);
-    result.length(size);
-    for (size_t i=0; i < size; ++i) {
-        result[i] = CORBA::string_dup(boost::python::extract<char*>(py_value[i]));
-    }
-}
+void convert2array(const boost::python::object &py_value, Tango::DevVarStringArray & result);
 
 inline void raise_convert2array_DevVarDoubleStringArray()
 {
@@ -406,3 +410,16 @@ class CSequenceFromPython
     }
 };
 
+void from_py_object(boost::python::object &, Tango::AttributeAlarm &);
+void from_py_object(boost::python::object &, Tango::ChangeEventProp &);
+void from_py_object(boost::python::object &, Tango::PeriodicEventProp &);
+void from_py_object(boost::python::object &, Tango::ArchiveEventProp &);
+void from_py_object(boost::python::object &, Tango::EventProperties &);
+
+void from_py_object(boost::python::object &, Tango::AttributeConfig &);
+void from_py_object(boost::python::object &, Tango::AttributeConfig_2 &);
+void from_py_object(boost::python::object &, Tango::AttributeConfig_3 &);
+
+void from_py_object(boost::python::object &, Tango::AttributeConfigList &);
+void from_py_object(boost::python::object &, Tango::AttributeConfigList_2 &);
+void from_py_object(boost::python::object &, Tango::AttributeConfigList_3 &);

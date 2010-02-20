@@ -78,6 +78,7 @@ def is_float(tg_type, inc_array=False):
     return tg_type in _array_float_types
 
 def seq_2_StdStringVector(seq, vec=None):
+    if isinstance(seq, StdStringVector): return seq
     if vec is None: vec = StdStringVector()
     if not isinstance(vec, StdStringVector):
         raise TypeError('vec must be a PyTango.StdStringVector')
@@ -92,6 +93,7 @@ def StdStringVector_2_seq(vec, seq=None):
     return seq
 
 def seq_2_StdDoubleVector(seq, vec=None):
+    if isinstance(seq, StdDoubleVector): return seq
     if vec is None: vec = StdDoubleVector()
     if not isinstance(vec, StdDoubleVector):
         raise TypeError('vec must be a PyTango.StdDoubleVector')
@@ -106,6 +108,7 @@ def StdDoubleVector_2_seq(vec, seq=None):
     return seq
 
 def seq_2_DbDevInfos(seq, vec=None):
+    if isinstance(seq, DbDevInfos): return seq
     if vec is None: vec = DbDevInfos()
     if not isinstance(vec, DbDevInfos):
         raise TypeError('vec must be a PyTango.DbDevInfos')
@@ -113,6 +116,7 @@ def seq_2_DbDevInfos(seq, vec=None):
     return vec
 
 def seq_2_DbDevExportInfos(seq, vec=None):
+    if isinstance(seq, DbDevExportInfos): return seq
     if vec is None: vec = DbDevExportInfos()
     if not isinstance(vec, DbDevExportInfos):
         raise TypeError('vec must be a PyTango.DbDevExportInfos')
@@ -120,6 +124,7 @@ def seq_2_DbDevExportInfos(seq, vec=None):
     return vec
 
 def seq_2_DbData(seq, vec=None):
+    if isinstance(seq, DbData): return seq
     if vec is None: vec = DbData()
     if not isinstance(vec, DbData):
         raise TypeError('vec must be a PyTango.DbData')

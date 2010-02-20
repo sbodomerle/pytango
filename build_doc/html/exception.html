@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,7 +12,7 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '#',
         VERSION:     '7.1.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
@@ -18,6 +20,7 @@
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyTango v7.1.0 documentation" href="index.html" />
     <link rel="next" title="FAQ" href="faq.html" />
@@ -44,9 +47,9 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logo.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Exception Handling</a><ul>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference external" href="#">Exception Handling</a><ul>
 <li><a class="reference external" href="#exception-definition">Exception definition</a></li>
 <li><a class="reference external" href="#throwing-exception-in-a-device-server">Throwing exception in a device server</a></li>
 <li><a class="reference external" href="#exception-api">Exception API</a></li>
@@ -54,30 +57,30 @@
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="server/util.html"
-                                  title="previous chapter">Util</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="faq.html"
-                                  title="next chapter">FAQ</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/exception.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="server/util.html"
+                        title="previous chapter">Util</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="faq.html"
+                        title="next chapter">FAQ</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/exception.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -197,8 +200,7 @@ the exception in case of:</p>
 <h2>Exception API<a class="headerlink" href="#exception-api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="PyTango.Except">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Except</tt><a class="headerlink" href="#PyTango.Except" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Except</tt><a class="headerlink" href="#PyTango.Except" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">Boost.Python.instance</span></tt></p>
 <dl class="docutils">
 <dt>A containner for the static methods:</dt>
@@ -212,8 +214,7 @@ class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Except</t
 </blockquote>
 <dl class="last staticmethod">
 <dt id="PyTango.Except.print_exception">
-<em class="property">
-static </em><tt class="descname">print_exception</tt><big>(</big><em>exception</em><big>)</big><a class="headerlink" href="#PyTango.Except.print_exception" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">print_exception</tt><big>(</big><em>exception</em><big>)</big><a class="headerlink" href="#PyTango.Except.print_exception" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints the Tango exception on the standard output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -233,8 +234,7 @@ static </em><tt class="descname">print_exception</tt><big>(</big><em>exception</
 
 <dl class="class">
 <dt id="PyTango.DevError">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevError</tt><a class="headerlink" href="#PyTango.DevError" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevError</tt><a class="headerlink" href="#PyTango.DevError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">Boost.Python.instance</span></tt></p>
 <p>Structure describing any error resulting from a command execution,
 or an attribute query, with following members:</p>
@@ -250,14 +250,12 @@ or an attribute query, with following members:</p>
 
 <dl class="exception">
 <dt id="PyTango.DevFailed">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevFailed</tt><a class="headerlink" href="#PyTango.DevFailed" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">DevFailed</tt><a class="headerlink" href="#PyTango.DevFailed" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <tt class="xref docutils literal"><span class="pre">exceptions.Exception</span></tt></dd></dl>
 
 <dl class="exception">
 <dt id="PyTango.ConnectionFailed">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">ConnectionFailed</tt><a class="headerlink" href="#PyTango.ConnectionFailed" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">ConnectionFailed</tt><a class="headerlink" href="#PyTango.ConnectionFailed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown when a problem occurs during the connection
@@ -285,8 +283,7 @@ flag and its minor code</dd>
 
 <dl class="exception">
 <dt id="PyTango.CommunicationFailed">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">CommunicationFailed</tt><a class="headerlink" href="#PyTango.CommunicationFailed" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">CommunicationFailed</tt><a class="headerlink" href="#PyTango.CommunicationFailed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown when a communication problem is detected during
@@ -353,8 +350,7 @@ structures fields are:</p>
 
 <dl class="exception">
 <dt id="PyTango.WrongNameSyntax">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">WrongNameSyntax</tt><a class="headerlink" href="#PyTango.WrongNameSyntax" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">WrongNameSyntax</tt><a class="headerlink" href="#PyTango.WrongNameSyntax" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></dd></dl>
 
 <p>This exception has only one level of Tango::DevError structure. The possible
@@ -382,8 +378,7 @@ is thrown by the AttributeProxy class constructor.</dd>
 </blockquote>
 <dl class="exception">
 <dt id="PyTango.NonDbDevice">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NonDbDevice</tt><a class="headerlink" href="#PyTango.NonDbDevice" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NonDbDevice</tt><a class="headerlink" href="#PyTango.NonDbDevice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 This exception has only one level of Tango::DevError structure. The reason
@@ -394,8 +389,7 @@ non-database device.</blockquote>
 
 <dl class="exception">
 <dt id="PyTango.WrongData">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">WrongData</tt><a class="headerlink" href="#PyTango.WrongData" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">WrongData</tt><a class="headerlink" href="#PyTango.WrongData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception has only one level of Tango::DevError structure.
@@ -425,8 +419,7 @@ different than the type used to send the data</dd>
 
 <dl class="exception">
 <dt id="PyTango.NonSupportedFeature">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NonSupportedFeature</tt><a class="headerlink" href="#PyTango.NonSupportedFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NonSupportedFeature</tt><a class="headerlink" href="#PyTango.NonSupportedFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 This exception is thrown by the API layer when a request to a feature
@@ -437,8 +430,7 @@ the reason field which is API_UnsupportedFeature.</blockquote>
 
 <dl class="exception">
 <dt id="PyTango.AsynCall">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">AsynCall</tt><a class="headerlink" href="#PyTango.AsynCall" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">AsynCall</tt><a class="headerlink" href="#PyTango.AsynCall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown by the API layer when a the asynchronous model id
@@ -462,8 +454,7 @@ by a command_inout_asynch() method with a read_attribute_reply() attribute).</dd
 
 <dl class="exception">
 <dt id="PyTango.AsynReplyNotArrived">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">AsynReplyNotArrived</tt><a class="headerlink" href="#PyTango.AsynReplyNotArrived" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">AsynReplyNotArrived</tt><a class="headerlink" href="#PyTango.AsynReplyNotArrived" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown by the API layer when:</p>
@@ -479,8 +470,7 @@ exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">AsynR
 
 <dl class="exception">
 <dt id="PyTango.EventSystemFailed">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">EventSystemFailed</tt><a class="headerlink" href="#PyTango.EventSystemFailed" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">EventSystemFailed</tt><a class="headerlink" href="#PyTango.EventSystemFailed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown by the API layer when subscribing or unsubscribing
@@ -512,8 +502,7 @@ method</dd>
 
 <dl class="exception">
 <dt id="PyTango.DeviceUnlocked">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">DeviceUnlocked</tt><a class="headerlink" href="#PyTango.DeviceUnlocked" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">DeviceUnlocked</tt><a class="headerlink" href="#PyTango.DeviceUnlocked" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></p>
 <blockquote>
 <p>This exception is thrown by the API layer when a device locked by the
@@ -532,14 +521,12 @@ which API call generates the exception and device name.</p>
 
 <dl class="exception">
 <dt id="PyTango.NotAllowed">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NotAllowed</tt><a class="headerlink" href="#PyTango.NotAllowed" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NotAllowed</tt><a class="headerlink" href="#PyTango.NotAllowed" title="Permalink to this definition">¶</a></dt>
 <dd>Bases: <a title="PyTango.DevFailed" class="reference internal" href="#PyTango.DevFailed"><tt class="xref docutils literal"><span class="pre">PyTango.DevFailed</span></tt></a></dd></dl>
 
 <dl class="exception">
 <dt id="PyTango.NamedDevFailedList">
-<em class="property">
-exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NamedDevFailedList</tt><a class="headerlink" href="#PyTango.NamedDevFailedList" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">PyTango.</tt><tt class="descname">NamedDevFailedList</tt><a class="headerlink" href="#PyTango.NamedDevFailedList" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">Boost.Python.instance</span></tt></p>
 <blockquote>
 <p>This exception is only thrown by the DeviceProxy::write_attributes()
@@ -582,8 +569,8 @@ which failed :</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, ALBA - CELLS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+        &copy; Copyright 2009, ALBA - CELLS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
     </div>
   </body>
 </html>

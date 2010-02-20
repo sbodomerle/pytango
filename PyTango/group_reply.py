@@ -3,12 +3,31 @@ from utils import document_method as __document_method
 from _PyTango import GroupReply
 from _PyTango import GroupCmdReply
 from _PyTango import GroupAttrReply
+from PyTango import ExtractAs
 
 def __GroupCmdReply__get_data(self):
     return self.get_data_raw().extract()
 
+def __GroupAttrReply__get_data(self, extract_as=ExtractAs.Numpy):
+    # GroupAttrReply.__get_data() extracts the data from the object, so
+    # two successive calls to get_data() result in the second one returning
+    # an empty value, which is an unexpected behaviour.
+    # That's why we cache the result of the first call.
+    try:
+        data, orig_extract_as = self.__dataCache
+    except AttributeError:
+        data = self.__get_data(extract_as)
+        self.__dataCache = data, extract_as
+        return data
+    
+    if extract_as != orig_extract_as:
+        raise Exception("Successive calls to get_data() must receive the same"
+                        " parameters as the first one.")
+    return data
+
 def __init_GroupReply():
     GroupCmdReply.get_data = __GroupCmdReply__get_data
+    GroupAttrReply.get_data = __GroupAttrReply__get_data
 
 def __doc_GroupReply():
     def document_method(method_name, desc, append=True):

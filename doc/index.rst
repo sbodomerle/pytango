@@ -43,12 +43,16 @@ These Tango high level C++ classes and structures are exported to Python using t
     exception
     faq
 
+.. _revision:
+
 Revision
 --------
 
 :Contributers: M\. Ounsy, A\. Buteau, V\. Forchì, E\. Taurel, T\. Coutinho, R\. Suñe
 
-:Last Update: November 12, 2009
+:Last Update: |today|
+
+.. _history-modifications:
 
 History of modifications:
 
@@ -86,12 +90,27 @@ History of modifications:
 +----------+------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 | 12/11/09 | 8.3                                                                          | Update to Tango 7.1.                                | T\. Coutinho/R\. Suñe |
 +----------+------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| ??/12/09 | 8.4                                                                          | Update to PyTango 7.1.0 rc1                         | T\. Coutinho/R\. Suñe |
++----------+------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| 19/02/10 | 8.5                                                                          | Update to PyTango 7.1.0                             | T\. Coutinho/R\. Suñe |
++----------+------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+
+.. _version-history:
 
 Version history:
 
 +------------+---------------------------------------------------------------------------------+
 | version    | Changes                                                                         |
 +============+=================================================================================+
+| 7.1.0      | Features:                                                                       |
+|            |     - from sourceforge:                                                         |
+|            |       - 2908176: read_*, write_* and is_*_allowed() methods can now be defined  |
+|            |       - 2941036: TimeVal conversion to time and datetime                        |
+|            |     - added str representation on Attr, Attribute, DeviceImpl and DeviceClass   |
+|            |                                                                                 |
+|            | Bug fixes:                                                                      |
+|            |     - from sourceforge: 2903755, 2908176, 2914194, 2909927, 2936173, 2949099    |
++------------+---------------------------------------------------------------------------------+
 | 7.1.0rc1   | Features:                                                                       |
 |            |     - v = image_attribute.get_write_value() returns square sequences (arrays of |
 |            |       arrays, or numpy objects) now instead of flat lists. Also for spectrum    |

@@ -13,8 +13,8 @@ from group_element import init_GroupElement as __init_GroupElement
 # The proxy is useful for add(group). In this case the parameter 'group'
 # becomes useless. With the proxy we make that parameter come to live
 # again before returning.
-# The other funtcion that needs to be adapted to this is get_group because
-# we want to regurn a Group, not a __Group!
+# The other function that needs to be adapted to this is get_group because
+# we want to return a Group, not a __Group!
 class Group:
     def __init__(self, name):
         if isinstance(name, str):

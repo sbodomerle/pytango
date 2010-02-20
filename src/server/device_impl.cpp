@@ -3,11 +3,14 @@
 #include <boost/python/return_value_policy.hpp>
 #include <tango.h>
 
+#include "defs.h"
 #include "pytgutils.h"
 #include "exception.h"
 #include "server/device_impl.h"
 #include "server/attr.h"
 #include "server/attribute.h"
+
+extern const char *param_must_be_seq;
 
 using namespace boost::python;
 
@@ -168,6 +171,14 @@ namespace PyDeviceImpl
      * **********************************/
     inline void push_change_event(Tango::DeviceImpl &self, str &name)
     {
+        str name_lower = name.lower();
+        if ("state" != name_lower && "status" != name_lower)
+        {
+            Tango::Except::throw_exception(
+                "PyDs_InvalidCall",
+                "push_change_event without data parameter is only allowed for "
+                "state and status attributes.", "DeviceImpl::push_change_event");
+        }
         SAFE_PUSH(self, attr, name)
         attr.fire_change_event();
     }
@@ -420,27 +431,9 @@ namespace PyDeviceImpl
         }
     }
 
-    inline void check_read_attribute_method_defined(PyObject *self,
-                                                    const std::string &attr_name)
-    {
-        std::string read_method = "read_" + attr_name;
-        check_attribute_method_defined(self, attr_name, read_method);
-    }
-
-    inline void check_write_attribute_method_defined(PyObject *self,
-                                                     const std::string &attr_name)
-    {
-        std::string write_method = "write_" + attr_name;
-        check_attribute_method_defined(self, attr_name, write_method);
-    }
-
     void add_attribute(Tango::DeviceImpl &self, const Tango::Attr &c_new_attr)
     {
         Tango::Attr &new_attr = const_cast<Tango::Attr &>(c_new_attr);
-
-        PyDeviceImplBase *py_self = dynamic_cast<PyDeviceImplBase *>(&self);
-
-        PyObject *the_self = py_self->the_self;
 
         std::string
             attr_name = new_attr.get_name(),
@@ -448,54 +441,7 @@ namespace PyDeviceImpl
             read_name_met = "read_" + attr_name,
             write_name_met = "write_" + attr_name;
 
-        //
-        // Before creating the attribute, check that the method to read and/or to write
-        // the attributes exist and that they are callable
-        //
-
         Tango::AttrWriteType attr_write = new_attr.get_writable();
-
-        switch (attr_write)
-        {
-            case Tango::READ:
-                check_read_attribute_method_defined(the_self, attr_name);
-                break;
-
-            case Tango::WRITE:
-                check_write_attribute_method_defined(the_self, attr_name);
-                break;
-
-            case Tango::READ_WRITE:
-                check_read_attribute_method_defined(the_self, attr_name);
-                check_write_attribute_method_defined(the_self, attr_name);
-                break;
-
-            default:
-
-            //
-            // Do we support READ_WITH_WRITE ?
-            //
-                break;
-        }
-
-        //
-        // Check if there is a is_allowed method for this attribute
-        //
-        bool is_allowed_exists, is_allowed_is_method;
-        is_method_defined(the_self, is_allowed_method, is_allowed_exists, is_allowed_is_method);
-
-        if (is_allowed_exists && !is_allowed_is_method)
-        {
-            TangoSys_OMemStream o;
-            o << "Wrong definition of attribute " << attr_name
-              << "\nThe object " << is_allowed_method
-              << "  exists in your class but is not a Python method" << ends;
-
-            Tango::Except::throw_exception(
-                        (const char *)"PyDs_WrongCommandDefinition",
-                        o.str(),
-                        (const char *)"cpp_add_attribute()");
-        }
 
         //
         // Create the attribute object according to attribute format
@@ -549,11 +495,7 @@ namespace PyDeviceImpl
 
         py_attr_ptr->set_read_name(read_name_met);
         py_attr_ptr->set_write_name(write_name_met);
-
-        if (is_allowed_exists)
-        {
-            py_attr_ptr->set_allowed(is_allowed_method);
-        }
+        py_attr_ptr->set_allowed_name(is_allowed_method);
 
         //
         // Install attribute in Tango.
@@ -590,6 +532,27 @@ namespace PyDeviceImpl
     inline void fatal(Tango::DeviceImpl &self, const string &msg)
     {
         self.get_logger()->fatal(msg);
+    }
+    
+    PyObject* get_attribute_config(Tango::DeviceImpl &self, object &py_attr_name_seq)
+    {
+        Tango::DevVarStringArray par;
+        convert2array(py_attr_name_seq, par);
+        
+        Tango::AttributeConfigList *attr_conf_list_ptr = 
+            self.get_attribute_config(par);
+        
+        boost::python::list ret = to_py(*attr_conf_list_ptr);
+        delete attr_conf_list_ptr;
+        
+        return boost::python::incref(ret.ptr());
+    }
+    
+    void set_attribute_config(Tango::DeviceImpl &self, object &py_attr_conf_list)
+    {
+        Tango::AttributeConfigList attr_conf_list;
+        from_py_object(py_attr_conf_list, attr_conf_list);
+        self.set_attribute_config(attr_conf_list);
     }
 }
 
@@ -640,6 +603,32 @@ void Device_2ImplWrap::init_device()
 PyDeviceImplBase::PyDeviceImplBase(PyObject *self):the_self(self)
 {
     Py_INCREF(the_self);
+}
+
+namespace PyDevice_2Impl
+{
+    PyObject* get_attribute_config_2(Tango::Device_2Impl &self, object &attr_name_seq)
+    {
+        Tango::DevVarStringArray par;
+        convert2array(attr_name_seq, par);
+        
+        Tango::AttributeConfigList_2 *attr_conf_list_ptr = 
+            self.get_attribute_config_2(par);
+        
+        boost::python::list ret = to_py(*attr_conf_list_ptr);
+        delete attr_conf_list_ptr;
+        
+        return boost::python::incref(ret.ptr());
+    }
+
+    /* Postponed: Tango (7.1.1) has no set_attribute_config_2 !!!
+    void set_attribute_config_2(Tango::Device_2Impl &self, object &py_attr_conf_list)
+    {
+        Tango::AttributeConfigList_2 attr_conf_list;
+        from_py_object(py_attr_conf_list, attr_conf_list);
+        self.set_attribute_config_2(attr_conf_list);
+    }
+    */
 }
 
 PyDeviceImplBase::~PyDeviceImplBase()
@@ -798,6 +787,31 @@ void Device_3ImplWrap::signal_handler(long signo)
 void Device_3ImplWrap::default_signal_handler(long signo)
 {
     this->Tango::Device_3Impl::signal_handler(signo);
+}
+
+namespace PyDevice_3Impl
+{
+    PyObject* get_attribute_config_3(Tango::Device_3Impl &self, object &attr_name_seq)
+    {
+        Tango::DevVarStringArray par;
+        convert2array(attr_name_seq, par);
+        
+        Tango::AttributeConfigList_3 *attr_conf_list_ptr = 
+            self.get_attribute_config_3(par);
+        
+        boost::python::list ret = to_py(*attr_conf_list_ptr);
+        delete attr_conf_list_ptr;
+        
+        return boost::python::incref(ret.ptr());
+    }
+    
+    void set_attribute_config_3(Tango::Device_3Impl &self, object &py_attr_conf_list)
+    {
+        Tango::AttributeConfigList_3 attr_conf_list;
+        from_py_object(py_attr_conf_list, attr_conf_list);
+        self.set_attribute_config_3(attr_conf_list);
+    }
+
 }
 
 Device_4ImplWrap::Device_4ImplWrap(PyObject *self, CppDeviceClass *cl,
@@ -1004,6 +1018,7 @@ void export_device_impl()
             append_status_overload())
         .def("dev_state", &Tango::DeviceImpl::dev_state)
         .def("dev_status", &Tango::DeviceImpl::dev_status)
+        .def("get_attribute_config", &PyDeviceImpl::get_attribute_config)
         .def("set_change_event",
             &Tango::DeviceImpl::set_change_event,
             set_change_event_overload())
@@ -1013,6 +1028,7 @@ void export_device_impl()
         //@TODO .def("get_device_class")
         //@TODO .def("get_device_attr")
         //@TODO .def("get_db_device")
+
 
         .def("push_change_event",
             (void (*) (Tango::DeviceImpl &, str &))
@@ -1141,6 +1157,7 @@ void export_device_impl()
            ("Device_2Impl",
             init<CppDeviceClass *, const char *,
                  optional<const char *, Tango::DevState, const char *> >())
+        .def("get_attribute_config_2", &PyDevice_2Impl::get_attribute_config_2)
     ;
 
     class_<Tango::Device_3Impl, Device_3ImplWrap,
@@ -1166,6 +1183,8 @@ void export_device_impl()
             &Device_3ImplWrap::default_signal_handler)
         .def("_add_attribute", &PyDeviceImpl::add_attribute)
         .def("_remove_attribute", &PyDeviceImpl::remove_attribute)
+        .def("get_attribute_config_3", &PyDevice_3Impl::get_attribute_config_3)
+        .def("set_attribute_config_3", &PyDevice_3Impl::set_attribute_config_3)
     ;
 
     class_<Tango::Device_4Impl, Device_4ImplWrap,

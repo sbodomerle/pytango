@@ -58,6 +58,13 @@ namespace PyGroupElement
         return r;
     }
 
+    long read_attributes_asynch (Tango::GroupElement &self, object py_value, bool forward = true, long reserved = -1)
+    {
+        StdStringVector r;
+        convert2array(py_value, r);
+        return self.read_attributes_asynch(r, forward, reserved);
+    }
+
     long write_attribute_asynch (Tango::GroupElement &self, const std::string &attr_name, object py_value, bool forward = true, long reserved = -1)
     {
         Tango::DeviceAttribute dev_attr;
@@ -77,6 +84,8 @@ namespace PyGroupElement
         AutoPythonAllowThreads guard;
         return self.write_attribute_reply(req_id, timeout_ms);
     }
+    
+    
 }
 
 
@@ -139,7 +148,7 @@ void export_group_element()
         .def("command_inout_asynch",
             pure_virtual((long (Tango::GroupElement::*) (const std::string&, bool, bool, long))
             &Tango::GroupElement::command_inout_asynch),
-            (	arg_("self"),
+            (   arg_("self"),
                 arg_("cmd_name"),
                 arg_("forget")=false,
                 arg_("forward")=true,
@@ -147,7 +156,7 @@ void export_group_element()
         .def("command_inout_asynch",
             pure_virtual((long (Tango::GroupElement::*) (const std::string&, const Tango::DeviceData&, bool, bool, long))
             &Tango::GroupElement::command_inout_asynch),
-            (	arg_("self"),
+            (   arg_("self"),
                 arg_("cmd_name"),
                 arg_("param"),
                 arg_("forget")=false,
@@ -170,7 +179,7 @@ void export_group_element()
                 arg_("req_id"),
                 arg_("timeout_ms")=0 ) )
         .def("read_attributes_asynch",
-            pure_virtual(&Tango::GroupElement::read_attributes_asynch),
+            PyGroupElement::read_attributes_asynch,
             (   arg_("self"),
                 arg_("attr_names"),
                 arg_("forward")=true,
