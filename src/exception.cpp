@@ -417,12 +417,14 @@ void export_exceptions()
         .def("re_throw_exception", &PyExcept::re_throw_exception)
         .def("re_throw_exception", &PyExcept::re_throw_exception_severity)
         .def("print_exception", &PyExcept::print_exception)
+        .def("print_error_stack", &Tango::Except::print_error_stack)
         .def("compare_exception",
             (bool (*) (const Tango::DevFailed &, const Tango::DevFailed &))
             compare_exception_)
         .staticmethod("throw_exception")
         .staticmethod("re_throw_exception")
         .staticmethod("print_exception")
+        .staticmethod("print_error_stack")
     ;
 
     convert_PyDevFailed_to_DevFailed();

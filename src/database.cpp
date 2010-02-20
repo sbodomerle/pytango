@@ -76,29 +76,10 @@ struct PyDatabase
     }
 
     static inline void
-    export_event(Tango::Database& self, boost::python::object obj)
+    export_event(Tango::Database& self, const boost::python::object &obj)
     {
-        PyObject *obj_ptr = obj.ptr();
-        if(PySequence_Check(obj_ptr) == 0)
-        {
-            raise_(PyExc_TypeError, param_must_be_seq);
-        }
-
         Tango::DevVarStringArray par;
-        if (PyString_Check(obj_ptr))
-        {
-            par.length(1);
-            par[0] = PyString_AsString(obj_ptr);
-        }
-        else
-        {
-            int len = (int) PySequence_Length(obj_ptr);
-            par.length(len);
-            for(int i = 0; i < len; ++i)
-            {
-                par[i] = PyString_AsString(PySequence_GetItem(obj_ptr, i));
-            }
-        }
+        convert2array(obj, par);
         self.export_event(&par);
     }
 

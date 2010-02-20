@@ -11,9 +11,107 @@ from utils import seq_2_StdStringVector, seq_2_StdDoubleVector
 from utils import document_method as __document_method
 from utils import copy_doc
 
+
+class AttributeAlarm:
+    """This class represents the python interface for the Tango IDL object
+    AttributeAlarm."""
+    
+    def __init__(self):
+        self.min_alarm = ''
+        self.max_alarm = ''
+        self.min_warning = ''
+        self.max_warning = ''
+        self.delta_t = ''
+        self.delta_val = ''
+        self.extensions = []
+
+class ChangeEventProp:
+    """This class represents the python interface for the Tango IDL object
+    ChangeEventProp."""
+    
+    def __init__(self):
+        self.rel_change = ''
+        self.abs_change = ''
+        self.extensions = []
+
+class PeriodicEventProp:
+    """This class represents the python interface for the Tango IDL object
+    PeriodicEventProp."""
+    
+    def __init__(self):
+        self.period = ''
+        self.extensions = []
+
+class ArchiveEventProp:
+    """This class represents the python interface for the Tango IDL object
+    ArchiveEventProp."""
+    
+    def __init__(self):
+        self.rel_change = ''
+        self.abs_change = ''
+        self.period = ''
+        self.extensions = []
+
+class EventProperties:
+    """This class represents the python interface for the Tango IDL object
+    EventProperties."""
+    
+    def __init__(self):
+        self.ch_event = ChangeEventProp()
+        self.per_event = PeriodicEventProp()
+        self.arch_event = ArchiveEventProp()
+
+def init_attr_config(attr_cfg):
+    """Helper function to initialize attribute config objects"""
+    attr_cfg.name = ''
+    attr_cfg.writable = -1
+    attr_cfg.data_format = -1
+    attr_cfg.data_type = -1
+    attr_cfg.max_dim_x = -1
+    attr_cfg.max_dim_y = -1
+    attr_cfg.description = -1
+    attr_cfg.label = ''
+    attr_cfg.unit = ''
+    attr_cfg.standard_unit = ''
+    attr_cfg.display_unit = ''
+    attr_cfg.format = ''
+    attr_cfg.min_value = ''
+    attr_cfg.max_value = ''
+    attr_cfg.writable_attr_name = ''
+    attr_cfg.extensions = []
+    
+class AttributeConfig:
+    """This class represents the python interface for the Tango IDL object
+    AttributeConfig."""
+    
+    def __init__(self):
+        init_attr_config(self)
+        self.min_alarm = ''
+        self.max_alarm = ''
+        
+class AttributeConfig_2:
+    """This class represents the python interface for the Tango IDL object
+    AttributeConfig_2."""
+
+    def __init__(self):
+        init_attr_config(self)
+        self.level = -1
+        self.min_alarm = ''
+        self.max_alarm = ''
+        
+class AttributeConfig_3:
+    """This class represents the python interface for the Tango IDL object
+    AttributeConfig_3."""
+
+    def __init__(self):
+        init_attr_config(self)
+        self.level = -1
+        self.att_alarm = AttributeAlarm()
+        self.event_prop = EventProperties()
+        self.sys_extensions = []
+
 def __DeviceImpl__get_device_properties(self, ds_class = None):
-    """
-        get_device_properties(self, ds_class = None) -> None
+    """get_device_properties(self, ds_class = None) -> None
 
                 Utility method that fetches all the device properties from the database
                 and converts them into members of this DeviceImpl.
@@ -55,8 +153,7 @@ def __DeviceImpl__py_execute_with_inc_ref(dev, name, in_par=None):
     return ret
 
 def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None):
-    """
-        add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> None
+    """add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> None
 
             Add a new attribute to the device attribute list. Please, note that if you add
             an attribute to a device at device creation time, this attribute will be added
@@ -217,18 +314,36 @@ def __DeviceImpl__fatal_stream(self, *msg):
     """
     self.__fatal_stream(__join_msg(msg))
 
+def __DeviceImpl__str__(self):
+    return '%s(%s)' % (self.__class__.__name__, self.get_name())
+
 def __init_DeviceImpl():
     DeviceImpl.get_device_properties = __DeviceImpl__get_device_properties
     DeviceImpl.py_exec_wir = __DeviceImpl__py_execute_with_inc_ref
     DeviceImpl.add_attribute = __DeviceImpl__add_attribute
     DeviceImpl.remove_attribute = __DeviceImpl__remove_attribute
     DeviceImpl._remove_attr_meth = __DeviceImpl___remove_attr_meth
-
+    DeviceImpl.__str__ = __DeviceImpl__str__
+    DeviceImpl.__repr__ = __DeviceImpl__str__
     DeviceImpl.debug_stream = __DeviceImpl__debug_stream
     DeviceImpl.info_stream = __DeviceImpl__info_stream
     DeviceImpl.warn_stream = __DeviceImpl__warn_stream
     DeviceImpl.error_stream = __DeviceImpl__error_stream
     DeviceImpl.fatal_stream = __DeviceImpl__fatal_stream
+
+def __Attr__str__(self):
+    return '%s(%s)' % (self.__class__.__name__, self.get_name())
+
+def __init_Attr():
+    Attr.__str__ = __Attr__str__
+    Attr.__repr__ = __Attr__str__
+
+def __Attribute__str__(self):
+    return '%s(%s)' % (self.__class__.__name__, self.get_name())
+
+def __init_Attribute():
+    Attribute.__str__ = __Attribute__str__
+    Attribute.__repr__ = __Attribute__str__
 
 def __doc_DeviceImpl():
     def document_method(method_name, desc, append=True):
@@ -1727,6 +1842,8 @@ def __doc_UserDefaultAttrProp():
     
 def init_DeviceServer():
     __init_DeviceImpl()
+    __init_Attribute()
+    __init_Attr()
     __doc_DeviceImpl()
     __doc_extra_DeviceImpl(Device_3Impl)
     __doc_extra_DeviceImpl(Device_4Impl)

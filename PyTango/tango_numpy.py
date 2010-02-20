@@ -17,11 +17,9 @@ try:
 
     ArgType = _PyTango.CmdArgType
     AttributeInfo = _PyTango.AttributeInfo
-    Attribute - _PyTango.Attribute
+    Attribute = _PyTango.Attribute
 
     class NumpyType(object):
-
-        
 
         DevShort = numpy.int16
         DevLong = numpy.int32

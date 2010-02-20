@@ -38,7 +38,7 @@ void export_group_reply()
         .def("group_element_enabled", &Tango::GroupReply::group_element_enabled)
         .def("dev_name", &Tango::GroupReply::dev_name, return_value_policy<copy_const_reference>())
         .def("obj_name", &Tango::GroupReply::obj_name, return_value_policy<copy_const_reference>())
-        .def("get_err_stack", &Tango::GroupReply::get_err_stack, return_internal_reference<1>())
+        .def("get_err_stack", &Tango::GroupReply::get_err_stack, return_value_policy<copy_const_reference>())
     ;
 
     
@@ -56,7 +56,7 @@ void export_group_reply()
         no_init)
     ;
     GroupAttrReply
-            .def("get_data",
+            .def("__get_data",
                 &PyGroupAttrReply::get_data,
                 (   arg_("self"),
                     arg_("extract_as")=PyTango::ExtractAsNumpy) )

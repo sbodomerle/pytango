@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,7 +12,7 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '#',
         VERSION:     '7.1.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
@@ -18,6 +20,7 @@
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyTango v7.1.0 documentation" href="index.html" />
     <link rel="prev" title="Exception Handling" href="exception.html" /> 
@@ -40,9 +43,9 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logo.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">FAQ</a><ul>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference external" href="#">FAQ</a><ul>
 <li><a class="reference external" href="#where-are-the-usual-bjam-files">Where are the usual bjam files?</a></li>
 <li><a class="reference external" href="#i-got-a-libbost-python-error-when-i-try-to-import-pytango-module">I got a libbost_python error when I try to import PyTango module</a></li>
 <li><a class="reference external" href="#my-python-code-uses-pytango-3-0-4-api-how-do-i-change-to-7-0-0-api">My python code uses PyTango 3.0.4 API. How do I change to 7.0.0 API?</a><ul>
@@ -63,27 +66,27 @@
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="exception.html"
-                                  title="previous chapter">Exception Handling</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/faq.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="exception.html"
+                        title="previous chapter">Exception Handling</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/faq.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -318,7 +321,7 @@ reference, the proper code would be:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">PyTango</span>
 <span class="n">dp</span> <span class="o">=</span> <span class="n">PyTango</span><span class="o">.</span><span class="n">DeviceProxy</span><span class="p">(</span><span class="s">&quot;my/device/experiment&quot;</span><span class="p">)</span>
 <span class="n">da</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">read_attribute</span><span class="p">(</span><span class="s">&quot;array_attr&quot;</span><span class="p">)</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">da</span><span class="o">.</span><span class="n">format</span> <span class="ow">is</span> <span class="n">PyTango</span><span class="o">.</span><span class="n">AttrDataFormat</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">:</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">da</span><span class="o">.</span><span class="n">data_format</span> <span class="ow">is</span> <span class="n">PyTango</span><span class="o">.</span><span class="n">AttrDataFormat</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">:</span>
     <span class="k">print</span> <span class="s">&quot;array_attr is NOT a scalar attribute&quot;</span>
 </pre></div>
 </div>
@@ -549,8 +552,8 @@ you should see many warnings of type:</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, ALBA - CELLS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+        &copy; Copyright 2009, ALBA - CELLS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
     </div>
   </body>
 </html>

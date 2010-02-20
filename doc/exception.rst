@@ -12,6 +12,7 @@ Exception definition
 All the exceptions that can be thrown by the underlying Tango C++ API are available
 in the PyTango python module. Hence a user can catch one of the following
 exceptions:
+
     - :class:`DevFailed`
     - :class:`ConnectionFailed`
     - :class:`CommunicationFailed`

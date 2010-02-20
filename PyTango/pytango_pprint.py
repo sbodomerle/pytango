@@ -1,5 +1,9 @@
 from _PyTango import *
 
+from device_server import AttributeAlarm, EventProperties
+from device_server import ChangeEventProp, PeriodicEventProp, ArchiveEventProp
+from device_server import AttributeConfig, AttributeConfig_2, AttributeConfig_3
+
 def __inc_param(obj, name):
     ret  = not name.startswith('_')
     ret &= not name in ('except_flags',)
@@ -75,11 +79,17 @@ def __registerStructStr():
         DeviceAttribute, DeviceAttributeHistory, DeviceData, DeviceDataHistory,
         DbDatum, DbDevInfo, DbDevImportInfo, DbDevExportInfo, DbServerInfo,
         GroupElement, GroupReply, GroupAttrReply, GroupCmdReply,
-        DevError, TimeVal, EventData, AttrConfEventData, DataReadyEventData)
+        DevError, EventData, AttrConfEventData, DataReadyEventData,
+        AttributeConfig, AttributeConfig_2, AttributeConfig_3,
+        ChangeEventProp, PeriodicEventProp, ArchiveEventProp,
+        AttributeAlarm, EventProperties)
 
     for struct in structs:
         struct.__str__ = __str__Struct
         struct.__repr__ = __repr__Struct
+
+    # special case for TimeVal: it already has a str representation itself
+    TimeVal.__repr__ = __repr__Struct
 
     # special case for DevFailed: we want a better pretty print
     # also, because it is an Exception it has the message attribute which

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,7 +12,7 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '#',
         VERSION:     '7.1.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
@@ -18,6 +20,7 @@
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyTango v7.1.0 documentation" href="index.html" />
     <link rel="next" title="The Tango Device Python API" href="client/index.html" />
@@ -44,9 +47,9 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logo.png" alt="Logo"/>
             </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Getting started</a><ul>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference external" href="#">Getting started</a><ul>
 <li><a class="reference external" href="#dependencies-on-other-libraries">Dependencies on other libraries</a></li>
 <li><a class="reference external" href="#installing-precompiled-binaries">Installing precompiled binaries</a><ul>
 <li><a class="reference external" href="#linux">Linux</a></li>
@@ -79,30 +82,30 @@
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">Welcome to PyTango 7.1 documentation!</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="client/index.html"
-                                  title="next chapter">The Tango Device Python API</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/start.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to PyTango 7.1 documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="client/index.html"
+                        title="next chapter">The Tango Device Python API</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/start.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -115,22 +118,53 @@
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="dependencies-on-other-libraries">
 <h2>Dependencies on other libraries<a class="headerlink" href="#dependencies-on-other-libraries" title="Permalink to this headline">¶</a></h2>
-<p>Current PyTango version has four major dependencies:</p>
-<ul class="simple">
-<li>python (&gt;= 2.4) (<a class="reference external" href="http://www.python.org/">http://www.python.org/</a>)</li>
-<li>omniORB (<a class="reference external" href="http://omniorb.sourceforge.net/">http://omniorb.sourceforge.net/</a>)</li>
-<li>Tango (&gt;= 7.1.0) (<a class="reference external" href="http://www.tango-controls.org/">http://www.tango-controls.org/</a>)
-(really recommended 7.1.1)</li>
-<li>boost python (<a class="reference external" href="http://www.boost.org">http://www.boost.org</a>):
-if python &gt;= 2.6.3 then: boost-python &gt;= 1.41
+<p class="graphviz">
+<img src="_images/graphviz-74a511b6b9f7beea4233e98ee40d979b667a0961.png" alt="digraph dependencies {
+    size=&quot;6,3&quot;;
+    PyTango     [shape=box,label=&quot;PyTango 7.1.0&quot;];
+    Python      [shape=box,label=&quot;Python &gt;=2.4&quot;];
+    boostpython [shape=box,label=&quot;boost python&quot;];
+    boostp1     [shape=box,label=&quot;boost &gt;=1.33&quot;];
+    boostp2     [shape=box,label=&quot;boost &gt;=1.41&quot;];
+    Tango       [shape=box,label=&quot;Tango &gt;=7.1&quot;];
+    omniORB     [shape=box,label=&quot;omniORB &gt;=4&quot;];
+    numpy       [shape=box,label=&quot;numpy &gt;=1.1.0&quot;];
+    PyTango -&gt; Python;
+    PyTango -&gt; Tango;
+    PyTango -&gt; numpy [style=dotted, label=&quot;mandatory in windows&quot;];
+    Tango -&gt; omniORB;
+    PyTango -&gt; boostpython
+    boostpython -&gt; boostp1 [label=&quot;if python &lt;2.6.3&quot;];
+    boostpython -&gt; boostp2 [label=&quot;if python &gt;=2.6.3&quot;];
+}" />
+</p>
+<p>Don&#8217;t be scared by the graph. Probably most of the packages are already installed.
+The current PyTango version has four major dependencies:</p>
+<ul>
+<li><p class="first">python (&gt;= 2.4) (<a class="reference external" href="http://www.python.org/">http://www.python.org/</a>)</p>
+</li>
+<li><p class="first">omniORB (<a class="reference external" href="http://omniorb.sourceforge.net/">http://omniorb.sourceforge.net/</a>)</p>
+</li>
+<li><p class="first">Tango (&gt;= 7.1.0) (<a class="reference external" href="http://www.tango-controls.org/">http://www.tango-controls.org/</a>)
+(really recommended 7.1.1)</p>
+</li>
+<li><dl class="first docutils">
+<dt>boost python (<a class="reference external" href="http://www.boost.org">http://www.boost.org</a>):</dt>
+<dd><p class="first last">if python &gt;= 2.6.3 then: boost-python &gt;= 1.41
 else: boost-python &gt;= 1.33
-We <strong>strongly</strong> recommend always using &gt;= 1.41</li>
+We <strong>strongly</strong> recommend always using &gt;= 1.41</p>
+</dd>
+</dl>
+</li>
 </ul>
 <p>plus one optional dependency (activated by default) on:</p>
 <ul class="simple">
 <li>numpy (&gt;= 1.1.0) (<a class="reference external" href="http://numpy.scipy.org/">http://numpy.scipy.org/</a>)</li>
 </ul>
-<p>For the provided windows binary, numpy is MANDATORY!</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For the provided windows binary, numpy is MANDATORY!</p>
+</div>
 </div>
 <div class="section" id="installing-precompiled-binaries">
 <h2>Installing precompiled binaries<a class="headerlink" href="#installing-precompiled-binaries" title="Permalink to this headline">¶</a></h2>
@@ -158,6 +192,15 @@ version (2.4, 2.5, 2.6, 2.7, 3.0 and 3.1) times 2 for both 32bits and 64bits.</p
 </tr>
 </thead>
 <tbody valign="top">
+<tr><td>7.1.0</td>
+<td><ul class="first last simple">
+<li>tango 7.1.1 (VC++ 8)</li>
+<li>omniORB 4.1.4</li>
+<li>boost python 1.41 (VC++8, multi-threaded)
+python &gt;= 2.6.3</li>
+</ul>
+</td>
+</tr>
 <tr><td>7.1.0 rc1</td>
 <td><ul class="first last simple">
 <li>tango 7.1.1 (VC++ 8)</li>
@@ -188,79 +231,38 @@ the development files for the respective libraries.</p>
 <p>PyTango has a dependency on the boost python library (&gt;= 1.33). This means that
 the shared library file <strong>libboost-python.so</strong> must be accessible to the
 compilation command.</p>
-<dl class="docutils">
-<dt>Note:</dt>
-<dd>If you use python &gt;= 2.6.3 you MUST install boost python &gt;= 1.40</dd>
-</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you use python &gt;= 2.6.3 you MUST install boost python &gt;= 1.41</p>
+</div>
 <p>Most linux distributions today provide a boost python package.</p>
 <p>Furthermore, in order to be able to build PyTango, you also need the include headers of
 boost python. They are normaly provided by a package called boost_python-dev.</p>
-<dl class="docutils">
-<dt>If, for some reason, you need to compile boost python, here is a quick recipie:</dt>
-<dd><ul class="first last simple">
-<li>Download latest boost tar.gz file and extract it</li>
-<li>Download latest bjam (sourceforge provides a binary for many platforms)</li>
-<li>put bjam accessible to the path</li>
-<li>in the root directory where you extracted boost type: <cite>bjam &#8211;v2 &#8211;with-python toolset=gcc variant=release threading=multi link=shared</cite></li>
-<li>this will produce in bin.v2/libs/python/build/gcc-&lt;gcc_version&gt;/release/threading-multi a file called <cite>libboost_python-gcc&lt;gcc_version&gt;-mt-&lt;boost_version&gt;.so.&lt;boost_python_version&gt;</cite></li>
-</ul>
-</dd>
-</dl>
-<p>Unfortunately the boost python shared library file often has a name
-like : <cite>libboost_python-gcc43-mt-1_40.so.1.40.0</cite>.
-Normal shared library installations contain a symbolic link which is a direct
-or indirect link to the actual library file but which is a version independent
-file name. However for boost python this is often not the case.
-This means you have to manually create a symbolic link called <cite>libboost_python.so</cite> to the
-actual library file.</p>
-<p>So, assuming you have a <cite>libboost_python-gcc43-mt-1_40.so.1.40.0</cite> in <cite>/usr/lib</cite>:</p>
-<div class="highlight-python"><pre>homer@moesbar:/usr/lib$ sudo ln -s libboost_python-gcc43-mt-1_40.so.1.40.0 libboost_python.so</pre>
-</div>
-<p>alternatively, you can edit the setup.py file that ships with PyTango and change
-the lines:</p>
-<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></td><td class="code"><div class="highlight"><pre><span class="n">libraries</span> <span class="o">+=</span> <span class="p">[</span>
-    <span class="s">&#39;boost_python&#39;</span><span class="p">,</span>
-    <span class="s">&#39;pthread&#39;</span><span class="p">,</span>
-    <span class="s">&#39;rt&#39;</span><span class="p">,</span>
-    <span class="s">&#39;dl&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omniORB4&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omniDynamic4&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omnithread&#39;</span><span class="p">,</span>
-    <span class="s">&#39;COS4&#39;</span><span class="p">,</span>
-<span class="p">]</span>
-</pre></div>
-</td></tr></table></div>
-<p>to:</p>
-<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></td><td class="code"><div class="highlight"><pre><span class="n">libraries</span> <span class="o">+=</span> <span class="p">[</span>
-    <span class="s">&#39;boost_python-gcc43-mt-1_40.so.1.40.0&#39;</span><span class="p">,</span>
-    <span class="s">&#39;pthread&#39;</span><span class="p">,</span>
-    <span class="s">&#39;rt&#39;</span><span class="p">,</span>
-    <span class="s">&#39;dl&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omniORB4&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omniDynamic4&#39;</span><span class="p">,</span>
-    <span class="s">&#39;omnithread&#39;</span><span class="p">,</span>
-    <span class="s">&#39;COS4&#39;</span><span class="p">,</span>
-<span class="p">]</span>
-</pre></div>
-</td></tr></table></div>
+<p>If, for some reason, you need to compile and install boost python, here is a
+quick recipie:</p>
+<blockquote>
+<ol class="arabic">
+<li><p class="first">Download latest boost tar.gz file and extract it</p>
+</li>
+<li><p class="first">Download latest bjam (most linux distributions have a bjam package. If not,
+sourceforge provides a binary for many platforms)</p>
+</li>
+<li><p class="first">build and/or install:</p>
+<ol class="arabic">
+<li><p class="first">Simple build: in the root directory where you extracted boost type:</p>
+<p><tt class="docutils literal"><span class="pre">bjam</span> <span class="pre">--with-python</span> <span class="pre">toolset=gcc</span> <span class="pre">variant=release</span> <span class="pre">threading=multi</span> <span class="pre">link=shared</span></tt></p>
+<p>this will produce in <tt class="docutils literal"><span class="pre">bin.v2/libs/python/build/gcc-&lt;gcc_ver&gt;/release/threading-multi</span></tt> a file called <tt class="docutils literal"><span class="pre">libboost_python-gcc&lt;gcc_ver&gt;-mt-&lt;boost_ver&gt;.so.&lt;boost_python_ver&gt;</span></tt></p>
+</li>
+<li><p class="first">Install (you may need administrator permissions to do so):</p>
+<p><tt class="docutils literal"><span class="pre">bjam</span> <span class="pre">--with-python</span> <span class="pre">toolset=gcc</span> <span class="pre">variant=release</span> <span class="pre">threading=multi</span> <span class="pre">link=shared</span> <span class="pre">install</span></tt></p>
+</li>
+<li><p class="first">Install in a different directory (&lt;install_dir&gt;):</p>
+<p><tt class="docutils literal"><span class="pre">bjam</span> <span class="pre">--with-python</span> <span class="pre">toolset=gcc</span> <span class="pre">variant=release</span> <span class="pre">threading=multi</span> <span class="pre">link=shared</span> <span class="pre">install</span> <span class="pre">--prefix=&lt;install_dir&gt;</span></tt></p>
+</li>
+</ol>
+</li>
+</ol>
+</blockquote>
 </div>
 <div class="section" id="configuration">
 <h4>configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h4>
@@ -278,7 +280,7 @@ example, if you installed:</p>
 export OMNI_ROOT=/home/homer/local1
 export TANGO_ROOT=/home/homer/local2
 
-# in openSuse 11.1 this is the default base location for the include files
+# in openSUSE 11.1 this is the default base location for the include files
 export NUMPY_ROOT=/usr/lib/python2.6/site-packages/numpy/core</pre>
 </div>
 <p>(for numpy this is the default base location for the include files. This is
@@ -1068,8 +1070,8 @@ API should be accessed from Python:</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, ALBA - CELLS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+        &copy; Copyright 2009, ALBA - CELLS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
     </div>
   </body>
 </html>

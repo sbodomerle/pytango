@@ -7,22 +7,45 @@ Getting started
 Dependencies on other libraries
 -------------------------------
 
-Current PyTango version has four major dependencies:
+.. graphviz::
+
+    digraph dependencies {
+        size="6,3";
+        PyTango     [shape=box,label="PyTango 7.1.0"];
+        Python      [shape=box,label="Python >=2.4"];
+        boostpython [shape=box,label="boost python"];
+        boostp1     [shape=box,label="boost >=1.33"];
+        boostp2     [shape=box,label="boost >=1.41"];
+        Tango       [shape=box,label="Tango >=7.1"];
+        omniORB     [shape=box,label="omniORB >=4"];
+        numpy       [shape=box,label="numpy >=1.1.0"];
+        PyTango -> Python;
+        PyTango -> Tango;
+        PyTango -> numpy [style=dotted, label="mandatory in windows"];
+        Tango -> omniORB;
+        PyTango -> boostpython
+        boostpython -> boostp1 [label="if python <2.6.3"];
+        boostpython -> boostp2 [label="if python >=2.6.3"];
+    }   
+
+Don't be scared by the graph. Probably most of the packages are already installed.
+The current PyTango version has four major dependencies:
 
 - python (>= 2.4) (http://www.python.org/)
 - omniORB (http://omniorb.sourceforge.net/)
 - Tango (>= 7.1.0) (http://www.tango-controls.org/)
   (really recommended 7.1.1)
 - boost python (http://www.boost.org):
-  if python >= 2.6.3 then: boost-python >= 1.41
-  else: boost-python >= 1.33
-  We **strongly** recommend always using >= 1.41
+    if python >= 2.6.3 then: boost-python >= 1.41
+    else: boost-python >= 1.33
+    We **strongly** recommend always using >= 1.41
   
 plus one optional dependency (activated by default) on:
 
 - numpy (>= 1.1.0) (http://numpy.scipy.org/)
 
-For the provided windows binary, numpy is MANDATORY!
+.. note::
+    For the provided windows binary, numpy is MANDATORY!
 
 Installing precompiled binaries
 -------------------------------
@@ -48,6 +71,10 @@ The binary **comes with its's own boost-python, omniORB and Tango DLLs**
 +------------+-----------------------------------------------------------------+
 | version    | Includes the following DLLs                                     |
 +============+=================================================================+
+| 7.1.0      | - tango 7.1.1 (VC++ 8)                                          |
+|            | - omniORB 4.1.4                                                 |
+|            | - boost python 1.42 (VC++8, multi-threaded)                     |
++------------+-----------------------------------------------------------------+
 | 7.1.0 rc1  | - tango 7.1.1 (VC++ 8)                                          |
 |            | - omniORB 4.1.4                                                 |
 |            | - boost python 1.41 beta 1 (VC++8, multi-threaded)              |
@@ -78,59 +105,37 @@ PyTango has a dependency on the boost python library (>= 1.33). This means that
 the shared library file **libboost-python.so** must be accessible to the 
 compilation command.
 
-Note:
-    If you use python >= 2.6.3 you MUST install boost python >= 1.40
+.. note::
+
+    If you use python >= 2.6.3 you MUST install boost python >= 1.41
 
 Most linux distributions today provide a boost python package. 
 
 Furthermore, in order to be able to build PyTango, you also need the include headers of
 boost python. They are normaly provided by a package called boost_python-dev.
 
-If, for some reason, you need to compile boost python, here is a quick recipie:
-    - Download latest boost tar.gz file and extract it
-    - Download latest bjam (sourceforge provides a binary for many platforms)
-    - put bjam accessible to the path
-    - in the root directory where you extracted boost type: `bjam --v2 --with-python toolset=gcc variant=release threading=multi link=shared`
-    - this will produce in bin.v2/libs/python/build/gcc-<gcc_version>/release/threading-multi a file called `libboost_python-gcc<gcc_version>-mt-<boost_version>.so.<boost_python_version>`
+If, for some reason, you need to compile and install boost python, here is a 
+quick recipie:
 
-Unfortunately the boost python shared library file often has a name 
-like : `libboost_python-gcc43-mt-1_40.so.1.40.0`.
-Normal shared library installations contain a symbolic link which is a direct 
-or indirect link to the actual library file but which is a version independent 
-file name. However for boost python this is often not the case.
-This means you have to manually create a symbolic link called `libboost_python.so` to the 
-actual library file.
-
-So, assuming you have a `libboost_python-gcc43-mt-1_40.so.1.40.0` in `/usr/lib`::
-
-    homer@moesbar:/usr/lib$ sudo ln -s libboost_python-gcc43-mt-1_40.so.1.40.0 libboost_python.so
-
-alternatively, you can edit the setup.py file that ships with PyTango and change
-the lines::
-
-    libraries += [
-        'boost_python',
-        'pthread',
-        'rt',
-        'dl',
-        'omniORB4',
-        'omniDynamic4',
-        'omnithread',
-        'COS4',
-    ]
+    #. Download latest boost tar.gz file and extract it
+    #. Download latest bjam (most linux distributions have a bjam package. If not, 
+       sourceforge provides a binary for many platforms)
+    #. build and/or install:
     
-to::
+       #. Simple build: in the root directory where you extracted boost type:
+       
+          ``bjam --with-python toolset=gcc variant=release threading=multi link=shared``
+          
+          this will produce in :file:`bin.v2/libs/python/build/gcc-<gcc_ver>/release/threading-multi` a file called :file:`libboost_python-gcc<gcc_ver>-mt-<boost_ver>.so.<boost_python_ver>`
+          
+       #. Install (you may need administrator permissions to do so):
+       
+          ``bjam --with-python toolset=gcc variant=release threading=multi link=shared install``
+          
+       #. Install in a different directory (<install_dir>):
+       
+          ``bjam --with-python toolset=gcc variant=release threading=multi link=shared install --prefix=<install_dir>``
 
-    libraries += [
-        'boost_python-gcc43-mt-1_40.so.1.40.0',
-        'pthread',
-        'rt',
-        'dl',
-        'omniORB4',
-        'omniDynamic4',
-        'omnithread',
-        'COS4',
-    ]
 
 configuration
 #############
@@ -153,7 +158,7 @@ you must export the three environment variables::
     export OMNI_ROOT=/home/homer/local1
     export TANGO_ROOT=/home/homer/local2
     
-    # in openSuse 11.1 this is the default base location for the include files
+    # in openSUSE 11.1 this is the default base location for the include files
     export NUMPY_ROOT=/usr/lib/python2.6/site-packages/numpy/core
 
 (for numpy this is the default base location for the include files. This is
@@ -322,30 +327,44 @@ Reading and writing attributes
 
 Basic read/write attribute operations::
 
-    from PyTango import *
-    import sys, os, time
-
     #Read a scalar attribute
     scalar=tangotest.read_attribute("long_scalar")
-    print "attribute value", scalar.value
+
     #Read a spectrum attribute
     spectrum=tangotest.read_attribute("double_spectrum")
-    print "attribute value", spectrum.value
 
-    # Write a scalar attribute so use the scalar structure
-    print "Writing attributes"
+    # Write a scalar attribute
+    scalar_value = 18
+    tangotest.write_attribute("long_scalar", scalar_value)
 
-    # Write a scalar attribute so use the scalar structure
-    scalar.value = 18
-    print "attribute scalar  ", scalar
-    print "Writing scalar attributes"
-    tangotest.write_attribute(scalar)
+    # Write a spectrum attribute
+    spectrum_value = [1.2, 3.2, 12.3]
+    tangotest.write_attribute("double_spectrum", spectrum_value)
 
-    # Write a scalar attribute so use the scalar structure
-    spectrum.value = [1.2,3.2,12.3]
-    print "attribute spectrum ", spectrum
-    print "Writing spectrum attributes"
-    tangotest.write_attribute(spectrum)
+    # Write an image attribute
+    image_value = [ [1, 2], [3, 4] ]
+    tangotest.write_attribute("long_image", image_value)
+
+
+Note that if PyTango is compiled with numpy support the values got when reading
+a spectrum or an image will be numpy arrays. This results in a faster and
+more memory efficient PyTango. You can also use numpy to specify the values when
+writing attributes, especially if you know the exact attribute type.::
+
+    import PyTango, numpy
+
+    # Creating an unitialized double spectrum of 1000 elements
+    spectrum_value = PyTango.numpy_spectrum(PyTango.DevDouble, 1000)
+
+    # Creating an spectrum with a range
+    # Note that I do NOT use PyTango.DevLong here, BUT PyTango.NumpyType.DevLong
+    # numpy functions do not understand normal python types, so there's a
+    # translation available in PyTango.NumpyType
+    spectrum_value = numpy.arange(5, 1000, 2, PyTango.NumpyType.DevLong)
+
+    # Creating a 2x2 long image from an existing one
+    image_value = PyTango.numpy_image(PyTango.DevLong, [[1,2],[3,4]])
+
 
 Registering devices
 ~~~~~~~~~~~~~~~~~~~
@@ -428,23 +447,17 @@ API should be accessed from Python::
     axis_properties["AxisNumber"] = ["6"]
     axis1.put_property(axis_properties)
 
-    # Reading attributes and storing them in a python dictionary
-    att_dict = {}
+    # Reading attributes
     att_list = axis.get_attribute_list()
     for att in att_list:
         att_val = axis.read_attribute(att)
-        print "%s: %s" % (att,att_val.value)
-        att_dict[att] = att_val
+        print "%s: %s" % (att, att_val.value)
 
     # Changing some attribute values
-    attributes["AxisBackslash"].value = 0.5
-    axis1.write_attribute(attributes["AxisBackslash"])
-    attributes["AxisDirection"].value = 1.0
-    axis1.write_attribute(attributes["AxisDirection"])
-    attributes["AxisVelocity"].value = 1000.0
-    axis1.write_attribute(attributes["AxisVelocity"])
-    attributes["AxisOvershoot"].value = 500.0
-    axis1.write_attribute(attributes["AxisOvershoot"])
+    axis1.write_attribute("AxisBackslash", 0.5)
+    axis1.write_attribute("AxisDirection", 1.0)
+    axis1.write_attribute("AxisVelocity", 1000.0)
+    axis1.write_attribute("AxisOvershoot", 500.0)
 
     # Testing some device commands
     pos1=axis1.read_attribute("AxisCurrentPosition")

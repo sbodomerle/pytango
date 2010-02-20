@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -18,6 +20,7 @@
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="PyTango v7.1.0 documentation" href="../index.html" />
     <link rel="up" title="The Tango Device Python API" href="index.html" />
@@ -46,39 +49,39 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/logo.png" alt="Logo"/>
             </a></p>
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Group</a><ul>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference external" href="#">Group</a><ul>
 <li><a class="reference external" href="#group-class">Group class</a></li>
 <li><a class="reference external" href="#groupreply-classes">GroupReply classes</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="attribute_proxy.html"
-                                  title="previous chapter">AttributeProxy</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="miscellaneous.html"
-                                  title="next chapter">Information classes</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../_sources/client/group.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="attribute_proxy.html"
+                        title="previous chapter">AttributeProxy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="miscellaneous.html"
+                        title="next chapter">Information classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/client/group.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -93,8 +96,7 @@
 <h2>Group class<a class="headerlink" href="#group-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="PyTango.Group">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Group</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#PyTango.Group" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">Group</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#PyTango.Group" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="PyTango.Group.add">
 <tt class="descname">add</tt><big>(</big><em>pattern_subgroup</em>, <em>timeout_ms=-1</em><big>)</big><a class="headerlink" href="#PyTango.Group.add" title="Permalink to this definition">¶</a></dt>
@@ -1039,8 +1041,7 @@ but objects that contain them. This is:</p>
 <p>Note also that GroupReply is the base of GroupCmdReply and GroupAttrReply.</p>
 <dl class="class">
 <dt id="PyTango.GroupReply">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupReply</tt><a class="headerlink" href="#PyTango.GroupReply" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupReply</tt><a class="headerlink" href="#PyTango.GroupReply" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the base class for the result of an operation on a
 PyTangoGroup, being it a write attribute, read attribute, or
 command inout operation.</p>
@@ -1058,12 +1059,11 @@ command inout operation.</p>
 
 <dl class="class">
 <dt id="PyTango.GroupAttrReply">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupAttrReply</tt><a class="headerlink" href="#PyTango.GroupAttrReply" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupAttrReply</tt><a class="headerlink" href="#PyTango.GroupAttrReply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">PyTango._PyTango.GroupReply</span></tt></p>
 <dl class="method">
 <dt id="PyTango.GroupAttrReply.get_data">
-<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#PyTango.GroupAttrReply.get_data" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_data</tt><big>(</big><em>extract_as=PyTango._PyTango.ExtractAs.Numpy</em><big>)</big><a class="headerlink" href="#PyTango.GroupAttrReply.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><p><strong>get_data</strong> <em>(self, extract_as=ExtractAs.Numpy)</em> <strong>-&gt;</strong> <a title="PyTango.DeviceAttribute" class="reference external" href="miscellaneous.html#PyTango.DeviceAttribute"><tt class="xref docutils literal"><span class="pre">DeviceAttribute</span></tt></a></p>
 <blockquote>
 <blockquote>
@@ -1094,8 +1094,7 @@ Get the DeviceAttribute.</blockquote>
 
 <dl class="class">
 <dt id="PyTango.GroupCmdReply">
-<em class="property">
-class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupCmdReply</tt><a class="headerlink" href="#PyTango.GroupCmdReply" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">PyTango.</tt><tt class="descname">GroupCmdReply</tt><a class="headerlink" href="#PyTango.GroupCmdReply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">PyTango._PyTango.GroupReply</span></tt></p>
 <dl class="method">
 <dt id="PyTango.GroupCmdReply.get_data">
@@ -1168,8 +1167,8 @@ of the command.</blockquote>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, ALBA - CELLS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+        &copy; Copyright 2009, ALBA - CELLS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.
     </div>
   </body>
 </html>

@@ -157,7 +157,7 @@ reference, the proper code would be::
     import PyTango
     dp = PyTango.DeviceProxy("my/device/experiment")
     da = dp.read_attribute("array_attr")
-    if not da.format is PyTango.AttrDataFormat.SCALAR:
+    if not da.data_format is PyTango.AttrDataFormat.SCALAR:
         print "array_attr is NOT a scalar attribute"
     
 Server

@@ -87,8 +87,6 @@ namespace PyDeviceAttribute {
     template<>
     inline void _update_scalar_values<Tango::DEV_ENCODED>(Tango::DeviceAttribute &self, object py_value)
     {
-        ///@todo @test this SHIT. Moreover, does DevEncoded really make sense with spectrums?
-
         Tango::DevVarEncodedArray* value;
         self >> value;
         std::auto_ptr<Tango::DevVarEncodedArray> guard(value);
@@ -102,15 +100,15 @@ namespace PyDeviceAttribute {
             str encoded_format(buffer[0].encoded_format);
             str w_encoded_format(buffer[1].encoded_format);
 
-            str encoded_data(buffer[0].encoded_data.get_buffer());
-            str w_encoded_data(buffer[1].encoded_data.get_buffer());
+            str encoded_data((const char*)buffer[0].encoded_data.get_buffer(), buffer[0].encoded_data.length());
+            str w_encoded_data((const char*)buffer[1].encoded_data.get_buffer(), buffer[1].encoded_data.length());
 
             py_value.attr(value_attr_name) = make_tuple(encoded_format, encoded_data);
             py_value.attr(w_value_attr_name) = make_tuple(w_encoded_format, w_encoded_data);
         } else {
             str encoded_format(buffer[0].encoded_format);
-            str encoded_data(buffer[0].encoded_data.get_buffer());
-
+            str encoded_data((const char*)buffer[0].encoded_data.get_buffer(), buffer[0].encoded_data.length());
+            
             py_value.attr(value_attr_name) = make_tuple(encoded_format, encoded_data);
             py_value.attr(w_value_attr_name) = object();
         }
@@ -417,8 +415,8 @@ namespace PyDeviceAttribute {
     {
         typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
 
-	TangoScalarType value;
-	from_py<tangoTypeConst>::convert(py_value.ptr(), value);
+    TangoScalarType value;
+    from_py<tangoTypeConst>::convert(py_value.ptr(), value);
         dev_attr << const_cast<TangoScalarType&>(value);
     }
 
@@ -590,8 +588,7 @@ void export_device_attribute()
 
     scope da_scope = DeviceAttribute;
 
-    enum_<Tango::DeviceAttribute::except_flags>("except_flags",
-        "an enumerated for the exception flags")
+    enum_<Tango::DeviceAttribute::except_flags>("except_flags")
         .value("isempty_flag", Tango::DeviceAttribute::isempty_flag)
         .value("wrongtype_flag", Tango::DeviceAttribute::wrongtype_flag)
         .value("failed_flag", Tango::DeviceAttribute::failed_flag)

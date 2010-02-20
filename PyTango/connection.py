@@ -1,6 +1,8 @@
 
-from _PyTango import Connection, DeviceData, __CallBackAutoDie
+from _PyTango import Connection, DeviceData, __CallBackAutoDie, CmdArgType
+from _PyTango import DeviceProxy, Database
 from utils import document_method as __document_method
+import operator
 
 def __CallBackAutoDie__cmd_ended_aux(fn):
     def __new_fn(cmd_done_event):
@@ -10,7 +12,6 @@ def __CallBackAutoDie__cmd_ended_aux(fn):
             pass
         return fn(cmd_done_event)
 
-# @todo Oops, command_query is part of DeviceProxy, not Connection...
 def __get_command_inout_param(self, cmd_name, cmd_param=None):
     if cmd_param is None:
         return DeviceData()
@@ -18,10 +19,27 @@ def __get_command_inout_param(self, cmd_name, cmd_param=None):
     if isinstance(cmd_param, DeviceData):
         return cmd_param
 
-    info = self.command_query(cmd_name)
-    param = DeviceData()
-    param.insert(info.in_type, cmd_param)
-    return param
+    if isinstance(self, DeviceProxy):
+        # This is not part of 'Connection' interface, but
+        # DeviceProxy only.
+        info = self.command_query(cmd_name)
+        param = DeviceData()
+        param.insert(info.in_type, cmd_param)
+        return param
+    elif isinstance(self, Database):
+        # I just try to guess types DevString and DevVarStringArray
+        # as they are used for Database
+        param = DeviceData()
+        if isinstance(cmd_param, str):
+            param.insert(CmdArgType.DevString, cmd_param)
+            return param
+        elif operator.isSequenceType(cmd_param) and all([isinstance(x,str) for x in cmd_param]):
+            param.insert(CmdArgType.DevVarStringArray, cmd_param)
+            return param
+        else:
+            raise TypeError("command_inout() parameter must be a DeviceData object or a string or a sequence of strings")
+    else:
+        raise TypeError("command_inout() parameter must be a DeviceData object.")
 
 def __Connection__command_inout(self, name, *args, **kwds):
     """

@@ -15,14 +15,19 @@ from device_proxy import init_DeviceProxy as __init_DeviceProxy
 from attribute_proxy import init_AttributeProxy as __init_AttributeProxy, AttributeProxy
 from group import init_Group as __init_Group, Group
 from pyutil import init_PyUtil as __init_PyUtil
+from device_server import ChangeEventProp, PeriodicEventProp, ArchiveEventProp
+from device_server import AttributeAlarm, EventProperties
+from device_server import AttributeConfig, AttributeConfig_2, AttributeConfig_3
 from device_server import init_DeviceServer as __init_DeviceServer
 from group_reply import init_GroupReply as __init_GroupReply
+from group_reply_list import init_GroupReplyList as __init_GroupReplyList
 from device_attribute import init_DeviceAttribute as __init_DeviceAttribute
 from device_data import init_DeviceData as __init_DeviceData
 from pyutil import Util
 from device_class import DeviceClass
 from device_class import init_DeviceClass as __init_DeviceClass
 from callback import init_Callback as __init_Callback
+from time_val import __init_TimeVal
 
 from globals import get_class, get_classes
 from globals import get_cpp_class, get_cpp_classes
@@ -55,6 +60,8 @@ def __init():
     __init_DeviceAttribute()
     __init_DeviceData()
     __init_GroupReply()
+    __init_GroupReplyList()
     __init_Callback()
+    __init_TimeVal()
 
 __init()

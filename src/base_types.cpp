@@ -121,7 +121,6 @@ inline bool operator==(const Tango::DeviceDataHistory& ddh1_, const Tango::Devic
 template<typename CorbaSequence>
 struct convert_PySequence_to_CORBA_Sequence
 {
-    //typedef _CORBA_Sequence<TangoElementType> CorbaSequence;
     convert_PySequence_to_CORBA_Sequence()
     {
         // Register converter from python sequence to CorbaSequence
@@ -225,23 +224,26 @@ void export_base_types()
     class_< StdGroupAttrReplyVector_ >("StdGroupAttrReplyVector")
         .def(vector_indexing_suite<StdGroupAttrReplyVector_, true>());
 
-    to_python_converter<CORBA::String_member, CORBA_String_member_to_str, true>();
-    to_python_converter<_CORBA_String_element, CORBA_String_element_to_str, true>();
+    //to_python_converter<CORBA::String_member, CORBA_String_member_to_str>();
+    to_python_converter<_CORBA_String_member, CORBA_String_member_to_str2>();
+    to_python_converter<_CORBA_String_element, CORBA_String_element_to_str>();
 
-    to_python_converter<Tango::DevErrorList, CORBA_sequence_to_tuple<Tango::DevErrorList>, true>();
+    to_python_converter<Tango::DevErrorList, CORBA_sequence_to_tuple<Tango::DevErrorList> >();
 
-    to_python_converter<Tango::DevVarCharArray, CORBA_sequence_to_list<Tango::DevVarCharArray>, true>();
-    to_python_converter<Tango::DevVarShortArray, CORBA_sequence_to_list<Tango::DevVarShortArray>, true>();
-    to_python_converter<Tango::DevVarLongArray, CORBA_sequence_to_list<Tango::DevVarLongArray>, true>();
-    to_python_converter<Tango::DevVarFloatArray, CORBA_sequence_to_list<Tango::DevVarFloatArray>, true>();
-    to_python_converter<Tango::DevVarDoubleArray, CORBA_sequence_to_list<Tango::DevVarDoubleArray>, true>();
-    to_python_converter<Tango::DevVarUShortArray, CORBA_sequence_to_list<Tango::DevVarUShortArray>, true>();
-    to_python_converter<Tango::DevVarULongArray, CORBA_sequence_to_list<Tango::DevVarULongArray>, true>();
-    to_python_converter<Tango::DevVarStringArray, CORBA_sequence_to_list<Tango::DevVarStringArray>, true>();
-    to_python_converter<Tango::DevVarLongStringArray, CORBA_sequence_to_list<Tango::DevVarLongStringArray>, true>();
-    to_python_converter<Tango::DevVarDoubleStringArray, CORBA_sequence_to_list<Tango::DevVarDoubleStringArray>, true>();
-    to_python_converter<Tango::DevVarLong64Array, CORBA_sequence_to_list<Tango::DevVarLong64Array>, true>();
-    to_python_converter<Tango::DevVarULong64Array, CORBA_sequence_to_list<Tango::DevVarULong64Array>, true>();
+    to_python_converter<Tango::DevVarCharArray, CORBA_sequence_to_list<Tango::DevVarCharArray> >();
+    to_python_converter<Tango::DevVarShortArray, CORBA_sequence_to_list<Tango::DevVarShortArray> >();
+    to_python_converter<Tango::DevVarLongArray, CORBA_sequence_to_list<Tango::DevVarLongArray> >();
+    to_python_converter<Tango::DevVarFloatArray, CORBA_sequence_to_list<Tango::DevVarFloatArray> >();
+    to_python_converter<Tango::DevVarDoubleArray, CORBA_sequence_to_list<Tango::DevVarDoubleArray> >();
+    to_python_converter<Tango::DevVarUShortArray, CORBA_sequence_to_list<Tango::DevVarUShortArray> >();
+    to_python_converter<Tango::DevVarULongArray, CORBA_sequence_to_list<Tango::DevVarULongArray> >();
+    to_python_converter<Tango::DevVarStringArray, CORBA_sequence_to_list<Tango::DevVarStringArray> >();
+    to_python_converter<Tango::DevVarLongStringArray, CORBA_sequence_to_list<Tango::DevVarLongStringArray> >();
+    to_python_converter<Tango::DevVarDoubleStringArray, CORBA_sequence_to_list<Tango::DevVarDoubleStringArray> >();
+    to_python_converter<Tango::DevVarLong64Array, CORBA_sequence_to_list<Tango::DevVarLong64Array> >();
+    to_python_converter<Tango::DevVarULong64Array, CORBA_sequence_to_list<Tango::DevVarULong64Array> >();
+
+    //to_python_converter<unsigned char, UChar_to_str>();
     
     convert_PySequence_to_CORBA_Sequence<Tango::DevVarCharArray>();
     convert_PySequence_to_CORBA_Sequence<Tango::DevVarShortArray>();

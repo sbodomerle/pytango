@@ -277,7 +277,13 @@ class DeviceClass(_DeviceClass):
                     setattr(self, prop_name, self.prop_util.get_property_values(prop_name, self.class_property_list))
         except DevFailed, e:
             print "----> ", e
-
+    
+    def __str__(self):
+        return '%s(%s)' % (self.__class__.__name__, self.get_name())
+    
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__, self.get_name())    
+    
     def __throw_create_attribute_exception(self, msg):
         """Helper method to throw DevFailed exception when inside create_attribute"""
         Except.throw_exception("PyDs_WrongAttributeDefinition", msg, "create_attribute()")
@@ -404,44 +410,6 @@ class DeviceClass(_DeviceClass):
         read_method_name = "read_%s" % attr_name
         write_method_name = "write_%s" % attr_name
         is_allowed_name = "is_%s_allowed" % attr_name
-
-        if attr_write in (AttrWriteType.READ, AttrWriteType.READ_WRITE):
-            try:
-                read_method = getattr(deviceimpl_class, read_method_name)
-                if not operator.isCallable(read_method):
-                    msg = "Wrong definition of attribute %s in " \
-                          "class %s\nThe object '%s' exists in class but is not " \
-                          "a method!" % (attr_name, name, read_method_name)
-                    self.__throw_create_attribute_exception(msg)
-            except AttributeError, ae:
-                msg = "Wrong definition of attribute %s in " \
-                      "class %s\nThe attribute method '%s' does not " \
-                      "exist!" % (attr_name, name, read_method_name)
-                self.__throw_create_attribute_exception(msg)
-
-        if attr_write in (AttrWriteType.WRITE, AttrWriteType.READ_WRITE):
-            try:
-                write_method = getattr(deviceimpl_class, write_method_name)
-                if not operator.isCallable(write_method):
-                    msg = "Wrong definition of attribute %s in " \
-                          "class %s\nThe object '%s' exists in class but is not " \
-                          "a method!" % (attr_name, name, write_method_name)
-                    self.__throw_create_attribute_exception(msg)
-            except AttributeError, ae:
-                msg = "Wrong definition of attribute %s in " \
-                      "class %s\nThe attribute method '%s' does not " \
-                      "exist!" % (attr_name, name, write_method_name)
-                self.__throw_create_attribute_exception(msg)
-
-        try:
-            is_allowed = getattr(deviceimpl_class, is_allowed_name)
-            if not operator.isCallable(is_allowed):
-                msg = "Wrong definition of attribute %s in " \
-                      "class %s\nThe object '%s' exists in class but is not " \
-                      "a method!" % (attr_name, name, is_allowed_name)
-                self.__throw_create_attribute_exception(msg)
-        except:
-            is_allowed_name = ""
 
         try:
             display_level = DispLevel(extra_info.get("display level", DispLevel.OPERATOR))

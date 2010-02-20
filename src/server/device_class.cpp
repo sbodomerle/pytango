@@ -125,11 +125,7 @@ void CppDeviceClass::create_attribute(vector<Tango::Attr *> &att_list,
 
     py_attr_ptr->set_read_name(read_method_name);
     py_attr_ptr->set_write_name(write_method_name);
-
-    if (!is_allowed_name.empty())
-    {
-        py_attr_ptr->set_allowed(is_allowed_name);
-    }
+    py_attr_ptr->set_allowed_name(is_allowed_name);
 
     attr_ptr->set_default_properties(att_prop);
     attr_ptr->set_disp_level(display_level);

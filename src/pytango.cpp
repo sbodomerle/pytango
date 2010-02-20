@@ -43,10 +43,9 @@ BOOST_PYTHON_MODULE(_PyTango)
     // Configure generated docstrings
     const bool show_user_defined = false;
     const bool show_py_signatures = false;
-    const bool show_cpp_signatures = false;
+
     docstring_options doc_opts(show_user_defined,
-                               show_py_signatures,
-                               show_cpp_signatures);
+                               show_py_signatures);
 
     // specify that this module is actually a package
     boost::python::object package = boost::python::scope();

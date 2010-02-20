@@ -52,7 +52,7 @@ public:
     /**
      * Constructor
      */
-    PyAttr() : py_allowed_defined(false)
+    PyAttr()
     {}
 
     /**
@@ -69,6 +69,14 @@ public:
      */
     inline void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
     {
+        if (!_is_method(dev, read_name))
+        {
+            TangoSys_OMemStream o;
+            o << read_name << " method not found";
+            Tango::Except::throw_exception("PyTango_ReadAttributeMethodNotFound",
+                o.str(), "PyTango::Attr::read");
+        }
+        
         CALL_ATTR_METHOD_VARGS(dev, read_name.c_str(), boost::ref(att))
     }
 
@@ -80,6 +88,13 @@ public:
      */
     inline void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
     {
+        if (!_is_method(dev, write_name))
+        {
+            TangoSys_OMemStream o;
+            o << write_name << " method not found";
+            Tango::Except::throw_exception("PyTango_WriteAttributeMethodNotFound",
+                o.str(), "PyTango::Attr::write");
+        }
         CALL_ATTR_METHOD_VARGS(dev, write_name.c_str(), boost::ref(att))
     }
 
@@ -94,13 +109,12 @@ public:
      */
     inline bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
     {
-        if (!py_allowed_defined)
-            return true;
-
-        RET_CALL_ATTR_METHOD_VARGS(bool, dev, py_allowed_name.c_str(), ty)
-
+        if (_is_method(dev, py_allowed_name))
+        {
+            RET_CALL_ATTR_METHOD_VARGS(bool, dev, py_allowed_name.c_str(), ty)
+        }
         // keep compiler quiet
-        return false;
+        return true;
     }
 
     /**
@@ -108,9 +122,8 @@ public:
      *
      * @param[in] name the is_allowed method name
      */
-    inline void set_allowed(const std::string &name)
+    inline void set_allowed_name(const std::string &name)
     {
-        py_allowed_defined = true;
         py_allowed_name = name;
     }
 
@@ -144,14 +157,19 @@ public:
     void set_user_prop(std::vector<Tango::AttrProperty> &user_prop,
                        Tango::UserDefaultAttrProp &def_prop);
 
+    inline bool _is_method(Tango::DeviceImpl *dev, const std::string &name)
+    {   
+        AutoPythonGIL __py_lock;
+        PyDeviceImplBase *__dev_ptr = dynamic_cast<PyDeviceImplBase *>(dev);
+        PyObject *__dev_py = __dev_ptr->the_self;
+        return is_method_defined(__dev_py, name);
+    }
+    
 private:
 
-    /** flag that determines if the is_allowed method is defined */
-    bool py_allowed_defined;
-
-    /** the name of the is_allowed python method */
+    /** the name of the is allowed python method */
     std::string py_allowed_name;
-
+    
     /** the name of the read attribute python method */
     std::string read_name;
 
