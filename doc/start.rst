@@ -73,7 +73,7 @@ The binary **comes with its's own boost-python, omniORB and Tango DLLs**
 +============+=================================================================+
 | 7.1.0      | - tango 7.1.1 (VC++ 8)                                          |
 |            | - omniORB 4.1.4                                                 |
-|            | - boost python 1.42 (VC++8, multi-threaded)                     |
+|            | - boost python 1.41 (VC++8, multi-threaded)                     |
 +------------+-----------------------------------------------------------------+
 | 7.1.0 rc1  | - tango 7.1.1 (VC++ 8)                                          |
 |            | - omniORB 4.1.4                                                 |

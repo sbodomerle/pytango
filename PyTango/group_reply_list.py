@@ -11,11 +11,30 @@ def __GroupReplyList__getitem__(self, item):
     # of GroupReply is not fair: It extracts the data from the original
     # object!! So, we will only call the original getitem once, the
     # successive calls will just return the cached object.
+    # GroupReplyList could be changed to use proxies to the internal
+    # c++ object with the apropriate parameter to the
+    # boost::vector_indexing_suite, but when the value is extracted
+    # it is not anymore in any C++ object but in the python object, so
+    # we must still keep it.
+    
+    # Slices support
+    if isinstance(item, slice):
+        return [self.__getitem__(x) for x in xrange(*item.indices(len(self)))]
+    
+    # We want to get the same cache value for x[-1] as for x[len(x)-1]
+    if item < 0:
+        item = item + len(self)
+    
+    # Try to get from cache
     try:
         return self.__listCache[item]
     except AttributeError:
+        # The GroupReplyList object is created without the
+        # cache attribute, so it is created here
         self.__listCache = dict()
-    except Exception:
+    except KeyError:
+        # The decision wheter we are out of bounds or it's just a cache
+        # miss will be taken by original_getitem
         pass
 
     r = self.__GroupReplyList_original_getitem__(item)

@@ -1,5 +1,4 @@
-#ifndef _PYTANGO_DEFS_
-#define _PYTANGO_DEFS_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -19,5 +18,3 @@ namespace PyTango
         ExtractAsNothing
     };
 }
-
-#endif //_PYTANGO_DEFS_

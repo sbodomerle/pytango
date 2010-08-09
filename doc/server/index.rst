@@ -370,8 +370,11 @@ The following array gives some more info on these methods.
 |      Cmd_name         | Depends on cmd type     |Depends on cmd type |  Yes      |
 +-----------------------+-------------------------+--------------------+-----------+
 
-Tango has more data types than Python which is more dynamic. How Tango data are 
-transferred to Python method implementing commands is described in the following array:
+Tango has more data types than Python which is more dynamic. The input and
+output values of the commands are translated according to the array below.
+Not that if PyTango is compiled with numpy support the numpy type will be
+the used for the input arguments. Also, it is recomended to use numpy arrays
+of the appropiate type for output arguments as well, as it is much more efficient.
 
 +-------------------------+-------------------------------------------+
 |   Tango data type       |              Python type                  |
@@ -400,34 +403,45 @@ transferred to Python method implementing commands is described in the following
 +-------------------------+-------------------------------------------+
 |        DEV_STRING       | str                                       |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_CHARARRAY     | sequence<int>                             |
+|    DEVVAR_CHARARRAY     | numpy.array(dtype=numpy.uint8) or         |
+|                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_SHORTARRAY    | sequence<int>                             |
+|    DEVVAR_SHORTARRAY    | numpy.array(dtype=numpy.int16) or         |
+|                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_LONGARRAY     | sequence<int>                             |
+|    DEVVAR_LONGARRAY     | numpy.array(dtype=numpy.int32) or         |
+|                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_LONG64ARRAY    | sequence<long> (on a 32 bits computer) or |
+|   DEVVAR_LONG64ARRAY    | numpy.array(dtype=numpy.int64) or         |
+|                         | sequence<long> (on a 32 bits computer) or |
 |                         | sequence<int> (on a 64 bits computer)     |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_FLOATARRAY    | sequence<float>                           |
+|    DEVVAR_FLOATARRAY    | numpy.array(dtype=numpy.float32) or       |
+|                         | sequence<float>                           |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_DOUBLEARRAY    | sequence<float>                           |
+|   DEVVAR_DOUBLEARRAY    | numpy.array(dtype=numpy.float64) or       |
+|                         | sequence<float>                           |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_USHORTARRAY    | sequence<int>                             |
+|   DEVVAR_USHORTARRAY    | numpy.array(dtype=numpy.uint16) or        |
+|                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_ULONGARRAY     | sequence<int>                             |
+|   DEVVAR_ULONGARRAY     | numpy.array(dtype=numpy.uint32) or        |
+|                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|  DEVVAR_ULONG64ARRAY    | sequence<long> (on a 32 bits computer) or |
+|  DEVVAR_ULONG64ARRAY    | numpy.array(dtype=numpy.uint64) or        |
+|                         | sequence<long> (on a 32 bits computer) or |
 |                         | sequence<int> (on a 64 bits computer)     |
 +-------------------------+-------------------------------------------+
 |   DEVVAR_STRINGARRAY    | sequence<str>                             |
 +-------------------------+-------------------------------------------+
 |                         | A sequence with two elements:             |
-| DEVVAR_LONGSTRINGARRAY  |  1. sequence<int>                         |
+| DEVVAR_LONGSTRINGARRAY  |  1. numpy.array(dtype=numpy.int32) or     |
+|                         |     sequence<int>                         |
 |                         |  2. sequence<str>                         |
 +-------------------------+-------------------------------------------+
 |                         | A sequence with two elements:             |
-|DEVVAR_DOUBLESTRINGARRAY |  1. sequence<float>                       |
+|DEVVAR_DOUBLESTRINGARRAY |  1. numpy.array(dtype=numpy.float32) or   |
+|                         |     sequence<float>                       |
 |                         |  2. sequence<str>                         |
 +-------------------------+-------------------------------------------+
 

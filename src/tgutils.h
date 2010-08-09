@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <tango.h>
 #include <cassert>
+#include <tango.h>
 
 namespace Tango
 {
@@ -14,7 +14,7 @@ struct tango_name2type
 {
 };
 
-template<typename N>
+template<typename T>
 struct tango_type2name
 {
     enum { };
@@ -24,6 +24,30 @@ template<int N>
 struct tango_name2arraytype
 {
 };
+
+template<int N>
+struct tango_name2arrayname
+{
+    enum { };
+};
+
+template<int N>
+struct tango_name2scalarname
+{
+    enum { };
+};
+
+#define DEF_TANGO_SCALAR_ARRAY_NAMES(scalarname, arrayname) \
+    template<> \
+    struct tango_name2arrayname<Tango:: scalarname> \
+    { \
+        enum {value = Tango:: arrayname}; \
+    }; \
+    template<> \
+    struct tango_name2scalarname<Tango:: arrayname> \
+    { \
+        enum {value = Tango:: scalarname}; \
+    };
 
 #define DEF_TANGO_NAME2TYPE(tangoname, tangotype) \
     template<> \
@@ -45,43 +69,61 @@ struct tango_name2arraytype
         typedef simple ElementsType; \
     };
 
-#define __TSD_SIMPLE(tangoname, eltangotype, arraytangotype) \
+#define TSD_SIMPLE__(tangoname, eltangotype, arraytangotype) \
     DEF_TANGO_NAME2TYPE(tangoname, eltangotype) \
     DEF_TANGO_NAME2ARRAY(tangoname, arraytangotype, eltangotype)
 
-#define __TSD_ARRAY(tangoname, eltangotype, arraytangotype) \
+#define TSD_ARRAY__(tangoname, eltangotype, arraytangotype) \
     DEF_TANGO_NAME2TYPE(tangoname, arraytangotype) \
     DEF_TANGO_NAME2ARRAY(tangoname, void, eltangotype)
 
-__TSD_SIMPLE( DEV_SHORT,                Tango::DevShort  ,  Tango::DevVarShortArray   );
-__TSD_SIMPLE( DEV_LONG,                 Tango::DevLong   ,  Tango::DevVarLongArray   );
-__TSD_SIMPLE( DEV_DOUBLE,               Tango::DevDouble ,  Tango::DevVarDoubleArray   );
-__TSD_SIMPLE( DEV_STRING,               Tango::DevString ,  Tango::DevVarStringArray   );
-__TSD_SIMPLE( DEV_FLOAT,                Tango::DevFloat  ,  Tango::DevVarFloatArray   );
-__TSD_SIMPLE( DEV_BOOLEAN,              Tango::DevBoolean,  Tango::DevVarBooleanArray   );
-__TSD_SIMPLE( DEV_USHORT,               Tango::DevUShort ,  Tango::DevVarUShortArray   );
-__TSD_SIMPLE( DEV_ULONG,                Tango::DevULong  ,  Tango::DevVarULongArray   );
-__TSD_SIMPLE( DEV_UCHAR,                Tango::DevUChar  ,  Tango::DevVarUCharArray   );
-__TSD_SIMPLE( DEV_LONG64,               Tango::DevLong64 ,  Tango::DevVarLong64Array   );
-__TSD_SIMPLE( DEV_ULONG64,              Tango::DevULong64,  Tango::DevVarULong64Array   );
-__TSD_SIMPLE( DEV_STATE,                Tango::DevState  ,  Tango::DevVarStateArray   );
-__TSD_SIMPLE( DEV_ENCODED,              Tango::DevEncoded,  Tango::DevVarEncodedArray     );
+TSD_SIMPLE__( DEV_SHORT,                Tango::DevShort  ,  Tango::DevVarShortArray   );
+TSD_SIMPLE__( DEV_LONG,                 Tango::DevLong   ,  Tango::DevVarLongArray   );
+TSD_SIMPLE__( DEV_DOUBLE,               Tango::DevDouble ,  Tango::DevVarDoubleArray   );
+TSD_SIMPLE__( DEV_STRING,               Tango::DevString ,  Tango::DevVarStringArray   );
+TSD_SIMPLE__( DEV_FLOAT,                Tango::DevFloat  ,  Tango::DevVarFloatArray   );
+TSD_SIMPLE__( DEV_BOOLEAN,              Tango::DevBoolean,  Tango::DevVarBooleanArray   );
+TSD_SIMPLE__( DEV_USHORT,               Tango::DevUShort ,  Tango::DevVarUShortArray   );
+TSD_SIMPLE__( DEV_ULONG,                Tango::DevULong  ,  Tango::DevVarULongArray   );
+TSD_SIMPLE__( DEV_UCHAR,                Tango::DevUChar  ,  Tango::DevVarUCharArray   );
+TSD_SIMPLE__( DEV_LONG64,               Tango::DevLong64 ,  Tango::DevVarLong64Array   );
+TSD_SIMPLE__( DEV_ULONG64,              Tango::DevULong64,  Tango::DevVarULong64Array   );
+TSD_SIMPLE__( DEV_STATE,                Tango::DevState  ,  Tango::DevVarStateArray   );
+TSD_SIMPLE__( DEV_ENCODED,              Tango::DevEncoded,  Tango::DevVarEncodedArray     );
 
-__TSD_SIMPLE( DEV_VOID,                 void             , void);
+TSD_SIMPLE__( DEV_VOID,                 void             , void);
 
-__TSD_ARRAY(  DEVVAR_CHARARRAY,         _CORBA_Octet     ,  Tango::DevVarCharArray);
-__TSD_ARRAY(  DEVVAR_SHORTARRAY,        Tango::DevShort  ,  Tango::DevVarShortArray);
-__TSD_ARRAY(  DEVVAR_LONGARRAY,         Tango::DevLong   ,  Tango::DevVarLongArray);
-__TSD_ARRAY(  DEVVAR_FLOATARRAY,        Tango::DevFloat  ,  Tango::DevVarFloatArray);
-__TSD_ARRAY(  DEVVAR_DOUBLEARRAY,       Tango::DevDouble ,  Tango::DevVarDoubleArray);
-__TSD_ARRAY(  DEVVAR_USHORTARRAY,       Tango::DevUShort ,  Tango::DevVarUShortArray);
-__TSD_ARRAY(  DEVVAR_ULONGARRAY,        Tango::DevULong  ,  Tango::DevVarULongArray);
-__TSD_ARRAY(  DEVVAR_STRINGARRAY,       Tango::DevString ,  Tango::DevVarStringArray);
-__TSD_ARRAY(  DEVVAR_LONGSTRINGARRAY,   void             ,  Tango::DevVarLongStringArray);
-__TSD_ARRAY(  DEVVAR_DOUBLESTRINGARRAY, void             ,  Tango::DevVarDoubleStringArray);
-__TSD_ARRAY(  DEVVAR_BOOLEANARRAY,      Tango::DevBoolean,  Tango::DevVarBooleanArray);
-__TSD_ARRAY(  DEVVAR_LONG64ARRAY,       Tango::DevLong64 ,  Tango::DevVarLong64Array);
-__TSD_ARRAY(  DEVVAR_ULONG64ARRAY,      Tango::DevULong64,  Tango::DevVarULong64Array);
+TSD_ARRAY__(  DEVVAR_CHARARRAY,         _CORBA_Octet     ,  Tango::DevVarCharArray);
+TSD_ARRAY__(  DEVVAR_SHORTARRAY,        Tango::DevShort  ,  Tango::DevVarShortArray);
+TSD_ARRAY__(  DEVVAR_LONGARRAY,         Tango::DevLong   ,  Tango::DevVarLongArray);
+TSD_ARRAY__(  DEVVAR_FLOATARRAY,        Tango::DevFloat  ,  Tango::DevVarFloatArray);
+TSD_ARRAY__(  DEVVAR_DOUBLEARRAY,       Tango::DevDouble ,  Tango::DevVarDoubleArray);
+TSD_ARRAY__(  DEVVAR_USHORTARRAY,       Tango::DevUShort ,  Tango::DevVarUShortArray);
+TSD_ARRAY__(  DEVVAR_ULONGARRAY,        Tango::DevULong  ,  Tango::DevVarULongArray);
+TSD_ARRAY__(  DEVVAR_STRINGARRAY,       Tango::DevString ,  Tango::DevVarStringArray);
+TSD_ARRAY__(  DEVVAR_LONGSTRINGARRAY,   void             ,  Tango::DevVarLongStringArray);
+TSD_ARRAY__(  DEVVAR_DOUBLESTRINGARRAY, void             ,  Tango::DevVarDoubleStringArray);
+TSD_ARRAY__(  DEVVAR_BOOLEANARRAY,      Tango::DevBoolean,  Tango::DevVarBooleanArray);
+TSD_ARRAY__(  DEVVAR_LONG64ARRAY,       Tango::DevLong64 ,  Tango::DevVarLong64Array);
+TSD_ARRAY__(  DEVVAR_ULONG64ARRAY,      Tango::DevULong64,  Tango::DevVarULong64Array);
+
+ 
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_SHORT,   DEVVAR_SHORTARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_LONG,    DEVVAR_LONGARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_DOUBLE,  DEVVAR_DOUBLEARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_STRING,  DEVVAR_STRINGARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_FLOAT,   DEVVAR_FLOATARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_BOOLEAN, DEVVAR_BOOLEANARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_USHORT,  DEVVAR_USHORTARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_ULONG,   DEVVAR_ULONGARRAY );
+//DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_UCHAR,   DEVVAR_CHARARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_LONG64,  DEVVAR_LONG64ARRAY );
+DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_ULONG64, DEVVAR_ULONG64ARRAY );
+// DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_STATE,   DEVVAR_STATEARRAY );
+// DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_ENCODED, DEVVAR_ENCODEDARRAY );
+//DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_,        DEVVAR_LONGSTRINGARRAY );
+//DEF_TANGO_SCALAR_ARRAY_NAMES( DEV_,        DEVVAR_DOUBLESTRINGARRAY );
+
 
 
 #define TANGO_type2const(type) tango_type2name<type>::value
@@ -90,6 +132,12 @@ __TSD_ARRAY(  DEVVAR_ULONG64ARRAY,      Tango::DevULong64,  Tango::DevVarULong64
 #define TANGO_const2arrayelementstype(name) tango_name2arraytype<name>::ElementsType
 #define TANGO_type2arraytype(type) TANGO_const2arraytype(TANGO_type2const(type))
 #define TANGO_const2string(name) (Tango::CmdArgTypeName[name])
+
+#define TANGO_const2arrayconst(scalarconst) tango_name2arrayname<scalarconst>::value
+#define TANGO_const2scalarconst(arrayconst) tango_name2scalarname<arrayconst>::value
+#define TANGO_const2scalartype TANGO_const2arrayelementstype
+
+
 
 
 

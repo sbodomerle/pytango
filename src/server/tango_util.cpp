@@ -1,13 +1,12 @@
 #include <boost/python.hpp>
 #include <tango.h>
+#include <iostream>
 
 #include "defs.h"
 #include "pytgutils.h"
 #include "exception.h"
 
 #include "server/device_class.h"
-
-#include <iostream>
 
 using namespace boost::python;
 

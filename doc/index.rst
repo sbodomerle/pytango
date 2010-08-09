@@ -102,6 +102,15 @@ Version history:
 +------------+---------------------------------------------------------------------------------+
 | version    | Changes                                                                         |
 +============+=================================================================================+
+| 7.1.1      | Features:                                                                       |
+|            |     - Improved setup script                                                     |
+|            |     - Interfaced with PyPI                                                      |
+|            |     - Cleaned build script warnings due to unclean python C++ macro definitions |
+|            |     - from sourceforge: 2985993, 2971217                                        |
+|            |                                                                                 |
+|            | Bug fixes:                                                                      |
+|            |     - from sourceforge: 2983299, 2953689, 2953030                               |
++------------+---------------------------------------------------------------------------------+
 | 7.1.0      | Features:                                                                       |
 |            |     - from sourceforge:                                                         |
 |            |       - 2908176: read_*, write_* and is_*_allowed() methods can now be defined  |

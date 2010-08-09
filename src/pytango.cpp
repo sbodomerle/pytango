@@ -1,4 +1,3 @@
-
 #include <boost/python.hpp>
 
 #ifndef DISABLE_PYTANGO_NUMPY
@@ -6,9 +5,9 @@
 #   include <numpy/arrayobject.h>
 #endif
 
+#include <tango.h>
 #include <iostream>
 #include <string>
-#include <tango.h>
 
 using namespace boost::python;
 

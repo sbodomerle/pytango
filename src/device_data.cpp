@@ -1,14 +1,17 @@
-#include <iostream>
-#include <string>
 #include <boost/python.hpp>
 #include <boost/mpl/if.hpp>
 #include <tango.h>
+#include <iostream>
+#include <string>
 
 #include "pytgutils.h"
+#include "fast_from_py.h"
 
 using namespace boost::python;
 
-
+#ifndef DISABLE_PYTANGO_NUMPY
+#   include "to_py_numpy.hpp"
+#endif
 
 namespace PyDeviceData {
 
@@ -39,13 +42,19 @@ namespace PyDeviceData {
 
     /// @name Array Insertion
     /// @{
-        template <long tangoTypeConst>
+        template <long tangoArrayTypeConst>
         void insert_array(Tango::DeviceData &self, object py_value)
-        {
-            typedef typename TANGO_const2type(tangoTypeConst) TangoArrayType;
+        {            
+            typedef typename TANGO_const2type(tangoArrayTypeConst) TangoArrayType;
 
-            TangoArrayType val;
-            convert2array(py_value, val);
+            // self << val; -->> This ends up doing:
+            // inline void operator << (DevVarUShortArray* datum) 
+            // { any.inout() <<= datum;}
+            // So:
+            //  - We loose ownership of the pointer, should not remove it
+            //  - it's a CORBA object who gets ownership, not a buggy Tango
+            //    thing. So the last parameter to fast_convert2array is false
+            TangoArrayType* val = fast_convert2array<tangoArrayTypeConst>(py_value);
             self << val;
         }
     /// @}
@@ -83,36 +92,48 @@ namespace PyDeviceData {
     // -----------------------------------------------------------------------
 
     /// @name Array extraction
-    /// @{
-        template<class T>
-        boost::python::object convert_array(const T *seq, int convert_to = 0)
-        {
-            /// @todo convert_to list, or tuple, or numpy...
-            return object(handle<>(CORBA_sequence_to_list<T>::convert(*seq)));
-        }
+    /// @{       
 
-        template <long tangoTypeConst>
-        object extract_array(Tango::DeviceData &self)
+        template <long tangoArrayTypeConst>
+        object extract_array(Tango::DeviceData &self, object &py_self, PyTango::ExtractAs extract_as)
         {
-            typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
-            // Const is the pointed, not the pointer. So cannot modify the data.
+            typedef typename TANGO_const2type(tangoArrayTypeConst) TangoArrayType;
+            
+            // const is the pointed, not the pointer. So cannot modify the data.
             // And that's because the data is still inside "self" after extracting.
             // This also means that we are not supposed to "delete" tmp_ptr.
-            const TangoScalarType* tmp_ptr;
+            const TangoArrayType* tmp_ptr;
             self >> tmp_ptr;
 
-            return convert_array(tmp_ptr);
+            switch (extract_as)
+            {
+                default:
+                case PyTango::ExtractAsNumpy:
+#                 ifndef DISABLE_PYTANGO_NUMPY
+                    return to_py_numpy<tangoArrayTypeConst>(tmp_ptr, py_self);
+#                 endif
+                case PyTango::ExtractAsList:
+                case PyTango::ExtractAsPyTango3:
+                    return to_py_list(tmp_ptr);
+                case PyTango::ExtractAsTuple:
+                    return to_py_tuple(tmp_ptr);
+                case PyTango::ExtractAsString: /// @todo
+                case PyTango::ExtractAsNothing:
+                    return object();
+            }
         }
     /// @}
     // ~Array Extraction
     // -----------------------------------------------------------------------
 
-    object extract(Tango::DeviceData &self)
+    object extract(object py_self, PyTango::ExtractAs extract_as)
     {
+        Tango::DeviceData &self = boost::python::extract<Tango::DeviceData &>(py_self);
+        
         TANGO_DO_ON_DEVICE_DATA_TYPE(self.get_type(),
             return extract_scalar<tangoTypeConst>(self);
         ,
-            return extract_array<tangoTypeConst>(self);
+            return extract_array<tangoTypeConst>(self, py_self, extract_as);
         );
         return object();
     }
@@ -145,7 +166,9 @@ void export_device_data()
     DeviceData
         .def(init<const Tango::DeviceData &>())
 
-        .def("extract", &PyDeviceData::extract)
+        .def("extract",
+            &PyDeviceData::extract,
+            ( arg_("self"), arg_("extract_as")=PyTango::ExtractAsNumpy ))
 
         .def("insert", &PyDeviceData::insert,
             (arg_("self"), arg_("data_type"), arg_("value")))

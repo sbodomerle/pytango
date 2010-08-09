@@ -1,5 +1,4 @@
-#ifndef _PYTANGO_UTILS_
-#define _PYTANGO_UTILS_
+#pragma once
 
 #include <boost/python.hpp>
 #include <tango.h>
@@ -59,7 +58,3 @@ inline void double2timeval(struct timeval &tv, double t)
     tv.tv_sec = (suseconds_t)(sec);
 #endif
 }
-
-
-
-#endif // _PYTANGO_UTILS_

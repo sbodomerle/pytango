@@ -1,13 +1,14 @@
+#include <boost/python.hpp>
+#include <tango.h>
+#include <iostream>
+#include <string>
+#include <memory>
+
 #include "device_attribute.h"
 
 #include "pytgutils.h"
 #include "tango_numpy.h"
-
-#include <iostream>
-#include <string>
-#include <memory>
-#include <boost/python.hpp>
-#include <tango.h>
+#include "fast_from_py.h"
 
 using namespace boost::python;
 
@@ -600,9 +601,9 @@ void export_device_attribute()
 
         .def_readwrite("name", &Tango::DeviceAttribute::name)
 
-        .def_readonly("quality", &Tango::DeviceAttribute::quality)
+        .def_readwrite("quality", &Tango::DeviceAttribute::quality)
 
-        .def_readonly("time", &Tango::DeviceAttribute::time)
+        .def_readwrite("time", &Tango::DeviceAttribute::time)
 
         .add_property("dim_x", &Tango::DeviceAttribute::get_dim_x)
 

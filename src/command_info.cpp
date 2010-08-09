@@ -1,6 +1,4 @@
 #include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
 #include <tango.h>
 
 using namespace boost::python;

@@ -1,5 +1,4 @@
-#ifndef _EXCEPTION_H_
-#define _EXCEPTION_H_
+#pragma once
 
 #include <boost/python.hpp>
 #include <tango.h>
@@ -78,6 +77,5 @@ void handle_python_exception(boost::python::error_already_set &eas);
     catch(...) \
     { \
         std::cerr << meth_name << " generated an unknown." << std::endl; \
-    }   
-    
-#endif
+    }
+

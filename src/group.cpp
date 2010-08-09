@@ -1,13 +1,11 @@
-
-#include <tango.h>
-#include "pytgutils.h"
-
 #include <boost/python/copy_const_reference.hpp>
 #include <boost/python/copy_non_const_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
-#include "device_attribute.h"
+#include <tango.h>
 #include <memory>
+
+#include "pytgutils.h"
+#include "device_attribute.h"
 
 void export_group_reply_list();
 void export_group_reply();

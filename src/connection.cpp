@@ -1,13 +1,9 @@
-
-#include <tango.h>
-#include "pytgutils.h"
-
 #include <boost/python/copy_const_reference.hpp>
 #include <boost/python/copy_non_const_reference.hpp>
+#include <tango.h>
 
+#include "pytgutils.h"
 #include "callback.h"
-
-
 
 namespace PyConnection
 {

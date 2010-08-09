@@ -1,5 +1,4 @@
 #include <boost/python.hpp>
-
 #include <tango.h>
 
 using namespace boost::python;
