@@ -1,11 +1,18 @@
-import os, copy
+import os, copy, operator
 
-from _PyTango import _Util, Except
+from _PyTango import _Util, Except, DevFailed, DbDevInfo
 from utils import document_method as __document_method
 #from utils import document_static_method as __document_static_method
 from globals import class_list
 from globals import cpp_class_list
 from globals import get_constructed_classes
+
+def __simplify_device_name(dev_name):
+    if dev_name.startswith("tango://"):
+        dev_name = dev_name[8:]
+    if dev_name.count("/") > 2:
+        dev_name = dev_name[dev_name.index("/")+1:]
+    return dev_name.lower()
 
 #
 # Methods on Util
@@ -22,54 +29,155 @@ def __Util__get_class_list(self):
             Return     : (seq<DeviceClass>) a list of objects of inheriting from DeviceClass"""
     return get_constructed_classes()
 
-def __Util__get_device_list_by_class(self,name):
+def __Util__create_device(self, klass_name, device_name, alias=None, cb=None):
     """
-        get_device_list_by_class(self, name) -> seq<DeviceImpl>
+        create_device(self, klass_name, device_name, alias=None, cb=None) -> None
+        
+            Creates a new device of the given class in the database, creates a new
+            DeviceImpl for it and calls init_device (just like it is done for
+            existing devices when the DS starts up)
+    
+            An optional parameter callback is called AFTER the device is 
+            registered in the database and BEFORE the init_device for the
+            newly created device is called
+            
+            Throws PyTango.DevFailed:
+                - the device name exists already or
+                - the given class is not registered for this DS.
+                - the cb is not a callable
+            
+        New in PyTango 7.1.2
+        
+        Parameters :
+            - klass_name : (str) the device class name
+            - device_name : (str) the device name
+            - alias : (str) optional alias. Default value is None meaning do not create device alias
+            - cb : (callable) a callback that is called AFTER the device is registered
+                   in the database and BEFORE the init_device for the newly created
+                   device is called. Typically you may want to put device and/or attribute
+                   properties in the database here. The callback must receive a parameter:
+                   device name (str). Default value is None meaning no callback
+        
+        Return     : None"""
+    if cb is not None and not callable(cb):
+        Except.throw_exception("PyAPI_InvalidParameter",
+            "The optional cb parameter must be a python callable",
+            "Util.create_device")
+    
+    db = self.get_database()
 
-                Returns a list of objects of inheriting from DeviceImpl for
-                the given Tango class
+    device_name = __simplify_device_name(device_name)
+    
+    device_exists = True
+    try:
+        db.import_device(device_name)
+    except DevFailed as df:
+        device_exists = not df[0].reason == "DB_DeviceNotDefined"
 
-            Parameters :
-                - name : (str) tango class name
+    # 1 - Make sure device name doesn't exist already in the database
+    if device_exists:
+        Except.throw_exception("PyAPI_DeviceAlreadyDefined", 
+            "The device %s is already defined in the database" % device_name,
+            "Util.create_device")
 
-            Return     : (seq<DeviceImpl>) a list of objects of inheriting
-                         from DeviceImpl for the given Tango class
+    # 2 - Make sure the device class is known
+    klass_list = self.get_class_list()
+    klass = None
+    for k in klass_list:
+        name = k.get_name()
+        if name == klass_name:
+            klass = k
+            break
+    if klass is None:
+        Except.throw_exception("PyAPI_UnknownDeviceClass", 
+            "The device class %s could not be found" % klass_name,
+            "Util.create_device")
+            
+    # 3 - Create entry in the database (with alias if necessary)
+    dev_info = DbDevInfo()
+    dev_info.name = device_name
+    dev_info._class = klass_name
+    dev_info.server = self.get_ds_name()
+    
+    db.add_device(dev_info)
+    
+    if alias is not None:
+        db.put_device_alias(device_name, alias)
 
-            Throws     : DevFailed if the Tango class was not found"""
-    for cl in self.get_class_list():
-        if cl.get_name() == name:
-            return cl.get_device_list()
+    # from this point on, if anything wrong happens we need to clean the database
+    try:
+        # 4 - run the callback which tipically is used to initialize 
+        #     device and/or attribute properties in the database
+        if cb is not None:
+            cb(device_name)
+            
+        # 5 - Initialize device object on this server
+        k.device_factory([device_name])
+    except:
+        try:
+            if alias is not None:
+                db.delete_device_alias(alias)
+        except:
+            pass
+        db.delete_device(device_name)
 
-    Except.throw_exception("API_ClassNotFound",
-                           "Class " + name + " not found",
-                           "Util::get_device_list_by_class")
-
-def __Util__get_device_by_name(self, name):
+def __Util__delete_device(self, klass_name, device_name):
     """
-        get_device_by_name(self, name) -> DeviceImpl
+        delete_device(self, klass_name, device_name) -> None
+        
+            Deletes an existing device from the database and from this running
+            server
+    
+            Throws PyTango.DevFailed:
+                - the device name doesn't exist in the database
+                - the device name doesn't exist in this DS.
+        
+        New in PyTango 7.1.2
+        
+        Parameters :
+            - klass_name : (str) the device class name
+            - device_name : (str) the device name
+        
+        Return     : None"""
+        
+    db = self.get_database()
+    device_name = __simplify_device_name(device_name)
+    device_exists = True
+    try:
+        db.import_device(device_name)
+    except DevFailed as df:
+        device_exists = not df[0].reason == "DB_DeviceNotDefined"
 
-                Returns the DeviceImpl for the given device name
+    # 1 - Make sure device name exists in the database
+    if not device_exists:
+        Except.throw_exception("PyAPI_DeviceNotDefined", 
+            "The device %s is not defined in the database" % device_name,
+            "Util.delete_device")
+    
+    # 2 - Make sure device name is defined in this server
+    class_device_name = "%s::%s" % (klass_name, device_name)
+    ds = self.get_dserver_device()
+    dev_names = ds.query_device()
+    device_exists = False
+    for dev_name in dev_names:
+        p = dev_name.index("::")
+        dev_name = dev_name[:p] + dev_name[p:].lower()
+        if dev_name == class_device_name:
+            device_exists =True
+            break
+    if not device_exists:
+        Except.throw_exception("PyAPI_DeviceNotDefinedInServer", 
+            "The device %s is not defined in this server" % class_device_name,
+            "Util.delete_device")
+    
+    db.delete_device(device_name)
+    
+    dimpl = self.get_device_by_name(device_name)
+    
+    dc = dimpl.get_device_class()
+    dc.device_destroyer(device_name)
 
-            Parameters :
-                - name : (str) tango device name
-
-            Return     : (DeviceImpl) the DeviceImpl for the given device name
-
-            Throws     : DevFailed if the tango device name was not found"""
-    cl_list = self.get_class_list()
-    dev_list = []
-    for cl in cl_list:
-        dev_list += cl.get_device_list()
-
-    name_lower = name.lower()
-    for dev in dev_list:
-        if dev.get_name().lower() == name_lower:
-            return dev
-
-    Except.throw_exception("API_DeviceNotFound",
-                           "Device " + name + " not found",
-                           "Util::get_device_by_name")
-
+    
 class Util(_Util):
     """
         This class is a used to store TANGO device server process data and to
@@ -92,25 +200,49 @@ class Util(_Util):
 
     def add_TgClass(self, klass_device_class, klass_device, device_class_name):
         """Register a new python tango class.
-           Example: util.add_TgClass(MotorClass, Motor, 'Motor')"""
+           
+           Example:
+               util.add_TgClass(MotorClass, Motor, 'Motor')"""
         class_list.append((klass_device_class, klass_device, device_class_name))
 
 
     def add_Cpp_TgClass(self, device_class_name, tango_device_class_name):
         """Register a new C++ tango class.
+           
+           If there is a shared library file called MotorClass.so which
+           contains a MotorClass class and a _create_MotorClass_class method.
            Example:
-               if there is a shared library file called MotorClass.so which
-               contains a MotorClass class and a _create_MotorClass_class
-               method:
                util.add_Cpp_TgClass('MotorClass', 'Motor')
-           Note: the parameter 'device_class_name' must match the shared
+               
+           .. note: the parameter 'device_class_name' must match the shared
            library name."""
         cpp_class_list.append((device_class_name, tango_device_class_name))
 
+    def add_class(self, *args, **kwargs):
+        """
+            add_class(self, args, language="python") -> None
+            
+                Register a new tango class ('python' or 'c++').
+           
+                If language is 'python' then args must be the same as 
+                :meth:`PyTango.Util.add_TgClass`. Otherwise, args should be the ones
+                in :meth:`PyTango.Util.add_Cpp_TgClass`.
+            
+                Example:
+                    util.add_class(MotorClass, Motor, 'Motor')
+                    util.add_class('CounterClass', 'Counter')
+           
+            New in PyTango 7.1.2"""
+        language = kwargs.get("language", "python")
+        f = self.add_TgClass
+        if language != "python":
+            f = f = self.add_Cpp_TgClass
+        return f(*args)
+
 def __init_Util():
     _Util.get_class_list = __Util__get_class_list
-    _Util.get_device_list_by_class = __Util__get_device_list_by_class
-    _Util.get_device_by_name = __Util__get_device_by_name
+    _Util.create_device = __Util__create_device
+    _Util.delete_device = __Util__delete_device
 
 def __doc_Util():
     def document_method(method_name, desc, append=True):

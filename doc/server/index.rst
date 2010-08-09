@@ -19,7 +19,7 @@ Importing python modules
 
 To write a Python script which is a Tango device server, you need to import two modules which are :
 
-1. The PyTango module which is the Python to C++ interface
+1. The :mod:`PyTango` module which is the Python to C++ interface
 2. The Python classical sys module
 
 This could be done with code like (supposing the PYTHONPATH environment variable is correctly set)::
@@ -31,16 +31,17 @@ The main part of a Python device server
 ---------------------------------------
 
 The rule of this part of a Tango device server is to:
-- Create the PyUtil object passing it the Python interpreter command line arguments
+- Create the :class:`PyTango.Util` object passing it the Python interpreter command line arguments
 - Add to this object the list of Tango class(es) which have to be hosted by this interpreter
-- Initialise the device server
+- Initialize the device server
 - Run the device server loop
 
 The following is a typical code for this main function::
 
     if __name__ == '__main__':
-        py = PyTango.Util(sys.argv)
-        py.add_TgClass(PyDsExpClass,PyDsExp,'PyDsExp')
+        util = PyTango.Util(sys.argv)
+        #Deprecated : util.add_TgClass(PyDsExpClass, PyDsExp, 'PyDsExp')
+        util.add_class(PyDsExpClass, PyDsExp, 'PyDsExp')
         
         U = PyTango.Util.instance()
         U.server_init()
@@ -48,12 +49,15 @@ The following is a typical code for this main function::
 
 **Line 2**
     Create the Util object passing it the interpreter command line arguments
-**Line 3**
-    Add the Tango class 'PyDsExp' to the device server. The add_TgClass() 
+**Line 4**
+    Add the Tango class 'PyDsExp' to the device server. The add_class() 
     method of the Util class has three arguments which are the Tango class 
-    PyDsExpClass instance, the Tango PyDsExp instance and the Tango class name
+    PyDsExpClass instance, the Tango PyDsExp instance and the Tango class name.
+    This :meth:`PyTango.Util.add_class` method is only available since version 
+    7.1.2. If you are using an older version please use 
+    :meth:`PyTango.Util.add_TgClass` instead.
 **Line 6**
-    Initialise the Tango device server
+    Initialize the Tango device server
 **Line 7**
     Run the device server loop
 
@@ -286,8 +290,7 @@ In our example, the code of this class looks like::
             #PyTango.get_write_value(the_att, data)
 
             # Now:
-            data = the_att.get_write_value()
-            self.attr_short_rw = data[0]
+            self.attr_short_rw = the_att.get_write_value()
 
 **Line 1**
     The PyDsExp class has to inherit from the PyTango.Device_4Impl
@@ -403,44 +406,44 @@ of the appropiate type for output arguments as well, as it is much more efficien
 +-------------------------+-------------------------------------------+
 |        DEV_STRING       | str                                       |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_CHARARRAY     | numpy.array(dtype=numpy.uint8) or         |
+|    DEVVAR_CHARARRAY     | numpy.ndarray(dtype=numpy.uint8) or       |
 |                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_SHORTARRAY    | numpy.array(dtype=numpy.int16) or         |
+|    DEVVAR_SHORTARRAY    | numpy.ndarray(dtype=numpy.int16) or       |
 |                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_LONGARRAY     | numpy.array(dtype=numpy.int32) or         |
+|    DEVVAR_LONGARRAY     | numpy.ndarray(dtype=numpy.int32) or       |
 |                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_LONG64ARRAY    | numpy.array(dtype=numpy.int64) or         |
+|   DEVVAR_LONG64ARRAY    | numpy.ndarray(dtype=numpy.int64) or       |
 |                         | sequence<long> (on a 32 bits computer) or |
 |                         | sequence<int> (on a 64 bits computer)     |
 +-------------------------+-------------------------------------------+
-|    DEVVAR_FLOATARRAY    | numpy.array(dtype=numpy.float32) or       |
+|    DEVVAR_FLOATARRAY    | numpy.ndarray(dtype=numpy.float32) or     |
 |                         | sequence<float>                           |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_DOUBLEARRAY    | numpy.array(dtype=numpy.float64) or       |
+|   DEVVAR_DOUBLEARRAY    | numpy.ndarray(dtype=numpy.float64) or     |
 |                         | sequence<float>                           |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_USHORTARRAY    | numpy.array(dtype=numpy.uint16) or        |
+|   DEVVAR_USHORTARRAY    | numpy.ndarray(dtype=numpy.uint16) or      |
 |                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|   DEVVAR_ULONGARRAY     | numpy.array(dtype=numpy.uint32) or        |
+|   DEVVAR_ULONGARRAY     | numpy.ndarray(dtype=numpy.uint32) or      |
 |                         | sequence<int>                             |
 +-------------------------+-------------------------------------------+
-|  DEVVAR_ULONG64ARRAY    | numpy.array(dtype=numpy.uint64) or        |
+|  DEVVAR_ULONG64ARRAY    | numpy.ndarray(dtype=numpy.uint64) or      |
 |                         | sequence<long> (on a 32 bits computer) or |
 |                         | sequence<int> (on a 64 bits computer)     |
 +-------------------------+-------------------------------------------+
 |   DEVVAR_STRINGARRAY    | sequence<str>                             |
 +-------------------------+-------------------------------------------+
 |                         | A sequence with two elements:             |
-| DEVVAR_LONGSTRINGARRAY  |  1. numpy.array(dtype=numpy.int32) or     |
+| DEVVAR_LONGSTRINGARRAY  |  1. numpy.ndarray(dtype=numpy.int32) or   |
 |                         |     sequence<int>                         |
 |                         |  2. sequence<str>                         |
 +-------------------------+-------------------------------------------+
 |                         | A sequence with two elements:             |
-|DEVVAR_DOUBLESTRINGARRAY |  1. numpy.array(dtype=numpy.float32) or   |
+|DEVVAR_DOUBLESTRINGARRAY |  1. numpy.ndarray(dtype=numpy.float64) or |
 |                         |     sequence<float>                       |
 |                         |  2. sequence<str>                         |
 +-------------------------+-------------------------------------------+
@@ -488,53 +491,63 @@ called is_MyAttr_allowed, its read method has to be called read_MyAttr and
 its write method has to be called write_MyAttr. The following array gives some 
 more info on these methods.
 
-+-------------+-------------+--------------------+
-| data format | data type   |  python type       |
-+=============+=============+====================+
-| SCALAR      | DEV_BOOLEAN | bool               |
-|             +-------------+--------------------+
-|             | DEV_UCHAR   | int                |
-|             +-------------+--------------------+
-|             | DEV_SHORT   | int                |
-|             +-------------+--------------------+
-|             | DEV_USHORT  | int                |
-|             +-------------+--------------------+
-|             | DEV_LONG    | int                |
-|             +-------------+--------------------+
-|             | DEV_ULONG   | int                |
-|             +-------------+--------------------+
-|             | DEV_LONG64  | int/long           |
-|             +-------------+--------------------+
-|             | DEV_ULONG64 | int/long           |
-|             +-------------+--------------------+
-|             | DEV_FLOAT   | float              |
-|             +-------------+--------------------+
-|             | DEV_DOUBLE  | float              |
-|             +-------------+--------------------+
-|             | DEV_STRING  | str                |
-+-------------+-------------+--------------------+
-| SPECTRUM    | DEV_BOOLEAN | sequence<bool>     |
-| or          +-------------+--------------------+
-| IMAGE       | DEV_UCHAR   | sequence<int>      |
-|             +-------------+--------------------+
-|             | DEV_SHORT   | sequence<int>      |
-|             +-------------+--------------------+
-|             | DEV_USHORT  | sequence<int>      |
-|             +-------------+--------------------+
-|             | DEV_LONG    | sequence<int>      |
-|             +-------------+--------------------+
-|             | DEV_ULONG   | sequence<int>      |
-|             +-------------+--------------------+
-|             | DEV_LONG64  | sequence<int/long> |
-|             +-------------+--------------------+
-|             | DEV_ULONG64 | sequence<int/long> |
-|             +-------------+--------------------+
-|             | DEV_FLOAT   | sequence<float>    |
-|             +-------------+--------------------+
-|             | DEV_DOUBLE  | sequence<float>    |
-|             +-------------+--------------------+
-|             | DEV_STRING  | sequence<str>      |
-+-------------+-------------+--------------------+
++-------------+-------------+-------------------------------------------+
+| data format | data type   |  python type                              |
++=============+=============+===========================================+
+| SCALAR      | DEV_BOOLEAN | bool                                      |
+|             +-------------+-------------------------------------------+
+|             | DEV_UCHAR   | int                                       |
+|             +-------------+-------------------------------------------+
+|             | DEV_SHORT   | int                                       |
+|             +-------------+-------------------------------------------+
+|             | DEV_USHORT  | int                                       |
+|             +-------------+-------------------------------------------+
+|             | DEV_LONG    | int                                       |
+|             +-------------+-------------------------------------------+
+|             | DEV_ULONG   | int                                       |
+|             +-------------+-------------------------------------------+
+|             | DEV_LONG64  | int/long                                  |
+|             +-------------+-------------------------------------------+
+|             | DEV_ULONG64 | int/long                                  |
+|             +-------------+-------------------------------------------+
+|             | DEV_FLOAT   | float                                     |
+|             +-------------+-------------------------------------------+
+|             | DEV_DOUBLE  | float                                     |
+|             +-------------+-------------------------------------------+
+|             | DEV_STRING  | str                                       |
++-------------+-------------+-------------------------------------------+
+| SPECTRUM    | DEV_BOOLEAN | numpy.ndarray(dtype=numpy.bool) or        |
+| or          |             | sequence<bool>                            |
+| IMAGE       +-------------+-------------------------------------------+
+|             | DEV_UCHAR   | numpy.ndarray(dtype=numpy.uint8) or       |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_SHORT   | numpy.ndarray(dtype=numpy.int16) or       |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_USHORT  | numpy.ndarray(dtype=numpy.uint16) or      |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_LONG    | numpy.ndarray(dtype=numpy.int32) or       |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_ULONG   | numpy.ndarray(dtype=numpy.uint32) or      |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_LONG64  | numpy.ndarray(dtype=numpy.int64) or       |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_ULONG64 | numpy.ndarray(dtype=numpy.uint64) or      |
+|             |             | sequence<int>                             |
+|             +-------------+-------------------------------------------+
+|             | DEV_FLOAT   | numpy.ndarray(dtype=numpy.float32) or     |
+|             |             | sequence<float>                           |
+|             +-------------+-------------------------------------------+
+|             | DEV_DOUBLE  | numpy.ndarray(dtype=numpy.float64) or     |
+|             |             | sequence<float>                           |
+|             +-------------+-------------------------------------------+
+|             | DEV_STRING  | sequence<str>                             |
++-------------+-------------+-------------------------------------------+
 
 For SPECTRUM and IMAGES the actual sequence object used depends on the context 
 where the tango data is used, and the availability of ``numpy``.
@@ -580,6 +593,73 @@ write the Short_attr_rw attribute::
     Get the value sent by the client using the method get_write_value() and
     store the value written in the device object. Our attribute is a scalar 
     short attribute so the return value is an int
+
+Dynamic devices
+###############
+
+Starting from PyTango 7.1.2 it is possible to create devices in a device server
+"en caliente". This means that you can create a command in your "management device"
+of a device server that creates devices of (possibly) several other tango classes.
+There are two ways to create a new device which are described below.
+
+Dynamic device from a known tango class name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you know the tango class name but you don't have access to the :ref:`PyTango.DeviceClass`
+(or you are too lazy to search how to get it ;-) the way to do it is call 
+:ref:`PyTango.Util.create_device`/:ref:`PyTango.Util.delete_device`.
+Here is an example of implementing a tango command on one of your devices that 
+creates a device of some arbitrary class (the example assumes the tango commands
+'CreateDevice' and 'DeleteDevice' receive a parameter of type DevVarStringArray
+with two strings. No error processing was done on the code for simplicity sake)::
+
+    class MyDevice(PyTango.Device_4Impl):
+        ...
+        
+        def CreateDevice(self, pars):
+            klass_name, dev_name = pars
+            util = PyTango.Util.instance()
+            util.create_device(klass_name, dev_name, alias=None, cb=None)
+        
+        def DeleteDevice(self, pars):
+            klass_name, dev_name = pars
+            util = PyTango.Util.instance()
+            util.delete_device(klass_name, dev_name)
+
+An optional callback can be registered that will be executed after the device is
+registed in the tango database but before the actual device object is created and its
+init_device method is called. You can, for example, initialize some device properties
+here.
+
+Dynamic device from a known tango class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you already have access to the :ref:`PyTango.DeviceClass` object that
+corresponds to the tango class of the device to be created you can call directly
+the :ref:`PyTango.DeviceClass.create_device`/:ref:`PyTango.DeviceClass.delete_device`.
+For example, if you wish to create a clone of your device, you can create a 
+tango command called Clone::
+
+    class MyDevice(PyTango.Device_4Impl):
+        ...
+        
+        def fill_new_device_properties(self, dev_name):
+            prop_names = db.get_device_property_list(self.get_name(), "*")
+            prop_values = db.get_device_property(self.get_name(), prop_names.value_string)
+            db.put_device_property(dev_name, prop_values)
+            
+            # do the same for attributes...
+            ... 
+        
+        def Clone(self, dev_name):
+            klass = self.get_device_class()
+            klass.create_device(dev_name, alias=None, cb=self.fill_new_device_properties)
+            
+        def DeleteSibling(self, dev_name):
+            klass = self.get_device_class()
+            klass.delete_device(dev_name)
+            
+Note that the cb parameter is optional. In the example it is given for demonstration purposes only.
 
 Dynamic attributes
 ##################
@@ -632,9 +712,12 @@ called IRMiror and PLC::
     import sys
 
     if __name__ == '__main__':
-        py = PyTango.Util(sys.argv)
-        py.add_TgClass(PLCClass,PLC,'PLC')
-        py.add_TgClass(IRMirrorClass,IRMirror,'IRMirror')
+        util = PyTango.Util(sys.argv)
+        # Deprecated: util.add_TgClass(PLCClass, PLC, 'PLC')
+        # Deprecated: util.add_TgClass(IRMirrorClass, IRMirror, 'IRMirror')
+        util.add_class(PLCClass, PLC, 'PLC')
+        util.add_class(IRMirrorClass, IRMirror, 'IRMirror')
+        
         U = PyTango.Util.instance()
         U.server_init()
         U.server_run()
@@ -658,9 +741,13 @@ device server than before but with one C++ Tango class called SerialLine::
     
     if __name__ == '__main__':
         py = PyTango.Util(sys.argv)
-        py.add_Cpp_TgClass('SerialLine', 'SerialLine')
-        py.add_TgClass(PLCClass, PLC, 'PLC')
-        py.add_TgClass(IRMirrorClass, IRMirror, 'IRMirror')
+        # Deprecated: py.add_Cpp_TgClass('SerialLine', 'SerialLine')
+        # Deprecated: py.add_TgClass(PLCClass, PLC, 'PLC')
+        # Deprecated: py.add_TgClass(IRMirrorClass, IRMirror, 'IRMirror')
+        util.add_class('SerialLine', 'SerialLine', language="c++")
+        util.add_class(PLCClass, PLC, 'PLC')
+        util.add_class(IRMirrorClass, IRMirror, 'IRMirror')
+        
         U = PyTango.Util.instance()
         U.server_init()
         U.server_run()

@@ -17,6 +17,21 @@ const char *param_numb_or_str_numb = "Second parameter must be an int or a "
 
 struct PyDatabase
 {
+    struct PickleSuite : pickle_suite
+    {
+        static tuple getinitargs(Tango::Database& self)
+        {
+            std::string& host = self.get_db_host();
+            std::string& port = self.get_db_port();
+            if (host.size() > 0 && port.size() > 0)
+            {
+                return make_tuple(host, port);
+            }
+            else
+                return make_tuple();
+        }
+    };
+    
     static inline boost::shared_ptr<Tango::Database>
     makeDatabase_host_port1(const std::string &host, int port)
     {
@@ -83,6 +98,11 @@ struct PyDatabase
         self.export_event(&par);
     }
 
+    static inline boost::python::str dev_name(Tango::Database& self)
+    {
+        Tango::Connection *conn = static_cast<Tango::Connection *>(&self);
+        return boost::python::str(conn->dev_name());
+    }
 };
 
 void export_database()
@@ -166,7 +186,15 @@ void export_database()
 
     Tango::DbDevImportInfo (Tango::Database::*import_device_)(std::string &) =
         &Tango::Database::import_device;
-
+    
+    Tango::DbDatum (Tango::Database::*get_attribute_alias_list_)(std::string &) =
+        &Tango::Database::get_attribute_alias_list;
+    void (Tango::Database::*put_attribute_alias_)(std::string &, std::string &) =
+        &Tango::Database::put_attribute_alias;
+    void (Tango::Database::*delete_attribute_alias_)(std::string &) =
+        &Tango::Database::delete_attribute_alias;
+    
+    
     class_<Tango::Database, bases<Tango::Connection> > Database(
         "Database",
         init<>())
@@ -178,9 +206,14 @@ void export_database()
         .def("__init__", make_constructor(PyDatabase::makeDatabase_file))
 
         //
+        // Pickle
+        //
+        .def_pickle(PyDatabase::PickleSuite())
+        
+        //
         // general methods
         //
-
+        .def("dev_name", &PyDatabase::dev_name)
         .def("write_filedatabase", &Tango::Database::write_filedatabase)
         .def("reread_filedatabase", &Tango::Database::write_filedatabase)
         .def("build_connection", &Tango::Database::write_filedatabase)
@@ -380,13 +413,13 @@ void export_database()
         .def("get_attribute_alias", &PyDatabase::get_attribute_alias)
         .def("get_attribute_alias_list",
             (Tango::DbDatum (Tango::Database::*) (const std::string &))
-            &Tango::Database::get_attribute_alias_list)
+            get_attribute_alias_list_)
         .def("put_attribute_alias",
-            (Tango::DbDatum (Tango::Database::*) (const std::string &, const std::string &))
-            &Tango::Database::put_attribute_alias)
+            (void (Tango::Database::*) (const std::string &, const std::string &))
+            put_attribute_alias_)
         .def("delete_attribute_alias",
-            (Tango::DbDatum (Tango::Database::*) (const std::string &))
-            &Tango::Database::delete_attribute_alias)
+            (void (Tango::Database::*) (const std::string &))
+            delete_attribute_alias_)
 
         //
         // event methods

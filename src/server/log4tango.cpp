@@ -79,25 +79,25 @@ void export_log4tango()
         .def("set_level", &log4tango::Logger::set_level)
         .def("get_level", &log4tango::Logger::get_level)
         .def("is_level_enabled", &log4tango::Logger::is_level_enabled)
-        .def("log",
+        .def("__log",
             (void (log4tango::Logger::*)(log4tango::Level::Value, const std::string &))
             &log4tango::Logger::log)
-        .def("log_unconditionally",
+        .def("__log_unconditionally",
             (void (log4tango::Logger::*)(log4tango::Level::Value, const std::string &))
             &log4tango::Logger::log_unconditionally)
-        .def("debug",
+        .def("__debug",
             (void (log4tango::Logger::*)(const std::string &))
             &log4tango::Logger::debug)
-        .def("info",
+        .def("__info",
             (void (log4tango::Logger::*)(const std::string &))
             &log4tango::Logger::info)
-        .def("warn",
+        .def("__warn",
             (void (log4tango::Logger::*)(const std::string &))
             &log4tango::Logger::warn)
-        .def("error",
+        .def("__error",
             (void (log4tango::Logger::*)(const std::string &))
             &log4tango::Logger::error)
-        .def("fatal",
+        .def("__fatal",
             (void (log4tango::Logger::*)(const std::string &))
             &log4tango::Logger::fatal)
         .def("is_debug_enabled", &log4tango::Logger::is_debug_enabled)

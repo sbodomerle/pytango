@@ -76,6 +76,6 @@ void handle_python_exception(boost::python::error_already_set &eas);
     } \
     catch(...) \
     { \
-        std::cerr << meth_name << " generated an unknown." << std::endl; \
+        std::cerr << meth_name << " generated an unknown exception." << std::endl; \
     }
 

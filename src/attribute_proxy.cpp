@@ -12,6 +12,21 @@ extern const char *param_must_be_seq;
 extern const char *unreachable_code;
 extern const char *non_string_seq;
 
+namespace PyAttributeProxy
+{
+    struct PickleSuite : pickle_suite
+    {
+        static tuple getinitargs(Tango::AttributeProxy& self)
+        {
+            Tango::DeviceProxy* dev = self.get_device_proxy();
+            
+            std:string ret = dev->get_db_host() + ":" + dev->get_db_port() + 
+                             "/" + dev->dev_name() + "/" + self.name();
+            return make_tuple(ret);
+        }
+    };
+}
+
 void export_attribute_proxy()
 {
     // The following function declarations are necessary to be able to cast
@@ -33,6 +48,11 @@ void export_attribute_proxy()
         .def(init<const Tango::DeviceProxy *, const char *>())
         .def(init<const Tango::AttributeProxy &>())
 
+        //
+        // Pickle
+        //
+        .def_pickle(PyAttributeProxy::PickleSuite())
+        
         //
         // general methods
         //

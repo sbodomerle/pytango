@@ -7,8 +7,8 @@ from _PyTango import DeviceAttribute, ExtractAs
 def __DeviceAttribute__get_data(self):
     return self.get_data_raw().extract()
 
-def __DeviceAttribute__init__(self, da=None):
-    DeviceAttribute.__init_orig__(self)
+def __DeviceAttribute__init(self, da=None):
+    DeviceAttribute.__init_orig(self)
     if da is not None:
         try: self.value = copy.deepcopy(da.value)
         except: pass
@@ -77,8 +77,8 @@ def __doc_DeviceAttribute():
     """ )
 
 def __init_DeviceAttribute():
-    DeviceAttribute.__init_orig__ = DeviceAttribute.__init__
-    DeviceAttribute.__init__ = __DeviceAttribute__init__
+    DeviceAttribute.__init_orig = DeviceAttribute.__init__
+    DeviceAttribute.__init__ = __DeviceAttribute__init
     DeviceAttribute.ExtractAs = ExtractAs
     pass
 

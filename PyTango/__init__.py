@@ -1,9 +1,25 @@
-from _PyTango import *
+
+try:
+    from _PyTango import *
+except ImportError as ie:
+    if not ie.args[0].count("_PyTango"):
+        raise ie
+    print 80*"-"
+    print ie
+    print 80*"-"
+    print "Probably your current directory is the PyTango's source installation directory."
+    print "You must leave this directory first before using PyTango, otherwise the"
+    print "source distribution will conflict with the installed PyTango"
+    print 80*"-"
+    import sys
+    sys.exit(1)
+    
 from release import Release
 
 __author__ = "\n".join([ "%s <%s>" % x for x in Release.authors.values()])
 __version_info__ = Release.version_info
 __version__ = Release.version
+__version_long__ = Release.version_long
 __version_number__ = Release.version_number
 __version_description__  = Release.version_description
 __doc__ = Release.long_description

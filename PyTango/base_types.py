@@ -4,26 +4,26 @@ from utils import document_enum as __document_enum
 
 import operator
 
-def __StdVector__add__(self, seq):
+def __StdVector__add(self, seq):
     ret = seq.__class__(self)
     ret.extend(seq)
     return ret
 
-def __StdVector__mul__(self, n):
+def __StdVector__mul(self, n):
     ret = self.__class__()
-    for i in xrange(n):
+    for _ in xrange(n):
         ret.extend(self)
     return ret
 
-def __StdVector__imul__(self, n):
+def __StdVector__imul(self, n):
     ret = self.__class__()
-    for i in xrange(n):
+    for _ in xrange(n):
         ret.extend(self)
     return ret
 
-def __StdVector__getitem__(self, key):
+def __StdVector__getitem(self, key):
     if operator.isNumberType(key) or key.step is None:
-        return self.__original_getitem__(key)
+        return self.__original_getitem(key)
     
     res = self.__class__()
     nb = len(self)
@@ -40,11 +40,11 @@ def __StdVector__getitem__(self, key):
     return res
 
 def __fillVectorClass(klass):
-    klass.__add__ = __StdVector__add__
-    klass.__mul__ = __StdVector__mul__
-    klass.__imul__ = __StdVector__imul__
-    klass.__original_getitem__ = klass.__getitem__
-    klass.__getitem__ = __StdVector__getitem__
+    klass.__add__ = __StdVector__add
+    klass.__mul__ = __StdVector__mul
+    klass.__imul__ = __StdVector__imul
+    klass.__original_getitem = klass.__getitem__
+    klass.__getitem__ = __StdVector__getitem
     
 def init_base_types():
     

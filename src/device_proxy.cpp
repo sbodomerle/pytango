@@ -17,9 +17,19 @@ extern const char *unreachable_code;
 extern const char *non_string_seq;
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(lock_overloads, Tango::DeviceProxy::lock, 0, 1);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(unlock_overloads, Tango::DeviceProxy::unlock, 0, 1);
 
 namespace PyDeviceProxy
 {
+    struct PickleSuite : pickle_suite
+    {
+        static tuple getinitargs(Tango::DeviceProxy& self)
+        {
+            std:string ret = self.get_db_host() + ":" + self.get_db_port() + "/" + self.dev_name();
+            return make_tuple(ret);
+        }
+    };
+    
     static inline Tango::DevState state(Tango::DeviceProxy& self)
     {
         AutoPythonAllowThreads guard;
@@ -369,6 +379,11 @@ void export_device_proxy()
         .def(init<const Tango::DeviceProxy &>())
 
         //
+        // Pickle
+        //
+        .def_pickle(PyDeviceProxy::PickleSuite())
+
+        //
         // general methods
         //
         .def("dev_name", &Tango::DeviceProxy::dev_name)
@@ -695,7 +710,7 @@ void export_device_proxy()
             lock_overloads( ( arg_("lock_validity") )))
 
         .def("unlock", &Tango::DeviceProxy::unlock,
-            lock_overloads( arg_("force")))
+            unlock_overloads( arg_("force")))
 
         .def("locking_status", &Tango::DeviceProxy::locking_status,
             ( arg_("self") ))

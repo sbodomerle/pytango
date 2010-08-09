@@ -18,7 +18,7 @@ import PyTango
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('sphinxext'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -27,7 +27,9 @@ import PyTango
 extensions = ['sphinx.ext.pngmath',
               'sphinx.ext.autodoc',
               'sphinx.ext.doctest',
-              'sphinx.ext.graphviz',]
+              'sphinx.ext.graphviz',
+              'ipython_console_highlighting',
+              'spock_console_highlighting']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -43,7 +45,12 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyTango'
-copyright = u'2009, ALBA - CELLS'
+copyright = u'2010, ALBA - CELLS'
+copyright = u"""Except where otherwise noted, content on this site is
+licensed under a Creative Commons Attribution 3.0 License"""
+
+#Ideally we would like to put the following html code for copyright... but how?
+'''<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/es/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/es/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">Tau Documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">CELLS - ALBA</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/es/">Creative Commons Attribution-Share Alike 3.0 Spain License</a>.'''
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -87,6 +94,7 @@ exclude_trees = ['_build']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+pygments_style = 'spock_console_highlighting.SpockStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []

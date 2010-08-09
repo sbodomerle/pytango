@@ -4,10 +4,13 @@ from _PyTango import StdStringVector
 from _PyTango import Database, DbDatum, DbData
 from _PyTango import DbDevInfo, DbDevInfos
 from _PyTango import DbDevImportInfo, DbDevExportInfo
+from _PyTango import DbDevImportInfos, DbDevExportInfos
 from _PyTango import DbHistory, DbServerInfo
 
 from utils import seq_2_StdStringVector
 from utils import seq_2_DbDevInfos
+from utils import seq_2_DbDevExportInfos
+from utils import seq_2_DbData
 from utils import DbData_2_dict
 from utils import document_method as __document_method
 
@@ -15,10 +18,10 @@ from utils import document_method as __document_method
 # DbDatum extension
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-def __DbDatum___setitem__(self, k, v):
+def __DbDatum___setitem(self, k, v):
     self.value_string[k] = v
 
-def __DbDatum___delitem__(self, k):
+def __DbDatum___delitem(self, k):
     self.value_string.__delitem__(k)
 
 def __DbDatum_append(self, v):
@@ -27,19 +30,19 @@ def __DbDatum_append(self, v):
 def __DbDatum_extend(self, v):
     self.value_string.extend(v)
 
-def __DbDatum___imul__(self, n):
+def __DbDatum___imul(self, n):
     self.value_string *= n
 
 def __init_DbDatum():
     DbDatum.__len__      = lambda self : len(self.value_string)
     DbDatum.__getitem__  = lambda self, k : self.value_string[k]
-    DbDatum.__setitem__  = __DbDatum___setitem__
-    DbDatum.__delitem__  = __DbDatum___delitem__
+    DbDatum.__setitem__  = __DbDatum___setitem
+    DbDatum.__delitem__  = __DbDatum___delitem
     DbDatum.__iter__     = lambda self : self.value_string.__iter__()
     DbDatum.__contains__ = lambda self, v : self.value_string.__contains__(v)
     DbDatum.__add__      = lambda self, seq : self.value_string + seq
     DbDatum.__mul__      = lambda self, n : self.value_string * n
-    DbDatum.__imul__     = __DbDatum___imul__
+    DbDatum.__imul__     = __DbDatum___imul
     DbDatum.append       = __DbDatum_append
     DbDatum.extend       = __DbDatum_extend
     
@@ -433,7 +436,7 @@ def __Database__get_device_attribute_property(self, dev_name, value):
 
     nb_items = len(new_value)
     i = 0
-    for j in xrange(nb_items):
+    while i < nb_items:
         db_datum = new_value[i]
         curr_dict = {}
         ret[db_datum.name] = curr_dict
@@ -444,8 +447,6 @@ def __Database__get_device_attribute_property(self, dev_name, value):
             curr_dict[db_datum.name] = db_datum.value_string
             i += 1
 
-        if i == nb_items:
-            break
     return ret
 
 def __Database__put_device_attribute_property(self, dev_name, value):
@@ -494,7 +495,7 @@ def __Database__put_device_attribute_property(self, dev_name, value):
                         'a sequence<DbDatum> or a dictionary')
     return self._put_device_attribute_property(dev_name, value)
 
-def __Database__delete_device_attribute_property(self, devname, value):
+def __Database__delete_device_attribute_property(self, dev_name, value):
     """
         delete_device_attribute_property(self, dev_name, value) -> None
 
@@ -662,7 +663,7 @@ def __Database__get_class_attribute_property(self, class_name, value):
 
     nb_items = len(new_value)
     i = 0
-    for j in xrange(nb_items):
+    while i < nb_items:
         db_datum = new_value[i]
         curr_dict = {}
         ret[db_datum.name] = curr_dict
@@ -673,8 +674,6 @@ def __Database__get_class_attribute_property(self, class_name, value):
             curr_dict[db_datum.name] = db_datum.value_string
             i += 1
 
-        if i == nb_items:
-            break
     return ret
 
 def __Database__put_class_attribute_property(self, class_name, value):
@@ -765,14 +764,14 @@ def __Database__get_service_list(self, filter='.*'):
     import re
     data = self.get_property('CtrlSystem', 'Services')
     res = {}
-    filter = re.compile(filter)
+    filter_re = re.compile(filter)
     for service in data['Services']:
         service_name, service_value = service.split(':')
-        if not filter.match(service_name) is None:
+        if not filter_re.match(service_name) is None:
             res[service_name] = service_value
     return res
     
-def __Database__str__(self):
+def __Database__str(self):
     return "Database(%s, %s)" % (self.get_db_host(), self.get_db_port())
 
 def __init_Database():
@@ -796,8 +795,8 @@ def __init_Database():
     Database.put_class_attribute_property     = __Database__put_class_attribute_property
     Database.delete_class_attribute_property  = __Database__delete_class_attribute_property
     Database.get_service_list                 = __Database__get_service_list
-    Database.__str__                          = __Database__str__
-    Database.__repr__                         = __Database__str__
+    Database.__str__                          = __Database__str
+    Database.__repr__                         = __Database__str
     
 def __doc_Database():
     def document_method(method_name, desc, append=True):

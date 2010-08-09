@@ -1,4 +1,6 @@
-import os, sys, platform
+import os
+import sys
+import errno
 
 from distutils.core import setup, Extension
 from distutils.dist import Distribution
@@ -8,6 +10,14 @@ try:
     import sphinx
 except:
     sphinx = None
+
+try:
+    import IPython
+    import IPython.genutils
+    _IPY_ROOT = os.path.dirname(os.path.abspath(IPython.__file__))
+    _IPY_LOCAL = str(IPython.genutils.get_ipython_dir())
+except:
+    IPython = None
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PyTango'))
 
@@ -31,8 +41,8 @@ try:
 except Exception, e:
     pass
 
-print '-- Compilation information --------------------------------------------'
-print 'Build %s %s' % (Release.name, Release.version)
+print '-- Compilation information -------------------------------------------'
+print 'Build %s %s' % (Release.name, Release.version_long)
 print 'Using Python %s' % distutils.sysconfig.get_python_version()
 print '\tinclude: %s' % distutils.sysconfig.get_python_inc()
 print '\tlibrary: %s' % distutils.sysconfig.get_python_lib()
@@ -47,14 +57,15 @@ if numpy_available:
         print 'NOT using numpy (numpy available but C source is not)'
 else:
     print 'NOT using numpy (it is not available)'
-print '-----------------------------------------------------------------------'
+print '----------------------------------------------------------------------'
 
-author = (Release.authors['Coutinho'], Release.authors['Sune'])
+author = Release.authors['Coutinho']
 
-please_debug = True
+please_debug = False
 
 packages = [
     'PyTango',
+    'PyTango.ipython',
     'PyTango3'
 ]
 
@@ -159,6 +170,7 @@ else:
     
     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
     libraries += [
+        'boost_python',
         'pthread',
         'rt',
         'dl',
@@ -167,15 +179,6 @@ else:
         'omnithread',
         'COS4',
     ]
-    # when building with multiple version of python on debian we need
-    # to link against boost_python-py25/-py26 etc...
-    if platform.dist()[0] in ['debian']:
-        if distutils.sysconfig.get_python_version() == '2.5':
-            libraries += ['boost_python-py25']
-        elif distutils.sysconfig.get_python_version() == '2.6':
-            libraries += ['boost_python-py26']
-    else:
-        libraries += ['boost_python']
 
     # Note for PyTango developers:
     # Compilation time can be greatly reduced by compiling the file
@@ -183,7 +186,7 @@ else:
     # and then uncommenting this line. Someday maybe this will be
     # automated...
     extra_compile_args += [
-        '-includesrc/precompiled_header.hpp',
+#        '-includesrc/precompiled_header.hpp',
     ]
 
     extra_link_args += [
@@ -220,6 +223,7 @@ _pytango = Extension(name               = '_PyTango',
                      )
 
 from distutils.command.build import build as dftbuild
+from distutils.cmd import Command
 
 class build(dftbuild):
 
@@ -228,7 +232,10 @@ class build(dftbuild):
         setup_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.isdir(os.path.join(setup_dir, 'doc'))
 
-    sub_commands = dftbuild.sub_commands + [('build_doc', has_doc)]
+    def has_ipython(self):
+        return IPython is not None
+
+    sub_commands = dftbuild.sub_commands + [('build_doc', has_doc), ('build_spock', has_ipython)]
 
 cmdclass = {'build' : build }
 
@@ -248,13 +255,70 @@ if sphinx:
     
     cmdclass['build_doc'] = build_doc
 
+if IPython:
+    class build_spock(Command):
+        
+        description = "Build Spock, the PyTango's IPython extension"
 
+        user_options = [
+            ('ipython-local', None, "install spock as current user profile instead of as an ipython extension"),
+            ('ipython-dir=', None, "Location of the ipython installation. (Defaults to '%s' if ipython-local is NOT set or to '%s' otherwise" % (_IPY_ROOT, _IPY_LOCAL) ) ]
+
+        boolean_options = [ 'ipython-local' ]
+
+        def initialize_options (self):
+            self.ipython_dir = None
+            self.ipython_local = False
+        
+        def finalize_options(self):
+            if self.ipython_dir is None:
+                if self.ipython_local:
+                    global _IPY_LOCAL
+                    self.ipython_dir = _IPY_LOCAL
+                else:
+                    global _IPY_ROOT
+                    self.ipython_dir = os.path.join(_IPY_ROOT, "Extensions")
+            else:
+                if ipython-local:
+                    self.warn("Both options 'ipython-dir' and 'ipython-local' were given. " \
+                              "'ipython-dir' will be used.")
+            self.ensure_dirname('ipython_dir')
+        
+        def run(self):
+            added_path = False
+            try:
+                # make sure the python path is pointing to the newly built
+                # code so that the documentation is built on this and not a
+                # previously installed version
+                build = self.get_finalized_command('build')
+                sys.path.insert(0, os.path.abspath(build.build_lib))
+                added_path=True
+                import PyTango.ipython
+                PyTango.ipython.install(self.ipython_dir, verbose=False)
+            except IOError as e:
+                self.warn("Unable to install Spock IPython extension. Reason:")
+                self.warn(str(e))
+                if e.errno == errno.EACCES:
+                    self.warn("Probably you don't have enough previledges to install spock as an ipython extension.")
+                    self.warn("Try executing setup.py with sudo or otherwise give '--ipython-local' parameter to")
+                    self.warn("setup.py to install spock as a current user ipython profile")
+                    self.warn("type: setup.py --help build_spock for more information")
+            except Exception as e:
+                self.warn("Unable to install Spock IPython extension. Reason:")
+                self.warn(str(e))
+                
+            finally:
+                if added_path:
+                    sys.path.pop(0)
+            
+    cmdclass['build_spock'] = build_spock
+            
 setup(name          = 'PyTango',
       version       = Release.version,
       description   = Release.description,
       long_description = Release.long_description,
-      author        = author[0][0] + ' & ' + author[1][0],
-      author_email  = author[0][1] + ' & ' + author[1][1],
+      author        = author[0],
+      author_email  = author[1],
       url           = Release.url,
       download_url  = Release.download_url,
       platforms     = Release.platform,

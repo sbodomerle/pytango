@@ -129,7 +129,8 @@ void CppDeviceClass::create_attribute(vector<Tango::Attr *> &att_list,
 void CppDeviceClassWrap::init_class()
 {
     AutoPythonGIL python_guard;
-
+    
+    //@TODO remove this line when Tango C++ is cleaned up
     set_py_class(true);
 
     signal_handler_defined = is_method_defined(m_self, "signal_handler");
@@ -197,6 +198,26 @@ void CppDeviceClassWrap::delete_class()
 
 }
 
+namespace PyDeviceClass
+{
+
+    object get_device_list(CppDeviceClass &self)
+    {
+        boost::python::list py_dev_list;
+        vector<Tango::DeviceImpl *> dev_list = self.get_device_list();
+        for(vector<Tango::DeviceImpl *>::iterator it = dev_list.begin(); it != dev_list.end(); ++it)
+        {
+            object py_value = object(
+                        handle<>(
+                            to_python_indirect<
+                                Tango::DeviceImpl*,
+                                detail::make_reference_holder>()(*it)));
+            py_dev_list.append(py_value);
+        }
+        return py_dev_list;
+    }
+}
+
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS (export_device_overload,
                                         CppDeviceClass::export_device, 1, 2)
 
@@ -241,6 +262,7 @@ void export_device_class()
             return_value_policy<copy_non_const_reference>())
         .def("get_cvs_location",&Tango::DeviceClass::get_cvs_location,
             return_value_policy<copy_non_const_reference>())
+        .def("get_device_list",&PyDeviceClass::get_device_list)
         .def("set_type",
             (void (Tango::DeviceClass::*) (const char *))
             &Tango::DeviceClass::set_type)

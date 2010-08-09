@@ -1,5 +1,5 @@
 
-# list of tuple<DeviceClass class, Device impl class, tango device class name>
+# list of tuple<DeviceClass class, DeviceImpl class, tango device class name>
 class_list = []
 
 # list of tuple<DeviceClass name, tango device class name>
@@ -15,6 +15,12 @@ def get_classes():
 def get_class(name):
     for klass_info in get_classes():
         if klass_info[2] == name:
+            return klass_info
+    return None
+
+def get_class_by_class(klass):
+    for klass_info in get_classes():
+        if klass_info[0] == klass:
             return klass_info
     return None
 
@@ -38,6 +44,12 @@ def get_constructed_class(name):
             return klass
     return None
 
+def get_constructed_class_by_class(klass):
+    for k in get_constructed_classes():
+        if k.__class__ == klass:
+            return k
+    return None
+
 #
 # A method to delete Tango classes from Python
 #
@@ -52,12 +64,13 @@ def delete_class_list():
 #
 
 def class_factory():
-    global class_list
-    global cpp_class_list
+    local_class_list = get_classes()
+    local_cpp_class_list = get_cpp_classes()
 
-    if ((len(class_list) + len(cpp_class_list)) == 0):
+    if ((len(local_class_list) + len(local_cpp_class_list)) == 0):
         print 'Oups, no Tango class defined within this device server !!!'
         print 'Sorry, but I exit'
+        import sys
         sys.exit()
 
     # Call the delete_class_list function in order to clear the global
@@ -65,10 +78,10 @@ def class_factory():
     # ServerRestart command
     delete_class_list()
 
-    global constructed_class
-    for class_info in class_list:
+    local_constructed_class = get_constructed_classes()
+    for class_info in local_class_list:
         device_class_class = class_info[0]
         tango_device_class_name = class_info[2]
         device_class = device_class_class(tango_device_class_name)
-        constructed_class.append(device_class)
+        local_constructed_class.append(device_class)
 

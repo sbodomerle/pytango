@@ -15,8 +15,8 @@ def __apply_to(fn, key):
     else:
         return fn(key)
 
-def __GroupElement__contains__(self, x):
-    return self.contains(x)
+def __GroupElement__contains(self, pattern):
+    return self.contains(pattern)
 
 def __GroupElement__get_one_item(self, key):
     x = self.get_group(key)
@@ -24,18 +24,18 @@ def __GroupElement__get_one_item(self, key):
         return x
     return self.get_device(key)
     
-def __GroupElement__getitem__(self, key):
+def __GroupElement__getitem(self, key):
     fn = lambda x: __GroupElement__get_one_item(self, x)
     return __apply_to(fn, key)
 
-def __GroupElement__delitem__(self, key):
+def __GroupElement__delitem(self, key):
     fn = lambda x: self.remove(x)
     return __apply_to(fn, key)
 
-def __GroupElement__len__(self):
+def __GroupElement__len(self):
     return self.get_size()
 
-def __GroupElement__add__(self, patterns_or_group, timeout_ms=-1):
+def __GroupElement__add(self, patterns_or_group, timeout_ms=-1):
     if isinstance(patterns_or_group, GroupElement):
         return self.__add(patterns_or_group, timeout_ms)
     elif isinstance(patterns_or_group, StdStringVector):
@@ -48,7 +48,7 @@ def __GroupElement__add__(self, patterns_or_group, timeout_ms=-1):
     else:
         raise TypeError('Parameter patterns_or_group: Should be GroupElement, str or a sequence of strings.')
     
-def __GroupElement__remove__(self, patterns, forward=True):
+def __GroupElement__remove(self, patterns, forward=True):
     if isinstance(patterns, str):
         return self.__remove(patterns, forward)
     elif operator.isSequenceType(patterns):
@@ -78,13 +78,13 @@ def __GroupElement__write_attribute(self, attr_name, value, forward=True):
 
 def __init_GroupElement():
     
-    GroupElement.__contains__ = __GroupElement__contains__
-    GroupElement.__getitem__ = __GroupElement__getitem__
-    GroupElement.__delitem__ = __GroupElement__delitem__
-    GroupElement.__len__ = __GroupElement__len__
+    GroupElement.__contains__ = __GroupElement__contains
+    GroupElement.__getitem__ = __GroupElement__getitem
+    GroupElement.__delitem__ = __GroupElement__delitem
+    GroupElement.__len__ = __GroupElement__len
 
-    GroupElement.add = __GroupElement__add__
-    GroupElement.remove = __GroupElement__remove__
+    GroupElement.add = __GroupElement__add
+    GroupElement.remove = __GroupElement__remove
     
     GroupElement.command_inout = __GroupElement__comand_inout
     GroupElement.read_attribute = __GroupElement__read_attribute
