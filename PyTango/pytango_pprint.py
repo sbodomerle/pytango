@@ -36,7 +36,7 @@ def __repr__Struct(self):
 def __str__Struct_Helper(self, f=repr):
     """str method for struct"""
     attrs = [ n for n in dir(self) if __inc_param(self, n)]
-    fmt = attrs and '%%%ds = %%s' % len(max( attrs )) or "%s = %s"
+    fmt = attrs and '%%%ds = %%s' % max( map(len, attrs) ) or "%s = %s"
     return '%s[\n%s]' % (self.__class__.__name__, __struct_params_str(self, fmt, f))
 
 def __str__Struct(self):
@@ -47,8 +47,8 @@ def __str__Struct_extra(self):
 
 def __registerSeqStr():
     """helper function to make internal sequences printable"""
-    _SeqStr = lambda x: (x and "[%s]" % (", ".join(map(repr,x)))) or "[]"
-    _SeqRepr = lambda x: (x and "[%s]" % (", ".join(map(repr,x)))) or "[]"
+    _SeqStr = lambda self: (self and "[%s]" % (", ".join(map(repr,self)))) or "[]"
+    _SeqRepr = lambda self: (self and "[%s]" % (", ".join(map(repr,self)))) or "[]"
 
     seqs = (StdStringVector, StdLongVector, CommandInfoList,
             AttributeInfoList, AttributeInfoListEx,
@@ -60,15 +60,24 @@ def __registerSeqStr():
         seq.__str__ = _SeqStr
         seq.__repr__ = _SeqRepr
 
+import operator
 
 def __str__DevFailed(self):
-    import operator
     if operator.isSequenceType(self.args):
         return 'DevFailed[\n%s]' % '\n'.join(map(str,self.args))
-    return 'DevFailed[%s]' % repr(self.args)
+    return 'DevFailed[%s]' % (self.args)
     
 def __repr__DevFailed(self):
     return 'DevFailed(args = %s)' % repr(self.args)
+
+def __str__DevError(self):
+    desc = self.desc.replace("\n","\n           ")
+    s = """DevError[
+    desc = %s
+  origin = %s
+  reason = %s
+severity = %s]""" % (desc, self.origin, self.reason, self.severity)
+    return s
 
 def __registerStructStr():
     """helper method to register str and repr methods for structures"""
@@ -96,6 +105,8 @@ def __registerStructStr():
     # generates a Deprecation warning in python 2.6
     DevFailed.__str__ = __str__DevFailed
     DevFailed.__repr__ = __repr__DevFailed
+
+    DevError.__str__ = __str__DevError
 
 def init_pprint():
     __registerSeqStr()

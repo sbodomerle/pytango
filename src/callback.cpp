@@ -7,68 +7,65 @@
 
 using namespace boost::python;
 
-namespace {
+struct PyCmdDoneEvent {
+    object device;
+    object cmd_name;
+    object argout;
+    object argout_raw;
+    object err;
+    object errors;
+    object ext;
+};
 
-    struct PyCmdDoneEvent {
-        object device;
-        object cmd_name;
-        object argout;
-        object argout_raw;
-        object err;
-        object errors;
-        object ext;
-    };
+struct PyAttrReadEvent {
+    object device;
+    object attr_names;
+    object argout;
+    object err;
+    object errors;
+    object ext;
+};
 
-    struct PyAttrReadEvent {
-        object device;
-        object attr_names;
-        object argout;
-        object err;
-        object errors;
-        object ext;
-    };
-
-    struct PyAttrWrittenEvent {
-        object device;
-        object attr_names;
-        object err;
-        object errors;
-        object ext;
-    };
+struct PyAttrWrittenEvent {
+    object device;
+    object attr_names;
+    object err;
+    object errors;
+    object ext;
+};
 
 
-    static void copy_most_fields(PyCallBackAutoDie* self, const Tango::CmdDoneEvent* ev, PyCmdDoneEvent* py_ev)
-    {
-        // py_ev->device
-        py_ev->cmd_name = object(ev->cmd_name);
-        py_ev->argout_raw = object(ev->argout);
-        py_ev->err = object(ev->err);
-        py_ev->errors = object(ev->errors);
-        // py_ev->ext = object(ev->ext);
-    }
+static void copy_most_fields(PyCallBackAutoDie* self, const Tango::CmdDoneEvent* ev, PyCmdDoneEvent* py_ev)
+{
+    // py_ev->device
+    py_ev->cmd_name = object(ev->cmd_name);
+    py_ev->argout_raw = object(ev->argout);
+    py_ev->err = object(ev->err);
+    py_ev->errors = object(ev->errors);
+    // py_ev->ext = object(ev->ext);
+}
 
-    static void copy_most_fields(PyCallBackAutoDie* self, const Tango::AttrReadEvent* ev, PyAttrReadEvent* py_ev)
-    {
-        // py_ev->device
-        py_ev->attr_names = object(ev->attr_names);
+static void copy_most_fields(PyCallBackAutoDie* self, const Tango::AttrReadEvent* ev, PyAttrReadEvent* py_ev)
+{
+    // py_ev->device
+    py_ev->attr_names = object(ev->attr_names);
 
-        PyDeviceAttribute::AutoDevAttrVector dev_attr_vec(ev->argout);
-        py_ev->argout = PyDeviceAttribute::convert_to_python( \
-                                dev_attr_vec, *ev->device, self->m_extract_as);
+    PyDeviceAttribute::AutoDevAttrVector dev_attr_vec(ev->argout);
+    py_ev->argout = PyDeviceAttribute::convert_to_python( \
+                            dev_attr_vec, *ev->device, self->m_extract_as);
 
-        py_ev->err = object(ev->err);
-        py_ev->errors = object(ev->errors);
-        // py_ev->ext = object(ev->ext);
-    }
+    py_ev->err = object(ev->err);
+    py_ev->errors = object(ev->errors);
+    // py_ev->ext = object(ev->ext);
+}
 
-    static void copy_most_fields(PyCallBackAutoDie* self, const Tango::AttrWrittenEvent* ev, PyAttrWrittenEvent* py_ev)
-    {
-        // py_ev->device
-        py_ev->attr_names = object(ev->attr_names);
-        py_ev->err = object(ev->err);
-        py_ev->errors = object(ev->errors);
-        // py_ev->ext = object(ev->ext);
-    }
+static void copy_most_fields(PyCallBackAutoDie* self, const Tango::AttrWrittenEvent* ev, PyAttrWrittenEvent* py_ev)
+{
+    // py_ev->device
+    py_ev->attr_names = object(ev->attr_names);
+    py_ev->err = object(ev->err);
+    py_ev->errors = object(ev->errors);
+    // py_ev->ext = object(ev->ext);
 }
 
 /*static*/ object PyCallBackAutoDie::py_on_callback_parent_fades;

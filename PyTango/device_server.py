@@ -5,6 +5,7 @@ from _PyTango import StdStringVector, StdDoubleVector
 from _PyTango import DeviceImpl, Device_3Impl, Device_4Impl
 from _PyTango import Attribute, WAttribute, MultiAttribute
 from _PyTango import Attr
+from _PyTango import Logger
 from _PyTango import UserDefaultAttrProp
 
 from utils import seq_2_StdStringVector, seq_2_StdDoubleVector
@@ -110,6 +111,12 @@ class AttributeConfig_3:
         self.event_prop = EventProperties()
         self.sys_extensions = []
 
+def __DeviceImpl__get_device_class(self):
+    try:
+        return self._device_class_instance
+    except AttributeError:
+        return None
+
 def __DeviceImpl__get_device_properties(self, ds_class = None):
     """get_device_properties(self, ds_class = None) -> None
 
@@ -142,16 +149,6 @@ def __DeviceImpl__get_device_properties(self, ds_class = None):
         print "----> ", e
         raise e
 
-def __DeviceImpl__py_execute_with_inc_ref(dev, name, in_par=None):
-    """for internal usage only"""
-    met = getattr(dev, name)
-    if in_par == None:
-        ret = met()
-    else:
-        ret = met(in_par)
-    #dev._inc_ref = ret
-    return ret
-
 def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None):
     """add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> None
 
@@ -175,29 +172,29 @@ def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_me
     add_name_in_list = False
     if r_meth is not None:
         r_meth_name = 'read_%s' % att_name
-        if hasattr(self.__class__, r_meth_name) == False:
+        if not hasattr(self.__class__, r_meth_name):
             setattr(self.__class__, r_meth_name, r_meth)
             add_name_in_list = True
 
     if w_meth is not None:
         w_meth_name = 'write_%s' % att_name
-        if hasattr(self.__class__, w_meth_name) == False:
+        if not hasattr(self.__class__, w_meth_name):
             setattr(self.__class__, w_meth_name, w_meth)
             add_name_in_list = True
 
     if is_allo_meth is not None:
         allo_meth_name = 'is_%s_allowed' % att_name
-        if hasattr(self.__class__, allo_meth_name)  == False:
+        if not hasattr(self.__class__, allo_meth_name):
             setattr(self.__class__, allo_meth_name,is_allo_meth)
             add_name_in_list = True
 
     try:
         self._add_attribute(attr)
-        if add_name_in_list == True:
+        if add_name_in_list:
             cl = self.get_device_class()
             cl.dyn_att_added_methods.append(att_name)
     except:
-        if add_name_in_list == True:
+        if add_name_in_list:
             self._remove_attr_meth(att_name)
 
 def __DeviceImpl__remove_attribute(self, attr_name):
@@ -314,36 +311,133 @@ def __DeviceImpl__fatal_stream(self, *msg):
     """
     self.__fatal_stream(__join_msg(msg))
 
-def __DeviceImpl__str__(self):
+def __DeviceImpl__str(self):
     return '%s(%s)' % (self.__class__.__name__, self.get_name())
 
 def __init_DeviceImpl():
+    DeviceImpl._device_class_instance = None
+    DeviceImpl.get_device_class = __DeviceImpl__get_device_class
     DeviceImpl.get_device_properties = __DeviceImpl__get_device_properties
-    DeviceImpl.py_exec_wir = __DeviceImpl__py_execute_with_inc_ref
     DeviceImpl.add_attribute = __DeviceImpl__add_attribute
     DeviceImpl.remove_attribute = __DeviceImpl__remove_attribute
     DeviceImpl._remove_attr_meth = __DeviceImpl___remove_attr_meth
-    DeviceImpl.__str__ = __DeviceImpl__str__
-    DeviceImpl.__repr__ = __DeviceImpl__str__
+    DeviceImpl.__str__ = __DeviceImpl__str
+    DeviceImpl.__repr__ = __DeviceImpl__str
     DeviceImpl.debug_stream = __DeviceImpl__debug_stream
     DeviceImpl.info_stream = __DeviceImpl__info_stream
     DeviceImpl.warn_stream = __DeviceImpl__warn_stream
     DeviceImpl.error_stream = __DeviceImpl__error_stream
     DeviceImpl.fatal_stream = __DeviceImpl__fatal_stream
 
-def __Attr__str__(self):
+def __Logger__log(self, level, *msg):
+    """
+    log(self, level, *msg) -> None
+
+            Sends the given message to the tango the selected stream.
+
+        Parameters :
+            - level: (Level.LevelLevel) Log level
+            - msg : (str) the message to be sent to the stream
+        Return     : None
+    """
+    self.__log(level, __join_msg(msg))
+
+def __Logger__log_unconditionally(self, level, *msg):
+    """
+    log_unconditionally(self, level, *msg) -> None
+
+            Sends the given message to the tango the selected stream,
+            without checking the level.
+
+        Parameters :
+            - level: (Level.LevelLevel) Log level
+            - msg : (str) the message to be sent to the stream
+        Return     : None
+    """
+    self.__log_unconditionally(level, __join_msg(msg))
+
+def __Logger__debug(self, *msg):
+    """
+    debug(self, *msg) -> None
+
+            Sends the given message to the tango debug stream.
+
+        Parameters :
+            - msg : (str) the message to be sent to the debug stream
+        Return     : None
+    """
+    self.__debug(__join_msg(msg))
+
+def __Logger__info(self, *msg):
+    """
+    info(self, *msg) -> None
+
+            Sends the given message to the tango info stream.
+
+        Parameters :
+            - msg : (str) the message to be sent to the info stream
+        Return     : None
+    """
+    self.__info(__join_msg(msg))
+
+def __Logger__warn(self, *msg):
+    """
+    warn(self, *msg) -> None
+
+            Sends the given message to the tango warn stream.
+
+        Parameters :
+            - msg : (str) the message to be sent to the warn stream
+        Return     : None
+    """
+    self.__warn(__join_msg(msg))
+
+def __Logger__error(self, *msg):
+    """
+    error(self, *msg) -> None
+
+            Sends the given message to the tango error stream.
+
+        Parameters :
+            - msg : (str) the message to be sent to the error stream
+        Return     : None
+    """
+    self.__error(__join_msg(msg))
+
+def __Logger__fatal(self, *msg):
+    """
+    fatal(self, *msg) -> None
+
+            Sends the given message to the tango fatal stream.
+
+        Parameters :
+            - msg : (str) the message to be sent to the fatal stream
+        Return     : None
+    """
+    self.__fatal(__join_msg(msg))
+
+def __Attr__str(self):
     return '%s(%s)' % (self.__class__.__name__, self.get_name())
 
 def __init_Attr():
-    Attr.__str__ = __Attr__str__
-    Attr.__repr__ = __Attr__str__
+    Attr.__str__ = __Attr__str
+    Attr.__repr__ = __Attr__str
 
-def __Attribute__str__(self):
+def __Attribute__str(self):
     return '%s(%s)' % (self.__class__.__name__, self.get_name())
 
 def __init_Attribute():
-    Attribute.__str__ = __Attribute__str__
-    Attribute.__repr__ = __Attribute__str__
+    Attribute.__str__ = __Attribute__str
+    Attribute.__repr__ = __Attribute__str
+
+def __init_Logger():
+    Logger.log = __Logger__log
+    Logger.log_unconditionally = __Logger__log_unconditionally
+    Logger.debug = __Logger__debug
+    Logger.info = __Logger__info
+    Logger.warn = __Logger__warn
+    Logger.error = __Logger__error
+    Logger.fatal = __Logger__fatal
 
 def __doc_DeviceImpl():
     def document_method(method_name, desc, append=True):
@@ -652,8 +746,170 @@ def __doc_DeviceImpl():
         Return     : (Logger) the Logger object for this device
     """ )
 
+    document_method("get_exported_flag", """
+    get_exported_flag(self) -> bool
 
+            Returns the state of the exported flag
 
+        Parameters : None
+        Return     : (bool) the state of the exported flag
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_poll_ring_depth", """
+    get_poll_ring_depth(self) -> int
+
+            Returns the poll ring depth
+
+        Parameters : None
+        Return     : (int) the poll ring depth
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("get_poll_old_factor", """
+    get_poll_old_factor(self) -> int
+
+            Returns the poll old factor
+
+        Parameters : None
+        Return     : (int) the poll old factor
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("is_polled", """
+    is_polled(self) -> bool
+
+            Returns if it is polled
+
+        Parameters : None
+        Return     : (bool) True if it is polled or False otherwise
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("get_polled_cmd", """
+    get_polled_cmd(self) -> sequence<str>
+
+            Returns a COPY of the list of polled commands
+
+        Parameters : None
+        Return     : (sequence<str>) a COPY of the list of polled commands
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_polled_attr", """
+    get_polled_attr(self) -> sequence<str>
+
+            Returns a COPY of the list of polled attributes
+
+        Parameters : None
+        Return     : (sequence<str>) a COPY of the list of polled attributes
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_non_auto_polled_cmd", """
+    get_non_auto_polled_cmd(self) -> sequence<str>
+
+            Returns a COPY of the list of non automatic polled commands
+
+        Parameters : None
+        Return     : (sequence<str>) a COPY of the list of non automatic polled commands
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_non_auto_polled_attr", """
+    get_non_auto_polled_attr(self) -> sequence<str>
+
+            Returns a COPY of the list of non automatic polled attributes
+
+        Parameters : None
+        Return     : (sequence<str>) a COPY of the list of non automatic polled attributes
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("stop_polling", """
+    stop_polling(self) -> None
+    stop_polling(self, with_db_upd) -> None
+            
+            Stop all polling for a device. if the device is polled, call this
+            method before deleting it.
+
+        Parameters :
+            - with_db_upd : (bool)  Is it necessary to update db ?
+        Return     : None
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("check_command_exists", """
+    check_command_exists(self) -> None
+
+            This method check that a command is supported by the device and
+            does not need input value. The method throws an exception if the
+            command is not defined or needs an input value
+
+        Parameters :
+            - cmd_name: (str) the command name
+        Return     : None
+        
+        Throws     : DevFailed API_IncompatibleCmdArgumentType, API_CommandNotFound 
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_dev_idl_version", """
+    get_dev_idl_version(self) -> int
+
+            Returns the IDL version
+
+        Parameters : None
+        Return     : (int) the IDL version
+        
+        New in PyTango 7.1.2
+    """ )
+    
+    document_method("get_cmd_poll_ring_depth", """
+    get_cmd_poll_ring_depth(self, cmd_name) -> int
+
+            Returns the command poll ring depth
+
+        Parameters :
+            - cmd_name: (str) the command name
+        Return     : (int) the command poll ring depth
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("get_attr_poll_ring_depth", """
+    get_attr_poll_ring_depth(self, attr_name) -> int
+
+            Returns the attribute poll ring depth
+
+        Parameters :
+            - attr_name: (str) the attribute name
+        Return     : (int) the attribute poll ring depth
+        
+        New in PyTango 7.1.2
+    """ )
+
+    document_method("is_device_locked", """
+    is_device_locked(self) -> bool
+
+            Returns if this device is locked by a client
+
+        Parameters : None
+        Return     : (bool) True if it is locked or False otherwise
+        
+        New in PyTango 7.1.2
+    """ )
+    
 def __doc_extra_DeviceImpl(cls):
     def document_method(method_name, desc, append=True):
         return __document_method(cls, method_name, desc, append)
@@ -1844,6 +2100,7 @@ def init_DeviceServer():
     __init_DeviceImpl()
     __init_Attribute()
     __init_Attr()
+    __init_Logger()
     __doc_DeviceImpl()
     __doc_extra_DeviceImpl(Device_3Impl)
     __doc_extra_DeviceImpl(Device_4Impl)

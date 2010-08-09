@@ -12,6 +12,11 @@ from PyTango.utils import seq_2_StdStringVector, StdStringVector_2_seq
 from PyTango.utils import seq_2_DbData, DbData_2_dict
 from utils import document_method as __document_method
 
+#-------------------------------------------------------------------------------
+# Pythonic API: transform tango commands into methods and tango attributes into
+# class members
+#-------------------------------------------------------------------------------
+
 def __check_read_attribute(dev_attr):
     if dev_attr.has_failed:
         raise DevFailed(*dev_attr.get_err_stack())
@@ -20,42 +25,76 @@ def __check_read_attribute(dev_attr):
 def __DeviceProxy__refresh_cmd_cache(self):
     self.__cmd_cache = [cmd.cmd_name.lower() for cmd in self.command_list_query()]
 
-def __DeviceProxy__getattr__(self, name):
+def __DeviceProxy__refresh_attr_cache(self):
+    attr_cache = [attr_name.lower() for attr_name in self.get_attribute_list()]
+    self.__dict__['__attr_cache'] = attr_cache
+
+def __DeviceProxy__getattr(self, name):
     # trait_names is a feature of IPython. Hopefully they will solve
     # ticket http://ipython.scipy.org/ipython/ipython/ticket/229 someday
     # and the ugly trait_names could be removed.
     if name[:2] == "__" or name == 'trait_names':
         raise AttributeError, name
     
-    if not hasattr(self, '__cmd_cache') or not name.lower() in self.__cmd_cache:
-        self.__refresh_cmd_cache()
+    find_cmd = True
+    if not hasattr(self, '__cmd_cache') or name.lower() not in self.__cmd_cache:
+        try:
+            self.__refresh_cmd_cache()
+        except:
+            find_cmd = False
     
-    if not name.lower() in self.__cmd_cache:
+    if find_cmd and name.lower() in self.__cmd_cache:
+        def f(*args,**kwds): return self.command_inout(name, *args, **kwds)
+        return f
+    
+    find_attr = True
+    if not hasattr(self, '__attr_cache') or name.lower() not in self.__attr_cache:
+        try:
+            self.__refresh_attr_cache()
+        except:
+            find_attr = False
+    
+    if not find_attr or name.lower() not in self.__attr_cache:
         raise AttributeError, name
-       
-    def f(*args,**kwds): return self.command_inout(name, *args, **kwds)
-    return f
+    
+    return self.read_attribute(name).value
+
+def __DeviceProxy__setattr(self, name, value):
+    try:
+        if not hasattr(self, '__attr_cache') or name.lower() not in self.__attr_cache:
+            self.__refresh_attr_cache()
+    except:
+        self.__dict__[name] = value
+        return
+        
+    if name.lower() in self.__attr_cache:
+        self.write_attribute(name, value)
+    else:
+        self.__dict__[name] = value
+
 
 def __DeviceProxy__getAttributeNames(self):
     """Return list of magic attributes to extend introspection."""
     try:
         lst = [cmd.cmd_name for cmd in self.command_list_query()]
+        lst += self.get_attribute_list()
+        lst += map(str.lower, lst)
         lst.sort()
         return lst
-    except Exception,e:
+    except Exception:
         pass
     return []
 
-def __DeviceProxy__del__(self):
+def __DeviceProxy__del(self):
     self.__unsubscribe_event_all()
 
-def __DeviceProxy__getitem__(self, key):
+def __DeviceProxy__getitem(self, key):
     return self.read_attribute(key)
 
-def __DeviceProxy__setitem__(self, key, value):
+def __DeviceProxy__setitem(self, key, value):
     return self.write_attribute(key, value)
 
-def __DeviceProxy__contains__(self, key):
+def __DeviceProxy__contains(self, key):
     return key.lower() in map(str.lower, self.get_attribute_list())
 
 def __DeviceProxy__read_attribute(self, value, extract_as=ExtractAs.Numpy):
@@ -549,11 +588,11 @@ def __DeviceProxy__set_attribute_config(self, value):
 def __DeviceProxy__get_event_map(self):
     """
     Internal helper method"""
-    try:
-        return self.__subscribed_events
-    except Exception:
-        self.__subscribed_events = dict()
-    return self.__subscribed_events
+    if not hasattr(self, '_subscribed_events'):
+        # do it like this instead of self._subscribed_events = dict() to avoid
+        # calling __setattr__ which requests list of tango attributes from device
+        self.__dict__['_subscribed_events'] = dict()
+    return self._subscribed_events
 
 def __DeviceProxy__subscribe_event ( self, attr_name, event_type, cb_or_queuesize, filters=[], stateless=False, extract_as=ExtractAs.Numpy):
     """
@@ -661,11 +700,9 @@ def __DeviceProxy__unsubscribe_event(self, event_id):
 def __DeviceProxy__unsubscribe_event_all(self):
     se = self.__get_event_map()
     for event_id in se:
-        info = se[event_id]
-        i = "%d (%s %s/%s)" % (event_id, str(info[1]), self.dev_name(), info[2])
         try:
             self.__unsubscribe_event(event_id)
-        except Exception, e:
+        except Exception:
             pass # @todo print or something, but not rethrow
     se.clear()
 
@@ -704,7 +741,7 @@ def __DeviceProxy__get_events(self, event_id, callback=None, extract_as=ExtractA
         New in PyTango 7.0.0
     """
     if callback is None:
-        queuesize, event_type, attr_name = self.__.get_event_map().get(event_id, (None, None, None))
+        queuesize, event_type, attr_name = self.__get_event_map().get(event_id, (None, None, None))
         if event_type is None:
             raise ValueError("Invalid event_id. You are not subscribed to event %s." % str(event_id))
         if event_type in [  EventType.CHANGE_EVENT,
@@ -731,19 +768,26 @@ def __DeviceProxy__get_events(self, event_id, callback=None, extract_as=ExtractA
     else:
         raise TypeError("Parameter 'callback' should be None, a callable object or an object with a 'push_event' method.")
 
-def __DeviceProxy__str__(self):
-    return "DeviceProxy(%s)" % self.dev_name()
+def __DeviceProxy__str(self):
+    if not hasattr(self, '_dev_class'):
+        try:
+            self.__dict__["_dev_class"] = self.info().dev_class
+        except:
+            return "DeviceProxy(%s)" % self.dev_name()
+    return "%s(%s)" % (self._dev_class, self.dev_name())
     
 def __init_DeviceProxy():
-    DeviceProxy.__getattr__ = __DeviceProxy__getattr__
-    DeviceProxy.__del__ = __DeviceProxy__del__
-    DeviceProxy.__getitem__ = __DeviceProxy__getitem__
-    DeviceProxy.__setitem__ = __DeviceProxy__setitem__
-    DeviceProxy.__contains__ = __DeviceProxy__contains__
+    DeviceProxy.__getattr__ = __DeviceProxy__getattr
+    DeviceProxy.__setattr__ = __DeviceProxy__setattr
+    DeviceProxy.__del__ = __DeviceProxy__del
+    DeviceProxy.__getitem__ = __DeviceProxy__getitem
+    DeviceProxy.__setitem__ = __DeviceProxy__setitem
+    DeviceProxy.__contains__ = __DeviceProxy__contains
 
     DeviceProxy._getAttributeNames = __DeviceProxy__getAttributeNames
 
     DeviceProxy.__refresh_cmd_cache = __DeviceProxy__refresh_cmd_cache
+    DeviceProxy.__refresh_attr_cache = __DeviceProxy__refresh_attr_cache
 
     DeviceProxy.read_attribute = __DeviceProxy__read_attribute
     DeviceProxy.read_attributes_asynch = __DeviceProxy__read_attributes_asynch
@@ -767,8 +811,8 @@ def __init_DeviceProxy():
     DeviceProxy.unsubscribe_event = __DeviceProxy__unsubscribe_event
     DeviceProxy.__unsubscribe_event_all = __DeviceProxy__unsubscribe_event_all
     DeviceProxy.get_events = __DeviceProxy__get_events
-    DeviceProxy.__str__ = __DeviceProxy__str__
-    DeviceProxy.__repr__ = __DeviceProxy__str__
+    DeviceProxy.__str__ = __DeviceProxy__str
+    DeviceProxy.__repr__ = __DeviceProxy__str
 
 def __doc_DeviceProxy():
     def document_method(method_name, desc, append=True):
@@ -782,7 +826,7 @@ def __doc_DeviceProxy():
     a DeviceProxy, a Tango Device name must be set in the object constructor.
 
     Example :
-       dev = DeviceProxy("tango/tangotest/1")
+       dev = PyTango.DeviceProxy("sys/tg_test/1")
     """
 
 #-------------------------------------

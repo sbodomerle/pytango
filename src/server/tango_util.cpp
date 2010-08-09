@@ -125,14 +125,27 @@ namespace PyUtil
         vector<Tango::DeviceImpl *> &dev_list = self.get_device_list_by_class(class_name);
         for(vector<Tango::DeviceImpl *>::iterator it = dev_list.begin(); it != dev_list.end(); ++it)
         {
-            py_dev_list.append(*it);
+            object py_value = object(
+                        handle<>(
+                            to_python_indirect<
+                                Tango::DeviceImpl*,
+                                detail::make_reference_holder>()(*it)));
+            
+            py_dev_list.append(py_value);
         }
         return py_dev_list;
     }
 
     inline object get_device_by_name(Tango::Util &self, const string &dev_name)
     {
-        return object(self.get_device_by_name(dev_name));
+        Tango::DeviceImpl *value = self.get_device_by_name(dev_name);
+        object py_value = object(
+                    handle<>(
+                        to_python_indirect<
+                            Tango::DeviceImpl*,
+                            detail::make_reference_holder>()(value)));
+
+        return py_value;
     }
     
     inline object get_device_list(Tango::Util &self, const string &name)
@@ -141,7 +154,12 @@ namespace PyUtil
         vector<Tango::DeviceImpl *> dev_list = self.get_device_list(name);
         for(vector<Tango::DeviceImpl *>::iterator it = dev_list.begin(); it != dev_list.end(); ++it)
         {
-            py_dev_list.append(*it);
+            object py_value = object(
+                        handle<>(
+                            to_python_indirect<
+                                Tango::DeviceImpl*,
+                                detail::make_reference_holder>()(*it)));
+            py_dev_list.append(py_value);
         }
         return py_dev_list;
     }

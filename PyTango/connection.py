@@ -13,6 +13,7 @@ def __CallBackAutoDie__cmd_ended_aux(fn):
         except Exception:
             pass
         return fn(cmd_done_event)
+    return __new_fn
 
 def __get_command_inout_param(self, cmd_name, cmd_param=None):
     if cmd_param is None:

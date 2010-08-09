@@ -5,7 +5,7 @@ from _PyTango import GroupReplyList
 from _PyTango import GroupCmdReplyList
 from _PyTango import GroupAttrReplyList
 
-def __GroupReplyList__getitem__(self, item):
+def __GroupReplyList__getitem(self, item):
     # Accessing an item in GroupReplyList and friends makes a C++ copy
     # of the item calling the copy constructor. But the copy constructor
     # of GroupReply is not fair: It extracts the data from the original
@@ -37,29 +37,29 @@ def __GroupReplyList__getitem__(self, item):
         # miss will be taken by original_getitem
         pass
 
-    r = self.__GroupReplyList_original_getitem__(item)
+    r = self.__GroupReplyList_original_getitem(item)
     self.__listCache[item] = r
     return r
 
-def __GroupReplyList__iter__(self):
+def __GroupReplyList__iter(self):
     # Same problem as getitem. In this case it is easier for me to just
     # reimplement __iter__ in terms of __getitem__
     for x in xrange(len(self)):
         yield self[x]
 
 def __init_GroupReplyList():
-    GroupReplyList.__GroupReplyList_original_getitem__ = GroupReplyList.__getitem__
-    GroupReplyList.__getitem__ = __GroupReplyList__getitem__
+    GroupReplyList.__GroupReplyList_original_getitem = GroupReplyList.__getitem__
+    GroupReplyList.__getitem__ = __GroupReplyList__getitem
 
-    GroupCmdReplyList.__GroupReplyList_original_getitem__ = GroupCmdReplyList.__getitem__
-    GroupCmdReplyList.__getitem__ = __GroupReplyList__getitem__
+    GroupCmdReplyList.__GroupReplyList_original_getitem = GroupCmdReplyList.__getitem__
+    GroupCmdReplyList.__getitem__ = __GroupReplyList__getitem
 
-    GroupAttrReplyList.__GroupReplyList_original_getitem__ = GroupAttrReplyList.__getitem__
-    GroupAttrReplyList.__getitem__ = __GroupReplyList__getitem__
+    GroupAttrReplyList.__GroupReplyList_original_getitem = GroupAttrReplyList.__getitem__
+    GroupAttrReplyList.__getitem__ = __GroupReplyList__getitem
 
-    GroupReplyList.__iter__ = __GroupReplyList__iter__
-    GroupCmdReplyList.__iter__ = __GroupReplyList__iter__
-    GroupAttrReplyList.__iter__ = __GroupReplyList__iter__
+    GroupReplyList.__iter__ = __GroupReplyList__iter
+    GroupCmdReplyList.__iter__ = __GroupReplyList__iter
+    GroupAttrReplyList.__iter__ = __GroupReplyList__iter
 
 def __doc_GroupReplyList():
     pass

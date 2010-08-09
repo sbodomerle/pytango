@@ -10,26 +10,8 @@ from pyutil import Util
 from utils import DbData_2_dict, seqStr_2_obj, obj_2_str, is_array
 from utils import document_method as __document_method
 
-from globals import class_list, constructed_class
-from globals import get_class, get_constructed_class
-
-def _DeviceClass__get_device_class(dev):
-    """
-    get_device_class(self, dev) -> DeviceClass
-
-            Gets the DeviceClass for the given device
-
-        Parameters :
-            - dev - (DeviceImpl) the device object
-
-        Return     : (DeviceClass) the DeviceClass object for the given device"""
-    loop = 0
-    for tup in class_list:
-        if (tup[1].__name__ == dev.__class__.__name__):
-            return constructed_class[loop]
-        loop += 1
-    return None
-
+from globals import get_classes, get_class, get_class_by_class
+from globals import get_constructed_classes, get_constructed_class, get_constructed_class_by_class
 
 class PropUtil:
     """An internal Property util class"""
@@ -262,6 +244,11 @@ class DeviceClass(_DeviceClass):
        A TANGO device-class class is a class where is stored all
        data/method common to all devices of a TANGO device class"""
 
+    class_property_list = {}
+    device_property_list = {}
+    cmd_list = {}
+    attr_list = {}
+
     def __init__(self, name):
         _DeviceClass.__init__(self,name)
         self.dyn_att_added_methods = []
@@ -294,15 +281,11 @@ class DeviceClass(_DeviceClass):
 
     def __attribute_factory(self, attr_list):
         """for internal usage only"""
-        name = self.get_name()
-        class_info = get_class(name)
-        my_constructed_class = get_constructed_class(name)
-        deviceimpl_class = class_info[1]
 
         for attr_name, attr_info in self.attr_list.iteritems():
-            self.__create_attribute(deviceimpl_class, attr_list, attr_name, attr_info)
+            self.__create_attribute(attr_list, attr_name, attr_info)
 
-    def __create_attribute(self, deviceimpl_class, attr_list, attr_name, attr_info):
+    def __create_attribute(self, attr_list, attr_name, attr_info):
         """for internal usage only"""
         name = self.get_name()
 
@@ -468,7 +451,6 @@ class DeviceClass(_DeviceClass):
         """for internal usage only"""
         name = self.get_name()
         class_info = get_class(name)
-        my_constructed_class = get_constructed_class(name)
         deviceimpl_class = class_info[1]
 
         if not hasattr(deviceimpl_class, "init_device"):
@@ -558,7 +540,7 @@ class DeviceClass(_DeviceClass):
                 self.__throw_create_command_exception(msg)
 
         # If it is defined, get addictional dictionnary used for optional parameters
-        display_level, default_command, poll_period = DispLevel.OPERATOR, False, -1
+        display_level, default_command, polling_period = DispLevel.OPERATOR, False, -1
 
         if len(cmd_info) == 3:
             extra_info = cmd_info[2]
@@ -609,12 +591,12 @@ class DeviceClass(_DeviceClass):
         # check that the method to be executed exists
         try:
             cmd = getattr(deviceimpl_class, cmd_name)
-            if not operator.isCallable(cmd):
+            if not callable(cmd):
                 msg = "Wrong definition of command %s in " \
                       "class %s\nThe object exists in class but is not " \
                       "a method!" % (cmd_name, name)
                 self.__throw_create_command_exception(msg)
-        except AttributeError, ae:
+        except AttributeError:
             msg = "Wrong definition of command %s in " \
                   "class %s\nThe command method does not exist!" % (cmd_name, name)
             self.__throw_create_command_exception(msg)
@@ -622,7 +604,7 @@ class DeviceClass(_DeviceClass):
         is_allowed_name = "is_%s_allowed" % cmd_name
         try:
             is_allowed = getattr(deviceimpl_class, is_allowed_name)
-            if not operator.isCallable(is_allowed):
+            if not callable(is_allowed):
                 msg = "Wrong definition of command %s in " \
                       "class %s\nThe object '%s' exists in class but is " \
                       "not a method!" % (cmd_name, name, is_allowed_name)
@@ -633,35 +615,93 @@ class DeviceClass(_DeviceClass):
         self._create_command(cmd_name, param_type, result_type,
                              param_desc, result_desc,
                              display_level, default_command,
-                             poll_period, is_allowed_name)
+                             polling_period, is_allowed_name)
 
-    def device_factory(self, devicelist):
+    def device_factory(self, device_list):
         """for internal usage only"""
-        loop = 0
-        for tup in class_list:
-            if (tup[0].__name__ == self.__class__.__name__):
-                tup[1].get_device_class = _DeviceClass__get_device_class
-                tmp_dev_list = []
-                for dev_name in devicelist:
-                    self.z = tup[1](constructed_class[loop],dev_name)
-                    self.cpp_add_device(self.z)
-                    tmp_dev_list.append(self.z)
+       
+        klass = self.__class__
+        klass_name = klass.__name__
+        info, klass = get_class_by_class(klass), get_constructed_class_by_class(klass)
+        
+        if info is None:
+            raise RuntimeError("Device class '%s' is not registered" % klass_name)
 
-                self.dyn_attr(tmp_dev_list)
+        if klass is None:
+            print get_constructed_classes()
+            raise RuntimeError("Device class '%s' as not been constructed" % klass_name)
+        
+        deviceClassClass, deviceImplClass, deviceImplName = info
+        deviceImplClass._device_class_instance = klass
 
-                for dev in tmp_dev_list:
-                    if ((Util._UseDb == True) and (Util._FileDb == False)):
-                        self.export_device(dev)
-                    else:
-                        self.export_device(dev,dev.get_name())
-                self.py_dev_list = self.py_dev_list + tmp_dev_list
-                break
-            loop += 1
+        tmp_dev_list = []
+        for dev_name in device_list:
+            device = deviceImplClass(klass, dev_name)
+            self.cpp_add_device(device)
+            tmp_dev_list.append(device)
 
-    def get_device_list(self):
-        """for internal usage only"""
-        return self.py_dev_list
+        self.dyn_attr(tmp_dev_list)
 
+        for dev in tmp_dev_list:
+            if Util._UseDb and not Util._FileDb:
+                self.export_device(dev)
+            else:
+                self.export_device(dev, dev.get_name())
+        self.py_dev_list += tmp_dev_list
+
+    def create_device(self, device_name, alias=None, cb=None):
+        """
+            create_device(self, device_name, alias=None, cb=None) -> None
+            
+                Creates a new device of the given class in the database, creates a new
+                DeviceImpl for it and calls init_device (just like it is done for
+                existing devices when the DS starts up)
+        
+                An optional parameter callback is called AFTER the device is 
+                registered in the database and BEFORE the init_device for the
+                newly created device is called
+                
+            Throws PyTango.DevFailed:
+                - the device name exists already or
+                - the given class is not registered for this DS.
+                - the cb is not a callable
+                
+            New in PyTango 7.1.2
+            
+            Parameters :
+                - device_name : (str) the device name
+                - alias : (str) optional alias. Default value is None meaning do not create device alias
+                - cb : (callable) a callback that is called AFTER the device is registered
+                       in the database and BEFORE the init_device for the newly created
+                       device is called. Typically you may want to put device and/or attribute
+                       properties in the database here. The callback must receive a parameter:
+                       device name (str). Default value is None meaning no callback
+            
+            Return     : None"""
+        util = Util.instance()
+        util.create_device(self.get_name(), device_name, alias=alias, cb=cb)
+
+    def delete_device(self, device_name):
+        """
+            delete_device(self, klass_name, device_name) -> None
+            
+                Deletes an existing device from the database and from this running
+                server
+        
+                Throws PyTango.DevFailed:
+                    - the device name doesn't exist in the database
+                    - the device name doesn't exist in this DS.
+            
+            New in PyTango 7.1.2
+            
+            Parameters :
+                - klass_name : (str) the device class name
+                - device_name : (str) the device name
+            
+            Return     : None"""
+        util = Util.instance()
+        util.delete_device(self.get_name(), device_name)
+        
     def dyn_attr(self,device_list):
         """
             dyn_attr(self,device_list) -> None
@@ -677,15 +717,19 @@ class DeviceClass(_DeviceClass):
 
     def device_destroyer(self,name):
         """for internal usage only"""
+        name = name.lower()
         for d in self.py_dev_list:
-            if d.get_name() == name:
+            dname = d.get_name().lower()
+            if dname == name:
                 dev_cl = d.get_device_class()
-                dev_cl._device_destroyer(name)
+                # the internal C++ device_destroyer isn't case sensitive so we
+                # use the internal DeviceImpl name to make sure the DeviceClass
+                # finds it
+                dev_cl._device_destroyer(d.get_name())
                 self.py_dev_list.remove(d)
-                break
-            else:
-                err_mess = "Device " + name + " not in tango class device list!"
-                Except.throw_exception("API_CantDestroyDevice",err_mess,"DeviceClass::device_destroyer")
+                return
+        err_mess = "Device " + name + " not in Tango class device list!"
+        Except.throw_exception("PyAPI_CantDestroyDevice",err_mess,"DeviceClass.device_destroyer")
 
 def __init_DeviceClass():
     pass
@@ -800,6 +844,15 @@ def __doc_DeviceClass():
         Return     : (str) cvs location
     """ )
 
+    document_method("get_device_list", """
+    get_device_list(self) -> sequence<PyTango.DeviceImpl>
+
+            Gets the list of PyTango.DeviceImpl objects for this class
+
+        Parameters : None
+        Return     : (sequence<PyTango.DeviceImpl>) list of PyTango.DeviceImpl objects for this class
+    """ )
+    
     document_method("add_wiz_dev_prop", """
     add_wiz_dev_prop(self, str, str) -> None
     add_wiz_dev_prop(self, str, str, str) -> None

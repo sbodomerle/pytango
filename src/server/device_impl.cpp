@@ -9,6 +9,7 @@
 #include "server/device_impl.h"
 #include "server/attr.h"
 #include "server/attribute.h"
+#include "to_py.h"
 
 extern const char *param_must_be_seq;
 
@@ -166,6 +167,26 @@ using namespace boost::python;
 
 namespace PyDeviceImpl
 {
+    inline PyObject* get_polled_cmd(Tango::DeviceImpl &self)
+    {
+        return to_list<std::vector<std::string> >::convert(self.get_polled_cmd());
+    }
+
+    inline PyObject* get_polled_attr(Tango::DeviceImpl &self)
+    {
+        return to_list<std::vector<std::string> >::convert(self.get_polled_attr());
+    }
+    
+    inline PyObject* get_non_auto_polled_cmd(Tango::DeviceImpl &self)
+    {
+        return to_list<std::vector<std::string> >::convert(self.get_non_auto_polled_cmd());
+    }
+
+    inline PyObject* get_non_auto_polled_attr(Tango::DeviceImpl &self)
+    {
+        return to_list<std::vector<std::string> >::convert(self.get_non_auto_polled_attr());
+    }
+    
     /* **********************************
      * change event USING set_value
      * **********************************/
@@ -991,8 +1012,22 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(set_archive_event_overload,
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(push_data_ready_event_overload,
                                        Tango::DeviceImpl::push_data_ready_event, 1, 2)
 
+
 void export_device_impl()
 {
+ 
+    // The following function declarations are necessary to be able to cast
+    // the function parameters from string& to const string&, otherwise python
+    // will not recognize the method calls
+    long (Tango::DeviceImpl::*get_cmd_poll_ring_depth_)(std::string &) =
+        &Tango::DeviceImpl::get_cmd_poll_ring_depth;
+    long (Tango::DeviceImpl::*get_attr_poll_ring_depth_)(std::string &) =
+        &Tango::DeviceImpl::get_attr_poll_ring_depth;
+
+    
+    void (Tango::DeviceImpl::*stop_polling1)() = &Tango::DeviceImpl::stop_polling;
+    void (Tango::DeviceImpl::*stop_polling2)(bool) = &Tango::DeviceImpl::stop_polling;
+    
     class_<Tango::DeviceImpl, DeviceImplWrap, boost::noncopyable>("DeviceImpl",
         init<CppDeviceClass *, const char *,
              optional<const char *, Tango::DevState, const char *> >())
@@ -1025,10 +1060,41 @@ void export_device_impl()
         .def("set_archive_event",
             &Tango::DeviceImpl::set_archive_event,
             set_archive_event_overload())
+        .def("_add_attribute", &PyDeviceImpl::add_attribute)
+        .def("_remove_attribute", &PyDeviceImpl::remove_attribute)
         //@TODO .def("get_device_class")
         //@TODO .def("get_device_attr")
         //@TODO .def("get_db_device")
-
+        
+        
+        .def("get_exported_flag", &Tango::DeviceImpl::get_exported_flag)
+        .def("get_poll_ring_depth", &Tango::DeviceImpl::get_poll_ring_depth)
+        .def("get_poll_old_factor", &Tango::DeviceImpl::get_poll_old_factor)
+        .def("is_polled", (bool (Tango::DeviceImpl::*) ())&Tango::DeviceImpl::is_polled)
+        .def("get_polled_cmd", &PyDeviceImpl::get_polled_cmd)
+        .def("get_polled_attr", &PyDeviceImpl::get_polled_attr)
+        .def("get_non_auto_polled_cmd", &PyDeviceImpl::get_non_auto_polled_cmd)
+        .def("get_non_auto_polled_attr", &PyDeviceImpl::get_non_auto_polled_attr)
+        //@TODO .def("get_poll_obj_list", &PyDeviceImpl::get_poll_obj_list)
+        .def("stop_polling", stop_polling1)
+        .def("stop_polling", stop_polling2)
+        .def("check_command_exists", &Tango::DeviceImpl::check_command_exists)
+        //@TODO .def("get_command", &PyDeviceImpl::get_command)
+        .def("get_dev_idl_version", &Tango::DeviceImpl::get_dev_idl_version)
+        .def("get_cmd_poll_ring_depth",
+            (long (Tango::DeviceImpl::*) (const std::string &))
+            get_cmd_poll_ring_depth_)
+        .def("get_attr_poll_ring_depth",
+            (long (Tango::DeviceImpl::*) (const std::string &))
+            get_attr_poll_ring_depth_)
+        .def("is_device_locked", &Tango::DeviceImpl::is_device_locked)
+        
+        .def("init_logger", &Tango::DeviceImpl::init_logger)
+        .def("start_logging", &Tango::DeviceImpl::start_logging)
+        .def("stop_logging", &Tango::DeviceImpl::stop_logging)
+        
+        //.def("set_exported_flag", &Tango::DeviceImpl::set_exported_flag)
+        //.def("set_poll_ring_depth", &Tango::DeviceImpl::set_poll_ring_depth)
 
         .def("push_change_event",
             (void (*) (Tango::DeviceImpl &, str &))
@@ -1158,6 +1224,7 @@ void export_device_impl()
             init<CppDeviceClass *, const char *,
                  optional<const char *, Tango::DevState, const char *> >())
         .def("get_attribute_config_2", &PyDevice_2Impl::get_attribute_config_2)
+        //@TODO .def("read_attribute_history_2", &PyDevice_2Impl::read_attribute_history_2)
     ;
 
     class_<Tango::Device_3Impl, Device_3ImplWrap,
@@ -1181,8 +1248,6 @@ void export_device_impl()
             &Device_3ImplWrap::default_dev_status)
         .def("signal_handler", &Tango::Device_3Impl::signal_handler,
             &Device_3ImplWrap::default_signal_handler)
-        .def("_add_attribute", &PyDeviceImpl::add_attribute)
-        .def("_remove_attribute", &PyDeviceImpl::remove_attribute)
         .def("get_attribute_config_3", &PyDevice_3Impl::get_attribute_config_3)
         .def("set_attribute_config_3", &PyDevice_3Impl::set_attribute_config_3)
     ;
@@ -1208,7 +1273,5 @@ void export_device_impl()
             &Device_4ImplWrap::default_dev_status)
         .def("signal_handler", &Tango::Device_4Impl::signal_handler,
             &Device_4ImplWrap::default_signal_handler)
-        .def("_add_attribute", &PyDeviceImpl::add_attribute)
-        .def("_remove_attribute", &PyDeviceImpl::remove_attribute)
     ;
 }

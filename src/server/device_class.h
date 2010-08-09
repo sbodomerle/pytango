@@ -4,8 +4,6 @@
 #include <boost/python.hpp>
 #include <tango.h>
 
-#define		PY_MET_INC_REF			"py_exec_wir"
-
 class CppDeviceClass: public Tango::DeviceClass
 {
 public:

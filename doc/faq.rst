@@ -163,9 +163,9 @@ reference, the proper code would be::
 Server
 ~~~~~~
 
-#. replace `PyTango.PyUtil` with `PyTango.Util`
+#. replace `PyTango.PyUtil` with :class:`PyTango.Util`
 
-#. replace `PyTango.PyDeviceClass` with `PyTango.DeviceClass`
+#. replace `PyTango.PyDeviceClass` with :class:`PyTango.DeviceClass`
 
 #. state and status overwrite
     in PyTango <= 3.0.4, in order to overwrite the default state and status in a device
@@ -181,7 +181,7 @@ General
     - the result of a read_attribute call on a DeviceProxy/Group is now a DeviceAttribute object
     - write_attribute does not accept AttributeValue anymore
     
-    (See DeviceProxy API documentation for more details)
+    (See :class:`DeviceProxy` API documentation for more details)
     
 #. command_inout for commands with parameter type DevVar****StringArray don't accept items in second sequence not being strings:
     For example, a tango command 'DevVoid Go(DevVarDoubleArray)' in tango 3.0.4
@@ -204,19 +204,20 @@ General
     - ATTR_CONF_EVENT remains
 
 #. Exception handling
-    in 3.0.4 DevFailed was a tuple of dictionaries. Now DevFailed is a tuple of DevError. 
+    in 3.0.4 :class:`PyTango.DevFailed` was a tuple of dictionaries. 
+    Now :class:`PyTango.DevFailed` is a tuple of :class:`PyTango.DevError`.
     This means that code::
 
         try:
             tango_fail()
-        except Tango.DevFailed,e:
+        except PyTango.DevFailed as e:
             print e.args[0]['reason']
 
     needs to be replaced with::
 
         try:
             tango_fail()
-        except Tango.DevFailed,e:
+        except PyTango.DevFailed as e:
             print e.args[0].reason
 
 
@@ -234,7 +235,7 @@ Server side V3 to V4 upgrade
 If you want your server to support the V4 interface provided by Tango 7
 instead of the V3 provided by Tango 6:
 
-- replace the inheritance of your device class from `PyTango.Device_3Impl` to `PyTango.Device_4Impl`
+- replace the inheritance of your device class from :class:`PyTango.Device_3Impl` to :class:`PyTango.Device_4Impl`
 - in the `init_device` method replace the call `PyTango.Device_3Impl.init_device(self...` with `PyTango.Device_4Impl.init_device(self...`
 
 Improved server side image attribute read API
