@@ -21,6 +21,8 @@ class AttributeValue(PyTango.DeviceAttribute):
 __original_DeviceProxy = PyTango.DeviceProxy
 
 class DeviceProxy3(__original_DeviceProxy):
+    defaultCommandExtractAs = ExtractAs.PyTango3
+
     def __init__(self, *args, **kwds):
         self.__init_state_status()
         super(DeviceProxy3, self).__init__(*args, **kwds)

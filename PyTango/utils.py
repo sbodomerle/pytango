@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import types, operator
 
 from _PyTango import StdStringVector, DbData, DbDevInfos, DbDevExportInfos, CmdArgType, AttrDataFormat
@@ -78,8 +79,9 @@ def is_float(tg_type, inc_array=False):
     return tg_type in _array_float_types
 
 def seq_2_StdStringVector(seq, vec=None):
-    if isinstance(seq, StdStringVector): return seq
-    if vec is None: vec = StdStringVector()
+    if vec is None:
+        if isinstance(seq, StdStringVector): return seq
+        vec = StdStringVector()
     if not isinstance(vec, StdStringVector):
         raise TypeError('vec must be a PyTango.StdStringVector')
     for e in seq: vec.append(str(e))
@@ -93,8 +95,9 @@ def StdStringVector_2_seq(vec, seq=None):
     return seq
 
 def seq_2_StdDoubleVector(seq, vec=None):
-    if isinstance(seq, StdDoubleVector): return seq
-    if vec is None: vec = StdDoubleVector()
+    if vec is None:
+        if isinstance(seq, StdDoubleVector): return seq
+        vec = StdDoubleVector()
     if not isinstance(vec, StdDoubleVector):
         raise TypeError('vec must be a PyTango.StdDoubleVector')
     for e in seq: vec.append(str(e))
@@ -108,24 +111,27 @@ def StdDoubleVector_2_seq(vec, seq=None):
     return seq
 
 def seq_2_DbDevInfos(seq, vec=None):
-    if isinstance(seq, DbDevInfos): return seq
-    if vec is None: vec = DbDevInfos()
+    if vec is None:
+        if isinstance(seq, DbDevInfos): return seq
+        vec = DbDevInfos()
     if not isinstance(vec, DbDevInfos):
         raise TypeError('vec must be a PyTango.DbDevInfos')
     for e in seq: vec.append(e)
     return vec
 
 def seq_2_DbDevExportInfos(seq, vec=None):
-    if isinstance(seq, DbDevExportInfos): return seq
-    if vec is None: vec = DbDevExportInfos()
+    if vec is None:
+        if isinstance(seq, DbDevExportInfos): return seq
+        vec = DbDevExportInfos()
     if not isinstance(vec, DbDevExportInfos):
         raise TypeError('vec must be a PyTango.DbDevExportInfos')
     for e in seq: vec.append(e)
     return vec
 
 def seq_2_DbData(seq, vec=None):
-    if isinstance(seq, DbData): return seq
-    if vec is None: vec = DbData()
+    if vec is None:
+        if isinstance(seq, DbData): return seq
+        vec = DbData()
     if not isinstance(vec, DbData):
         raise TypeError('vec must be a PyTango.DbData')
     for e in seq: vec.append(e)

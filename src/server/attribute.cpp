@@ -1,12 +1,12 @@
-#include "attribute.h"
+#include <boost/python.hpp>
+#include <boost/python/return_value_policy.hpp>
+#include <string>
+#include <tango.h>
 
 #include "defs.h"
 #include "pytgutils.h"
-
-#include <string>
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <tango.h>
+#include "attribute.h"
+#include "fast_from_py.h"
 
 using namespace boost::python;
 
@@ -169,180 +169,6 @@ namespace PyAttribute
         att.set_value_date_quality(&val_str_real, val_real, (long)len(data), tv, quality);
     }
 
-
-    template<long tangoTypeConst>
-    inline void __delete_sequence(typename TANGO_const2type(tangoTypeConst)* data_buffer, long processedElements)
-    {
-        delete [] data_buffer;
-    }
-
-    template<>
-    inline void __delete_sequence<Tango::DEV_STRING>(Tango::DevString* data_buffer, long processedElements)
-    {
-        for (long i =0; i < processedElements; ++i) {
-            delete [] data_buffer[i];
-        }
-        delete [] data_buffer;
-    }
-    
-    template<long tangoTypeConst>
-    inline typename TANGO_const2type(tangoTypeConst)*
-        __pyvalue_to_array_sequence(PyObject* py_val, long* pdim_x, long *pdim_y, const std::string &fname, bool isImage, long& res_dim_x, long& res_dim_y)
-    {
-        typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
-        typedef typename TANGO_const2arraytype(tangoTypeConst) TangoArrayType;
-
-        long dim_x;
-        long dim_y = 0;
-        long len = PySequence_Size(py_val);;
-        bool expectFlatSource;
-
-        if (isImage) {
-            if (pdim_y) {
-                expectFlatSource = true;
-                dim_x = *pdim_x;
-                dim_y = *pdim_y;
-                long len2 = dim_x*dim_y;
-                if (len2 < len)
-                    len = len2;
-            } else {
-                expectFlatSource = false;
-
-                if (len > 0) {
-                    PyObject* py_row0 = PySequence_ITEM(py_val, 0);
-                    if (!py_row0 || !PySequence_Check(py_row0)) {
-                        Py_XDECREF(py_row0);
-                        Tango::Except::throw_exception(
-                            "PyDs_WrongParameters",
-                            "Expecting a sequence of sequences.",
-                            fname + "()");
-                    }
-
-                    dim_y = len;
-                    dim_x = PySequence_Size(py_row0);
-                    Py_XDECREF(py_row0);
-                } else {
-                    dim_x = 0;
-                }
-            }
-            len = dim_x*dim_y;
-        } else {
-            expectFlatSource = true;
-            if (pdim_x) {
-                if (*pdim_x > len)
-                    Tango::Except::throw_exception(
-                        "PyDs_WrongParameters",
-                        "Specified dim_x is larger than the sequence size",
-                        fname + "()");
-                len = *pdim_x;
-            }
-            if (pdim_y && (*pdim_y!=0))
-                Tango::Except::throw_exception(
-                        "PyDs_WrongParameters",
-                        "You should not specify dim_y for an spectrum attribute!",
-                        fname + "()");
-            dim_x = len;
-        }
-
-        res_dim_x = dim_x;
-        res_dim_y = dim_y;
-
-        if (!PySequence_Check(py_val))
-            Tango::Except::throw_exception(
-                "PyDs_WrongParameters",
-                "Expecting a sequence!",
-                fname + "()");
-
-        /// @bug Why not TangoArrayType::allocbuf(len)? Because
-        /// I will use it in set_value(tg_ptr,...,release=true).
-        /// Tango API makes delete[] tg_ptr instead of freebuf(tg_ptr).
-        /// This is usually the same, but for Tango::DevStringArray the
-        /// behaviour seems different and causes troubles...
-        TangoScalarType *tg_ptr = new TangoScalarType[len];
-
-        // The boost extract could be used:
-        // TangoScalarType val = boost::python::extract<TangoScalarType>(elt_ptr);
-        // instead of the code below.
-        // the problem is that extract is considerably slower than our
-        // convert function which only has to deal with the specific tango
-        // data types
-
-        PyObject * py_el = 0;
-        PyObject * py_row = 0;
-        TangoScalarType tg_scalar;
-        long idx = 0;
-        try {
-            if (expectFlatSource) {
-                for (idx = 0; idx < len; ++idx)
-                {
-                    py_el = PySequence_ITEM(py_val, idx);
-                    if (!py_el)
-                            throw_error_already_set();
-
-                    from_py<tangoTypeConst>::convert(py_el, tg_scalar);
-                    tg_ptr[idx] = tg_scalar;
-                    
-                    Py_DECREF(py_el);
-                    py_el = 0;
-                }
-            } else {
-                for (long y=0; y < dim_y; ++y) {
-                    py_row = PySequence_ITEM(py_val, y);
-                    if (!py_row)
-                            throw_error_already_set();
-                    if (!PySequence_Check(py_row)) {
-                        Tango::Except::throw_exception(
-                            "PyDs_WrongParameters",
-                            "Expecting a sequence of sequences!",
-                            fname + "()");
-                    }
-                    for (long x=0; x < dim_x; ++x, ++idx) {
-                        py_el = PySequence_ITEM(py_row, x);
-                        if (!py_el)
-                            throw_error_already_set();
-                        
-                        from_py<tangoTypeConst>::convert(py_el, tg_scalar);
-                        tg_ptr[x + y*dim_x] = tg_scalar;
-                        
-                        Py_DECREF(py_el);
-                        py_el = 0;
-                    }
-                    Py_DECREF(py_row);
-                    py_row = 0;
-                }
-            }
-        } catch(...) {
-            Py_XDECREF(py_el);
-            Py_XDECREF(py_row);
-            __delete_sequence<tangoTypeConst>(tg_ptr, idx);
-            throw;
-        }
-        return tg_ptr;
-    }
-
-    template<>
-    inline TANGO_const2type(Tango::DEV_ENCODED)*
-        __pyvalue_to_array_sequence<Tango::DEV_ENCODED>(PyObject*, long*, long*, const std::string & fname, bool isImage, long& res_dim_x, long& res_dim_y)
-    {
-        TangoSys_OMemStream o;
-        o << "DevEncoded is only supported for SCALAR attributes." << ends;
-        Tango::Except::throw_exception(
-                "PyDs_WrongPythonDataTypeForAttribute",
-                o.str(), fname + "()");
-        return 0;
-    }
-
-}
-
-
-#ifndef DISABLE_PYTANGO_NUMPY
-#   include "attribute_numpy.hpp"
-#endif
-
-
-namespace PyAttribute
-{
-
     template<long tangoTypeConst>
     void __set_value_date_quality_array(
             Tango::Attribute& att,
@@ -377,14 +203,8 @@ namespace PyAttribute
         TangoScalarType* data_buffer;
 
         long res_dim_x=0, res_dim_y=0;
-#       ifdef DISABLE_PYTANGO_NUMPY
-            data_buffer =__pyvalue_to_array_sequence<tangoTypeConst>(
-                    value.ptr(), x, y, fname, isImage, res_dim_x, res_dim_y);
-#       else
-            data_buffer = __pyvalue_to_array_numpy<tangoTypeConst>(
-                    value.ptr(), x, y, fname, isImage, res_dim_x, res_dim_y);
-#       endif
-
+        data_buffer = fast_python_to_tango_buffer<tangoTypeConst>(
+                 value.ptr(), x, y, fname, isImage, res_dim_x, res_dim_y);
 
         static const bool release = true;
 

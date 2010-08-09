@@ -2,6 +2,32 @@
 
 using namespace boost::python;
 
+void convert2array(const boost::python::object &py_value, Tango::DevVarCharArray & result)
+{
+    PyObject *py_value_ptr = py_value.ptr();
+    if(PySequence_Check(py_value_ptr) == 0)
+    {
+        raise_(PyExc_TypeError, param_must_be_seq);
+    }
+
+    size_t size = boost::python::len(py_value);
+    result.length(size);
+    if (PyString_Check(py_value_ptr))
+    {
+        char *ch = PyString_AS_STRING(py_value_ptr);
+        for (size_t i=0; i < size; ++i) {
+            result[i] = ch[i];
+        }
+    }
+    else
+    {
+        for (size_t i=0; i < size; ++i) {
+            unsigned char *ch = boost::python::extract<unsigned char *>(py_value[i]);
+            result[i] = ch[0];
+        }
+    }
+}
+
 void convert2array(const object &py_value, StdStringVector & result)
 {
     PyObject *py_value_ptr = py_value.ptr();
@@ -47,6 +73,48 @@ void convert2array(const object &py_value, Tango::DevVarStringArray & result)
             result[i] = CORBA::string_dup(boost::python::extract<char*>(py_value[i]));
         }
     }
+}
+
+void convert2array(const boost::python::object &py_value, Tango::DevVarDoubleStringArray & result)
+{
+    if (!PySequence_Check(py_value.ptr()))
+    {
+        raise_convert2array_DevVarDoubleStringArray();
+    }
+    
+    size_t size = boost::python::len(py_value);
+    if (size != 2)
+    {
+        raise_convert2array_DevVarDoubleStringArray();
+    }
+    
+    const boost::python::object
+        &py_double = py_value[0],
+        &py_str    = py_value[1];
+
+    convert2array(py_double, result.dvalue);
+    convert2array(py_str, result.svalue);
+}
+
+void convert2array(const boost::python::object &py_value, Tango::DevVarLongStringArray & result)
+{
+    if (!PySequence_Check(py_value.ptr()))
+    {
+        raise_convert2array_DevVarLongStringArray();
+    }
+    
+    size_t size = boost::python::len(py_value);
+    if (size != 2)
+    {
+        raise_convert2array_DevVarLongStringArray();
+    }
+    
+    const boost::python::object 
+        py_long = py_value[0],
+        py_str  = py_value[1];
+
+    convert2array(py_long, result.lvalue);
+    convert2array(py_str, result.svalue);
 }
 
 void from_py_object(object &py_obj, Tango::AttributeAlarm &attr_alarm)

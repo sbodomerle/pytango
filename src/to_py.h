@@ -1,9 +1,9 @@
 #pragma once
 
-#include "defs.h"
-
 #include <boost/python.hpp>
 #include <tango.h>
+
+#include "defs.h"
 
 template <typename ContainerType>
 struct to_list
@@ -274,3 +274,18 @@ boost::python::object to_py(const Tango::AttributeConfig_3 &);
 boost::python::list to_py(const Tango::AttributeConfigList &);
 boost::python::list to_py(const Tango::AttributeConfigList_2 &);
 boost::python::list to_py(const Tango::AttributeConfigList_3 &);
+
+template<class T>
+inline boost::python::object to_py_list(const T *seq)
+{
+    using namespace boost::python;
+    return object(handle<>(CORBA_sequence_to_list<T>::convert(*seq)));
+}
+
+template<class T>
+inline boost::python::object to_py_tuple(const T *seq)
+{
+    using namespace boost::python;
+    return object(handle<>(CORBA_sequence_to_tuple<T>::convert(*seq)));
+}
+

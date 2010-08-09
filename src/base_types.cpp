@@ -1,11 +1,11 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
 #include <tango.h>
 
 #include "defs.h"
 #include "pytgutils.h"
 
+#include "fast_from_py.h"
 #include "base_types_numpy.hpp"
 
 using namespace boost::python;
@@ -170,6 +170,30 @@ void export_base_types()
     
     // Export some std types
 
+    // vector_indexing_suite<*, true | false>:
+    //  - true:  Make a copy of the original value each time the vector
+    //           is accessed. We have a struct like this:
+    //              struct V { int value; }
+    //            and the object is:
+    //              std::vector<V> vec = { 69 };
+    //            wrapped in python and we do:
+    //              vec[0].value = 3
+    //              vec[0].unexisting = 7
+    //              print vec[0].value
+    //              >> 69 ( 3 is stored in the obj created the first vec[0])
+    //              print vec[0].unexisting
+    //              >> exception (unexisting is stored in the other obj)
+    //           If the C struct has a 'value' field, it will
+    //  - false: Make a new proxy object of the original value each time
+    //           the vector is accessed. With the same example:
+    //              vec[0].value = 3
+    //              vec[0].unexisting = 7
+    //              print vec[0].value
+    //              >> 3 (It's another proxy obj, but modifiyes the same
+    //                   internal C object)
+    //              print vec[0].unexisting
+    //              >> exception (unexisting is stored in the other obj)
+
     class_<StdStringVector>("StdStringVector")
         .def(vector_indexing_suite<StdStringVector, true>());
 
@@ -180,13 +204,13 @@ void export_base_types()
         .def(vector_indexing_suite<StdDoubleVector, true>());
 
     class_<Tango::CommandInfoList>("CommandInfoList")
-        .def(vector_indexing_suite<Tango::CommandInfoList, true>());
+        .def(vector_indexing_suite<Tango::CommandInfoList, false>());
 
     class_<Tango::AttributeInfoList>("AttributeInfoList")
-        .def(vector_indexing_suite<Tango::AttributeInfoList, true>());
+        .def(vector_indexing_suite<Tango::AttributeInfoList, false>());
 
     class_<Tango::AttributeInfoListEx>("AttributeInfoListEx")
-        .def(vector_indexing_suite<Tango::AttributeInfoListEx, true>());
+        .def(vector_indexing_suite<Tango::AttributeInfoListEx, false>());
 
     class_<std::vector<Tango::Attr *> >("AttrList")
         .def(vector_indexing_suite<std::vector<Tango::Attr *>, true>());

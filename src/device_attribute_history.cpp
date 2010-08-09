@@ -1,10 +1,7 @@
-
 #include <boost/python.hpp>
 #include <tango.h>
 
-
 using namespace boost::python;
-
 
 void export_device_attribute_history()
 {

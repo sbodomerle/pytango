@@ -20,6 +20,14 @@ extern const char *param_must_be_seq;
 void convert2array(const boost::python::object &py_value, StdStringVector & result);
 
 /**
+ * Converter from python sequence of characters to a Tango::DevVarCharArray
+ *
+ * @param[in] py_value python sequence object or a single string
+ * @param[out] result Tango char array to be filled
+ */
+void convert2array(const boost::python::object &py_value, Tango::DevVarCharArray & result);
+
+/**
  * Converter from python sequence to a Tango CORBA sequence
  *
  * @param[in] py_value python sequence object
@@ -31,9 +39,11 @@ void convert2array(const boost::python::object &py_value, _CORBA_Sequence<TangoE
     size_t size = boost::python::len(py_value);
     result.length(size);
     for (size_t i=0; i < size; ++i) {
-        result[i] = boost::python::extract<TangoElementType>(py_value[i]);
+        TangoElementType ch = boost::python::extract<TangoElementType>(py_value[i]);
+        result[i] = ch;
     }
 }
+
 
 /**
  * Converter from python sequence of strings to a Tango DevVarStringArray
@@ -57,26 +67,7 @@ inline void raise_convert2array_DevVarDoubleStringArray()
  * @param[in] py_value python sequence object
  * @param[out] result Tango array to be filled
  */
-inline void convert2array(const boost::python::object &py_value, Tango::DevVarDoubleStringArray & result)
-{
-    if (!PySequence_Check(py_value.ptr()))
-    {
-        raise_convert2array_DevVarDoubleStringArray();
-    }
-    
-    size_t size = boost::python::len(py_value);
-    if (size != 2)
-    {
-        raise_convert2array_DevVarDoubleStringArray();
-    }
-    
-    const boost::python::object
-        &py_double = py_value[0],
-        &py_str    = py_value[1];
-
-    convert2array(py_double, result.dvalue);
-    convert2array(py_str, result.svalue);
-}
+void convert2array(const boost::python::object &py_value, Tango::DevVarDoubleStringArray & result);
 
 inline void raise_convert2array_DevVarLongStringArray()
 {
@@ -92,26 +83,7 @@ inline void raise_convert2array_DevVarLongStringArray()
  * @param[in] py_value python sequence object
  * @param[out] result Tango array to be filled
  */
-inline void convert2array(const boost::python::object &py_value, Tango::DevVarLongStringArray & result)
-{
-    if (!PySequence_Check(py_value.ptr()))
-    {
-        raise_convert2array_DevVarLongStringArray();
-    }
-    
-    size_t size = boost::python::len(py_value);
-    if (size != 2)
-    {
-        raise_convert2array_DevVarLongStringArray();
-    }
-    
-    const boost::python::object 
-        py_long = py_value[0],
-        py_str  = py_value[1];
-
-    convert2array(py_long, result.lvalue);
-    convert2array(py_str, result.svalue);
-}
+void convert2array(const boost::python::object &py_value, Tango::DevVarLongStringArray & result);
 
 /**
  * Convert a python sequence into a C++ container
@@ -194,171 +166,6 @@ struct from_sequence
     }
 };
 
-/**
- * Translation between python object to Tango data type.
- *
- * Example:
- * Tango::DevLong tg_value;
- * try
- * {
- *     from_py<Tango::DEV_LONG>::convert(py_obj, tg_value);
- * }
- * catch(boost::python::error_already_set &eas)
- * {
- *     handle_error(eas);
- * }
- */
-template<long tangoTypeConst>
-struct from_py
-{
-    typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
-
-    static inline void convert(const boost::python::object &o, TangoScalarType &tg)
-    {
-        convert(o.ptr(), tg);
-    }
-
-    static inline void convert(PyObject *o, TangoScalarType &tg)
-    {
-        // boost::python::object tmp(boost::python::handle<>(o));
-        // tg = boost::python::extract<TangoScalartype>(tmp);
-        Tango::Except::throw_exception( \
-                        "PyDs_WrongPythonDataTypeForAttribute",
-                        "Unsupported attribute type translation",
-                        "from_py::convert()");
-    }
-};
-
-#define DEFINE_FAST_TANGO_FROMPY(tangoTypeConst, FN) \
-template<> \
-struct from_py<tangoTypeConst> \
-{ \
-    typedef TANGO_const2type(tangoTypeConst) TangoScalarType; \
-\
-    static inline void convert(const boost::python::object &o, TangoScalarType &tg) \
-    { \
-        convert(o.ptr(), tg); \
-    } \
-\
-    static inline void convert(PyObject *o, TangoScalarType &tg) \
-    { \
-        tg = static_cast<TangoScalarType>(FN(o));  \
-        if(PyErr_Occurred()) \
-            boost::python::throw_error_already_set();  \
-    } \
-};
-
-#undef max 
-#undef min
-
-// DEFINE_FAST_TANGO_FROMPY should be enough. However, as python does not
-// provide conversion from python integers to all the data types accepted
-// by tango we must check the ranges manually. Also now we can add numpy
-// support to some extent...
-#ifdef DISABLE_PYTANGO_NUMPY
-# define DEFINE_FAST_TANGO_FROMPY_NUM(tangoTypeConst, cpy_type, FN) \
-    template<> \
-    struct from_py<tangoTypeConst> \
-    { \
-        typedef TANGO_const2type(tangoTypeConst) TangoScalarType; \
-        typedef numeric_limits<TangoScalarType> TangoScalarTypeLimits; \
-    \
-        static inline void convert(const boost::python::object &o, TangoScalarType &tg) \
-        { \
-            convert(o.ptr(), tg); \
-        } \
-    \
-        static inline void convert(PyObject *o, TangoScalarType &tg) \
-        { \
-            cpy_type cpy_value = FN(o); \
-            if(PyErr_Occurred()) { \
-                PyErr_SetString(PyExc_TypeError, "Expecting a numeric type, it is not."); \
-                boost::python::throw_error_already_set();  \
-            } \
-            if (cpy_value > TangoScalarTypeLimits::max()) { \
-                PyErr_SetString(PyExc_OverflowError, "Value is too large."); \
-                boost::python::throw_error_already_set(); \
-            } \
-            if (cpy_value < TangoScalarTypeLimits::min()) { \
-                PyErr_SetString(PyExc_OverflowError, "Value is too small."); \
-                boost::python::throw_error_already_set(); \
-            } \
-            \
-            tg = static_cast<TangoScalarType>(cpy_value);  \
-        } \
-    };
-#else // DISABLE_PYTANGO_NUMPY
-# define DEFINE_FAST_TANGO_FROMPY_NUM(tangoTypeConst, cpy_type, FN) \
-    template<> \
-    struct from_py<tangoTypeConst> \
-    { \
-        typedef TANGO_const2type(tangoTypeConst) TangoScalarType; \
-        typedef numeric_limits<TangoScalarType> TangoScalarTypeLimits; \
-    \
-        static inline void convert(const boost::python::object &o, TangoScalarType &tg) \
-        { \
-            convert(o.ptr(), tg); \
-        } \
-    \
-        static inline void convert(PyObject *o, TangoScalarType &tg) \
-        { \
-            cpy_type cpy_value = FN(o); \
-            if(PyErr_Occurred()) { \
-                if(PyArray_CheckScalar(o) && \
-                ( PyArray_DescrFromScalar(o) \
-                    == PyArray_DescrFromType(TANGO_const2numpy(tangoTypeConst)))) \
-                { \
-                    PyArray_ScalarAsCtype(o, reinterpret_cast<void*>(&tg)); \
-                    return; \
-                } else \
-                    PyErr_SetString(PyExc_TypeError, "Expecting a numeric type," \
-                        " but it is not. If you use a numpy type instead of" \
-                        " python core types, then it must exactly match (ex:" \
-                        " numpy.int32 for PyTango.DevLong)"); \
-                    boost::python::throw_error_already_set();  \
-            } \
-            if (TangoScalarTypeLimits::is_integer) { \
-                if (cpy_value > TangoScalarTypeLimits::max()) { \
-                    PyErr_SetString(PyExc_OverflowError, "Value is too large."); \
-                    boost::python::throw_error_already_set(); \
-                } \
-                if (cpy_value < TangoScalarTypeLimits::min()) { \
-                    PyErr_SetString(PyExc_OverflowError, "Value is too small."); \
-                    boost::python::throw_error_already_set(); \
-                } \
-            } \
-            tg = static_cast<TangoScalarType>(cpy_value);  \
-        } \
-    };
-#endif // !DISABLE_PYTANGO_NUMPY
-
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_BOOLEAN, long, PyLong_AsLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_UCHAR, unsigned long, PyLong_AsUnsignedLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_SHORT, long, PyLong_AsLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_USHORT, unsigned long, PyLong_AsUnsignedLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_LONG, long, PyLong_AsLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_ULONG, unsigned long, PyLong_AsUnsignedLong)
-DEFINE_FAST_TANGO_FROMPY(Tango::DEV_STATE, PyLong_AsLong)
-
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_LONG64, Tango::DevLong64, PyLong_AsLongLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_ULONG64, Tango::DevULong64, PyLong_AsUnsignedLongLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_FLOAT, double, PyFloat_AsDouble)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_DOUBLE, double, PyFloat_AsDouble)
-
-/// @bug Not a bug per se, but you should keep in mind: It returns a new
-/// string, so if you pass it to Tango with a release flag there will be
-/// no problems, but if you have to use it yourself then you must remember
-/// to delete[] it!
-inline Tango::DevString PyString_AsCorbaString(PyObject* ob)
-{
-    const char* str = PyString_AsString(ob);
-    if (!str)
-        return 0;
-    return CORBA::string_dup(str);
-}
-        
-// DEFINE_FAST_TANGO_FROMPY(Tango::DEV_STRING, PyString_AsString)
-DEFINE_FAST_TANGO_FROMPY(Tango::DEV_STRING, PyString_AsCorbaString)
 
 extern const char *param_must_be_seq;
 /// This class is useful when you need a sequence like C++ type for

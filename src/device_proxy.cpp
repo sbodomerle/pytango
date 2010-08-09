@@ -1,14 +1,14 @@
+#include <boost/python.hpp>
+#include <boost/python/return_value_policy.hpp>
+#include <tango.h>
+#include <string>
+#include <memory>
+
 #include "device_attribute.h"
 #include "callback.h"
 
 #include "defs.h"
 #include "pytgutils.h"
-
-#include <string>
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <tango.h>
-#include <memory>
 
 using namespace boost::python;
 
@@ -135,7 +135,7 @@ namespace PyDeviceProxy
         }
 
         // Convert the result back to python
-        return PyDeviceAttribute::convert_to_python(r_dev_attr.get(), self, extract_as);
+        return PyDeviceAttribute::convert_to_python(r_dev_attr.release(), self, extract_as);
     }
 
 

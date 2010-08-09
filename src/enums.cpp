@@ -5,8 +5,6 @@ using namespace boost::python;
 
 void export_enums()
 {
-
-
     enum_<Tango::LockerLanguage>("LockerLanguage")
         .value("CPP", Tango::CPP)
         .value("JAVA", Tango::JAVA)

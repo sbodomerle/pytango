@@ -1,13 +1,15 @@
 
 from _PyTango import Connection, DeviceData, __CallBackAutoDie, CmdArgType
 from _PyTango import DeviceProxy, Database
+from _PyTango import ExtractAs
 from utils import document_method as __document_method
 import operator
 
 def __CallBackAutoDie__cmd_ended_aux(fn):
     def __new_fn(cmd_done_event):
         try:
-            cmd_done_event.argout = cmd_done_event.argout_raw.extract()
+            cmd_done_event.argout = cmd_done_event.argout_raw.extract(
+                                       self.defaultCommandExtractAs)
         except Exception:
             pass
         return fn(cmd_done_event)
@@ -59,7 +61,7 @@ def __Connection__command_inout(self, name, *args, **kwds):
     r = Connection.command_inout_raw(self, name, *args, **kwds)
     if isinstance(r, DeviceData):
         try:
-            return r.extract()
+            return r.extract(self.defaultCommandExtractAs)
         except Exception:
             return None
     else:
@@ -203,13 +205,14 @@ def __Connection__command_inout_reply(self, idx, timeout=None):
     
     if isinstance(r, DeviceData):
         try:
-            return r.extract()
+            return r.extract(self.defaultCommandExtractAs)
         except Exception:
             return None
     else:
         return r
     
 def __init_Connection():
+    Connection.defaultCommandExtractAs = ExtractAs.Numpy
     Connection.command_inout_raw = __Connection__command_inout_raw
     Connection.command_inout = __Connection__command_inout
     Connection.command_inout_asynch = __Connection__command_inout_asynch

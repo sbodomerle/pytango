@@ -1,10 +1,10 @@
-#include <sstream>
-
 #include "pytgutils.h"
 #include "exception.h"
 #include "server/device_class.h"
 #include "server/attr.h"
 #include "server/command.h"
+
+#include <sstream>
 
 using namespace boost::python;
 
@@ -42,21 +42,6 @@ void CppDeviceClass::create_command(const std::string &cmd_name,
     if (!is_allowed.empty())
     {
         cmd_ptr->set_allowed(is_allowed);
-    }
-
-    if (param_type == Tango::DEV_VOID)
-    {
-        if (result_type == Tango::DEV_VOID)
-            cmd_ptr->set_cmd_type(VOID_VOID);
-        else
-            cmd_ptr->set_cmd_type(VOID_OUT);
-    }
-    else
-    {
-        if (result_type == Tango::DEV_VOID)
-            cmd_ptr->set_cmd_type(IN_VOID);
-        else
-            cmd_ptr->set_cmd_type(IN_OUT);
     }
 
     if (polling_period > 0)

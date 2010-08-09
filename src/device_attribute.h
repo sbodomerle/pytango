@@ -1,15 +1,12 @@
-
 #pragma once
+
+#include <boost/python.hpp>
+#include <tango.h>
+#include <iostream>
+#include <string>
 
 #include "pyutils.h"
 #include "defs.h"
-
-#include <iostream>
-#include <string>
-#include <boost/python.hpp>
-#include <tango.h>
-
-
 
 namespace PyDeviceAttribute {
 

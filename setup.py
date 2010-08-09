@@ -1,6 +1,7 @@
 import os, sys
 
 from distutils.core import setup, Extension
+from distutils.dist import Distribution
 import distutils.sysconfig
 
 try:
@@ -8,7 +9,7 @@ try:
 except:
     sphinx = None
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PyTango'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PyTango'))
 
 from release import Release
 
@@ -50,7 +51,7 @@ print '-----------------------------------------------------------------------'
 
 author = (Release.authors['Coutinho'], Release.authors['Sune'])
 
-please_debug = False
+please_debug = True
 
 packages = [
     'PyTango',
@@ -59,10 +60,11 @@ packages = [
 
 provides = [
     'PyTango',
-    'PyTango3'
 ]
 
 requires = [
+    'boost_python (>=1.33)',
+    'numpy (>=1.1)'
 ]
 
 package_data = {
@@ -72,14 +74,16 @@ package_data = {
 data_files = []
 
 classifiers = [
-    'Development Status :: %s revision %s' % (Release.version, '1'),
-    'Environment :: Library',
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Other Environment',
     'Intended Audience :: Developers',
-    'License :: %s' % Release.license,
+    'License :: OSI Approved :: GNU General Public License (GPL)',
+    'Natural Language :: English',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
     'Programming Language :: Python',
-    'Topic :: Tango :: Python :: PyTango',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Software Development :: Libraries',
 ]
 
 def uniquify(seq):
@@ -165,7 +169,14 @@ else:
         'COS4',
     ]
 
-    extra_compile_args += []
+    # Note for PyTango developers:
+    # Compilation time can be greatly reduced by compiling the file
+    # src/precompiled_header.hpp as src/precompiled_header.hpp.gch
+    # and then uncommenting this line. Someday maybe this will be
+    # automated...
+    extra_compile_args += [
+        '-includesrc/precompiled_header.hpp',
+    ]
 
     extra_link_args += [
         '-Wl,-h',
@@ -196,81 +207,50 @@ _pytango = Extension(name               = '_PyTango',
                      define_macros      = macros,
                      extra_compile_args = extra_compile_args,
                      extra_link_args    = extra_link_args,
-                     language           = 'c++'
+                     language           = 'c++',
+                     depends            = []
                      )
-
-from distutils.core import Command
-
-class build_doc(Command):
-
-    description = "\"build\" sphinx documentation (copy to build directory)"
-
-    user_options = [
-        ('build-lib=', 'd', "directory to \"build\" (copy) to"),
-        ('build-temp=', 't', "temporary build directory"),
-        ('doc-fmt=', None, "documentation format (html/dirhtml/helphtml/latex/text). Default is html"),
-        ('force', 'f', "forcibly build everything (ignore file timestamps)"),
-    ]
-
-    def initialize_options (self):
-        self.build_lib = None
-        self.build_temp = None
-        self.doc_fmt = None
-        self.force = 0
-
-    def finalize_options (self):
-        self.set_undefined_options('build',
-                                   ('build_lib', 'build_lib'),
-                                   ('build_temp', 'build_temp'),
-                                   ('doc_fmt', 'doc_fmt'),
-                                   ('force', 'force'))
-
-    def run (self):
-        if sphinx is None:
-            print "Sphinx is not available. Documentation will not be generated"
-            return
-
-        build_dir = os.path.join(self.build_lib, 'doc', self.doc_fmt)
-        build_dir = os.path.join('build_doc', self.doc_fmt)
-        build_temp = os.path.join(self.build_temp, 'doc')
-        
-        #make sure the documentation is using the recently compiled PyTango
-        sys.path = [os.path.abspath(self.build_lib)] + sys.path
-
-        opts  = ['sphinx-build']
-        if self.force:
-            opts += ['-a', '-E']
-        opts += ['-d', build_temp]
-        opts += ['-b', self.doc_fmt]
-        opts += ['./doc', build_dir]
-        ret = sphinx.main(opts)
 
 from distutils.command.build import build as dftbuild
 
 class build(dftbuild):
 
-    user_options = dftbuild.user_options + \
-        [('doc-fmt=', None, "documentation format (html/dirhtml/helphtml/latex/text). Default is html")]
-
-    def initialize_options (self):
-        dftbuild.initialize_options(self)
-        self.doc_fmt = 'html'
-
-    def finalize_options (self):
-        dftbuild.finalize_options(self)
-
     def has_doc(self):
-        return os.path.isdir('doc')
+        if sphinx is None: return False
+        setup_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.isdir(os.path.join(setup_dir, 'doc'))
 
     sub_commands = dftbuild.sub_commands + [('build_doc', has_doc)]
+
+cmdclass = {'build' : build }
+
+if sphinx:
+    from sphinx.setup_command import BuildDoc
+
+    class build_doc(BuildDoc):
+        
+        def run(self):
+            # make sure the python path is pointing to the newly built
+            # code so that the documentation is built on this and not a
+            # previously installed version
+            build = self.get_finalized_command('build')
+            sys.path.insert(0, os.path.abspath(build.build_lib))
+            sphinx.setup_command.BuildDoc.run(self)
+            sys.path.pop(0)
+    
+    cmdclass['build_doc'] = build_doc
+
 
 setup(name          = 'PyTango',
       version       = Release.version,
       description   = Release.description,
+      long_description = Release.long_description,
       author        = author[0][0] + ' & ' + author[1][0],
       author_email  = author[0][1] + ' & ' + author[1][1],
       url           = Release.url,
       download_url  = Release.download_url,
+      platforms     = Release.platform,
+      license       = Release.license,
       packages      = packages,
       package_dir   = { 'PyTango' : 'PyTango', 'PyTango3' : 'PyTango3' },
       classifiers   = classifiers,
@@ -281,5 +261,4 @@ setup(name          = 'PyTango',
       requires      = requires,
       ext_package   = 'PyTango',
       ext_modules   = [_pytango],
-      cmdclass      = { 'build' : build,
-                        'build_doc' : build_doc })
+      cmdclass      = cmdclass)

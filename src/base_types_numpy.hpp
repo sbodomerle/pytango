@@ -1,3 +1,4 @@
+#pragma once
 
 #ifdef DISABLE_PYTANGO_NUMPY
 

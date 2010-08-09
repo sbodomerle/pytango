@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string>
 #include <boost/python.hpp>
 #include <tango.h>
 

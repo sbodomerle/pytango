@@ -1,6 +1,5 @@
-#include <sstream>
-
 #include "pytgutils.h"
+#include <sstream>
 
 using namespace boost::python;
 

@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string>
 #include <boost/python.hpp>
 #include <tango.h>
 
@@ -7,11 +5,11 @@ using namespace boost::python;
 
 struct PyLockerInfo
 {
-    static inline boost::python::object get_locker_id(Tango::LockerInfo &li)
+    static inline object get_locker_id(Tango::LockerInfo &li)
     {
         return (li.ll == Tango::CPP) ? 
-            boost::python::object(li.li.LockerPid) :
-            boost::python::tuple(li.li.UUID);
+            object(li.li.LockerPid) :
+            tuple(li.li.UUID);
     }
 };
 
