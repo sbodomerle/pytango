@@ -2,14 +2,15 @@ Source: pytango
 Section: python
 Priority: extra
 Maintainer: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
-Build-Depends: debhelper (>= 7.0.50),
+Build-Depends: debhelper (>= 8.0.0),
 	       python-support (>= 0.7.6),
 	       python-dev,
 	       liblog4tango4-dev,
 	       libtango7-dev,
 	       libboost-python-dev,
-	       python-sphinx
-Standards-Version: 3.9.0
+	       python-sphinx,
+	       ipython
+Standards-Version: 3.9.1
 Homepage: http://www.tango-controls.org
 
 Package: python-pytango

@@ -66,7 +66,8 @@ please_debug = False
 packages = [
     'PyTango',
     'PyTango.ipython',
-    'PyTango3'
+    'PyTango3',
+    'IPython.Extensions'
 ]
 
 provides = [

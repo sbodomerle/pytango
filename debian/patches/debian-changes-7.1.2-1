@@ -1,0 +1,57 @@
+Description: Upstream changes introduced in version 7.1.2-1
+ This patch has been created by dpkg-source during the package build.
+ Here's the last changelog entry, hopefully it gives details on why
+ those changes were made:
+ .
+ pytango (7.1.2-1) unstable; urgency=low
+ .
+   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+ .
+ The person named in the Author field signed this changelog entry.
+Author: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- pytango-7.1.2.orig/setup.py
++++ pytango-7.1.2/setup.py
+@@ -66,7 +66,8 @@ please_debug = False
+ packages = [
+     'PyTango',
+     'PyTango.ipython',
+-    'PyTango3'
++    'PyTango3',
++    'IPython.Extensions'
+ ]
+ 
+ provides = [
+--- /dev/null
++++ pytango-7.1.2/IPython/Extensions/ipy_profile_spock.py
+@@ -0,0 +1,17 @@
++""" IPython 'spock' profile, to preload PyTango and offer a friendly interface to Tango.
++
++Created with PyTango {pytangover} for IPython {ipyver} """
++
++import IPython.ipapi
++import ipy_defaults
++
++def main():
++    ip = IPython.ipapi.get()
++    try:
++        ip.ex("import IPython.ipapi")
++        ip.ex("import PyTango.ipython")
++        ip.ex("PyTango.ipython.init_ipython(IPython.ipapi.get())")
++    except ImportError:
++        print "Unable to start spock profile, is PyTango installed?"
++
++main()
