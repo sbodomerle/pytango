@@ -9,6 +9,7 @@ Build-Depends: debhelper (>= 8.0.0),
 	       libtango7-dev,
 	       libboost-python-dev,
 	       python-sphinx,
+	       python-numpy,
 	       ipython
 Standards-Version: 3.9.1
 Homepage: http://www.tango-controls.org
