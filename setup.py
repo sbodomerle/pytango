@@ -211,7 +211,6 @@ else:
     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
     
     libraries += [
-        'boost_python',
         'pthread',
         'rt',
         'dl',
@@ -220,6 +219,17 @@ else:
         'omnithread',
         'COS4',
     ]
+
+    # when building with multiple version of python on debian we need
+    # to link against boost_python-py25/-py26 etc...
+    import platform
+    if platform.dist()[0] in ['debian']:
+        if distutils.sysconfig.get_python_version() == '2.5':
+            libraries += ['boost_python-py25']
+        elif distutils.sysconfig.get_python_version() == '2.6':
+            libraries += ['boost_python-py26']
+    else:
+        libraries += ['boost_python']
 
     library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
 
