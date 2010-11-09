@@ -4,13 +4,13 @@ Priority: extra
 Maintainer: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 Build-Depends: debhelper (>= 8.0.0),
 	       python-support (>= 0.7.6),
-	       python-dev,
+	       python-all-dev,
 	       liblog4tango4-dev,
 	       libtango7-dev,
 	       libboost-python-dev,
-	       python-sphinx,
-	       python-numpy,
-	       ipython
+	       python-numpy
+XS-Python-Version: >= 2.5
+Build-Depends-Indep: python-sphinx
 Standards-Version: 3.9.1
 Homepage: http://www.tango-controls.org
 
@@ -19,7 +19,10 @@ Architecture: any
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 ${python:Depends},
+	 python-numpy,
+	 ipython,
 	 libjs-jquery
+XB-Python-Version: ${python:Versions}
 Provides: ${python:Provides}
 Description: The Tango Control System python binding
  <insert long description, indented with spaces>
