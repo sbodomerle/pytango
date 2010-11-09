@@ -970,7 +970,24 @@ Tango::ConstDevString Device_4ImplWrap::default_dev_status()
 
 void Device_4ImplWrap::signal_handler(long signo)
 {
-    CALL_DEVICE_METHOD_VARGS(Device_4Impl, signal_handler, signo)
+    try
+    {
+        CALL_DEVICE_METHOD_VARGS(Device_4Impl, signal_handler, signo)
+    }
+    catch(Tango::DevFailed &df)
+    {
+        long nb_err = df.errors.length();
+        df.errors.length(nb_err + 1);
+        
+        df.errors[nb_err].reason = CORBA::string_dup(
+            "PyDs_UnmanagedSignalHandlerException");
+        df.errors[nb_err].desc = CORBA::string_dup(
+            "An unmanaged Tango::DevFailed exception occurred in signal_handler");
+        df.errors[nb_err].origin = CORBA::string_dup("Device_4Impl.signal_handler");
+        df.errors[nb_err].severity = Tango::ERR;
+
+        Tango::Except::print_exception(df);
+    }
 }
 
 void Device_4ImplWrap::default_signal_handler(long signo)

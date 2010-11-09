@@ -1,9 +1,38 @@
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = []
+            
+__docformat__ = "restructuredtext"
 
 from utils import document_method as __document_method
 from _PyTango import GroupReply
 from _PyTango import GroupCmdReply
 from _PyTango import GroupAttrReply
-from PyTango import ExtractAs
+from _PyTango import ExtractAs
 
 def __GroupCmdReply__get_data(self):
     return self.get_data_raw().extract()
@@ -79,7 +108,7 @@ def __doc_GroupReply():
         Return     : (DeviceAttribute) Whatever is stored there, or None.
     """ )
 
-
-def init_GroupReply():
+def init(doc=True):
     __init_GroupReply()
-    __doc_GroupReply()
+    if doc:
+        __doc_GroupReply()

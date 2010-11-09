@@ -1,3 +1,33 @@
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = []
+
+__docformat__ = "restructuredtext"
+
 from _PyTango import *
 
 from device_server import AttributeAlarm, EventProperties
@@ -37,7 +67,7 @@ def __str__Struct_Helper(self, f=repr):
     """str method for struct"""
     attrs = [ n for n in dir(self) if __inc_param(self, n)]
     fmt = attrs and '%%%ds = %%s' % max( map(len, attrs) ) or "%s = %s"
-    return '%s[\n%s]' % (self.__class__.__name__, __struct_params_str(self, fmt, f))
+    return '%s[\n%s]\n' % (self.__class__.__name__, __struct_params_str(self, fmt, f))
 
 def __str__Struct(self):
     return __str__Struct_Helper(self, f=repr)
@@ -76,7 +106,7 @@ def __str__DevError(self):
     desc = %s
   origin = %s
   reason = %s
-severity = %s]""" % (desc, self.origin, self.reason, self.severity)
+severity = %s]\n""" % (desc, self.origin, self.reason, self.severity)
     return s
 
 def __registerStructStr():
@@ -108,6 +138,6 @@ def __registerStructStr():
 
     DevError.__str__ = __str__DevError
 
-def init_pprint():
+def init(doc=True):
     __registerSeqStr()
     __registerStructStr()

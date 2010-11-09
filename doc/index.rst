@@ -13,6 +13,12 @@ Welcome to PyTango 7.1 documentation!
 
 .. sidebar:: Latest news
 
+    2010-11-05:
+        PyTango 7.1.3 is out!
+
+    2010-08-19:
+        :ref:`Tango logging <logging>` updated
+
     2010-08-06:
         PyTango 7.1.2 is out!
 
