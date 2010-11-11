@@ -136,7 +136,7 @@ def uniquify(seq):
 
 include_dirs = [
     os.path.abspath('src'),
-    os.path.join(TANGO_ROOT, 'include'),
+    os.path.join(TANGO_ROOT, 'include/tango'),
     os.path.join(OMNI_ROOT, 'include'),
     os.path.join(NUMPY_ROOT, 'include'),
 ]
