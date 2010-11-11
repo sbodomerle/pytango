@@ -302,7 +302,7 @@ class build_ext(dftbuild_ext):
             #self.compiler.compiler_so = " ".join(compiler_pars)
         dftbuild_ext.build_extensions(self)
 
-cmdclass = {'build_ext' : build_ext }
+cmdclass['build_ext'] = build_ext
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
