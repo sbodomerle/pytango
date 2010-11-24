@@ -2,6 +2,12 @@
 
 .. currentmodule:: PyTango
 
+API util
+--------
+
+.. autoclass:: PyTango.ApiUtil
+    :members:
+
 Information classes
 -------------------
 

@@ -77,6 +77,34 @@ namespace PyAttribute
         att.set_value(cpp_val.release(), 1, 0, true);
     }
 
+    /**
+     * ATTENTION: this template specialization is done to close a memory leak
+     *            that exists up to tango 7.1.1 for string read_write attributes
+     *
+     * Tango Attribute set_value wrapper for scalar string attributes
+     * 
+     * @param att attribute reference
+     * @param value new attribute value
+     */
+    /*
+    template<>
+    inline void __set_value_scalar<Tango::DEV_STRING>(Tango::Attribute &att,
+                                                      boost::python::object &value)
+    {
+        Tango::DevString *v = new Tango::DevString;
+
+        if (att.get_writable() == Tango::READ)
+        { // No memory leak here. Do the standard thing
+            from_py<Tango::DEV_STRING>::convert(value, *v);
+        }
+        else
+        { // MEMORY LEAK: use the python string directly instead of creating a
+          // string
+            v[0] = PyString_AsString(value.ptr());
+        }
+        att.set_value(v, 1, 0, true);
+    }
+    */
     
     /**
      * Tango Attribute set_value wrapper for DevEncoded attributes
@@ -137,6 +165,38 @@ namespace PyAttribute
         att.set_value_date_quality(cpp_val.release(), tv, quality, 1, 0, true);
     }
 
+
+    /**
+     * ATTENTION: this template specialization is done to close a memory leak
+     *            that exists up to tango 7.1.1 for string read_write attributes
+     *
+     * Tango Attribute set_value_date_quality wrapper for scalar string attributes
+     * 
+     * @param att attribute reference
+     * @param value new attribute value
+     * @param t timestamp
+     * @param quality attribute quality
+     */
+    /*
+    template<>
+    inline void __set_value_date_quality_scalar<Tango::DEV_STRING>(Tango::Attribute &att,
+                                                boost::python::object &value,
+                                                double t, Tango::AttrQuality quality)
+    {
+        PYTG_NEW_TIME_FROM_DOUBLE(t, tv);
+        
+        Tango::DevString *v = new Tango::DevString;
+        if (att.get_writable() == Tango::READ)
+        { // No memory leak here. Do the standard thing
+            from_py<Tango::DEV_STRING>::convert(value, *v);
+        }
+        else
+        { // MEMORY LEAK: use the python string directly instead of creating a string
+            v[0] = PyString_AsString(value.ptr());
+        }
+        att.set_value_date_quality(v, tv, quality, 1, 0, true);
+    }
+    */
 
     /**
      * Tango Attribute set_value_date_quality wrapper for DevEncoded attributes

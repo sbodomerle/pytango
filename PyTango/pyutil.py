@@ -1,4 +1,36 @@
-import os, copy, operator
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = [ "Util" ]
+
+__docformat__ = "restructuredtext"
+
+import os
+import copy
+import operator
 
 from _PyTango import _Util, Except, DevFailed, DbDevInfo
 from utils import document_method as __document_method
@@ -71,7 +103,7 @@ def __Util__create_device(self, klass_name, device_name, alias=None, cb=None):
     device_exists = True
     try:
         db.import_device(device_name)
-    except DevFailed as df:
+    except DevFailed, df:
         device_exists = not df[0].reason == "DB_DeviceNotDefined"
 
     # 1 - Make sure device name doesn't exist already in the database
@@ -145,7 +177,7 @@ def __Util__delete_device(self, klass_name, device_name):
     device_exists = True
     try:
         db.import_device(device_name)
-    except DevFailed as df:
+    except DevFailed, df:
         device_exists = not df[0].reason == "DB_DeviceNotDefined"
 
     # 1 - Make sure device name exists in the database
@@ -198,11 +230,15 @@ class Util(_Util):
         _Util.init(args)
         _Util.init_python()
 
-    def add_TgClass(self, klass_device_class, klass_device, device_class_name):
+    def add_TgClass(self, klass_device_class, klass_device, device_class_name=None):
         """Register a new python tango class.
            
            Example:
-               util.add_TgClass(MotorClass, Motor, 'Motor')"""
+               util.add_TgClass(MotorClass, Motor)
+               util.add_TgClass(MotorClass, Motor, 'Motor') # equivalent to previous line"""
+               
+        if device_class_name is None:
+            device_class_name = klass_device.__name__
         class_list.append((klass_device_class, klass_device, device_class_name))
 
 
@@ -229,8 +265,8 @@ class Util(_Util):
                 in :meth:`PyTango.Util.add_Cpp_TgClass`.
             
                 Example:
-                    util.add_class(MotorClass, Motor, 'Motor')
-                    util.add_class('CounterClass', 'Counter')
+                    util.add_class(MotorClass, Motor)
+                    util.add_class('CounterClass', 'Counter', language='c++')
            
             New in PyTango 7.1.2"""
         language = kwargs.get("language", "python")
@@ -628,6 +664,7 @@ def __doc_Util():
 #        Return     : None
 #    """ )
 
-def init_PyUtil():
+def init(doc=True):
     __init_Util()
-    __doc_Util()
+    if doc:
+        __doc_Util()

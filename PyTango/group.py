@@ -1,10 +1,40 @@
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
 
-import operator, types
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = [ "Group" ]
+
+__docformat__ = "restructuredtext"
+
+import operator
+import types
 
 from _PyTango import __Group as _RealGroup, GroupElement
 from utils import document_method as __document_method
 
-from group_element import init_GroupElement as __init_GroupElement
+import group_element
 
 # I define Group as a proxy to __Group, where group is the actual
 # C++ Tango::Group object. Most functions just call the __group object
@@ -182,7 +212,8 @@ def __doc_Group():
         Throws     :
     """ )
 
-def init_Group():
-    __init_GroupElement()
-    __doc_Group()
+def init(doc=True):
+    group_element.init(doc=doc)
+    if doc:
+        __doc_Group()
     __init_proxy_Group()

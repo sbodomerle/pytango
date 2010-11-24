@@ -1,10 +1,39 @@
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
 import os
 import sys
 import errno
 
-from distutils.core import setup, Extension
-from distutils.dist import Distribution
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup
+from setuptools import Extension, Distribution
+
+#from distutils.core import setup, Extension
+#from distutils.dist import Distribution
 import distutils.sysconfig
+
 
 try:
     import sphinx
@@ -89,10 +118,12 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Environment :: Other Environment',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: GNU General Public License (GPL)',
+    'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
     'Natural Language :: English',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Unix',
     'Programming Language :: Python',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
@@ -124,12 +155,18 @@ macros = []
 if not numpy_available or not numpy_capi_available:
     macros.append( ('DISABLE_PYTANGO_NUMPY', None) )
 
+library_dirs = [
+    os.path.join(TANGO_ROOT, 'lib'),
+    os.path.join(BOOST_ROOT, 'lib'),
+]
+
 if os.name == 'nt':
     include_dirs += [ BOOST_ROOT ]
 
     if please_debug:
         libraries += [
-            #'libboost_python-vc80-mt-1_38', Boost in windows autodetects the proper library to link itself with...
+            #'libboost_python-vc80-mt-1_38', Boost in windows autodetects the
+            #proper library to link itself with...
             'omniORB414d_rt',
             'omniDynamic414d_rt',
             'omnithread34d_rt',
@@ -140,14 +177,16 @@ if os.name == 'nt':
         macros += [ ('_DEBUG', None) ]
     else:
         libraries += [
-            #'libboost_python-vc80-mt-1_38', Boost in windows autodetects the proper library to link itself with...
+            #'libboost_python-vc80-mt-1_38', Boost in windows autodetects the
+            #proper library to link itself with...
             'omniORB414_rt',
             'omniDynamic414_rt',
             'omnithread34_rt',
             'COS414_rt',
         ]
 
-
+    library_dirs += [ os.path.join(OMNI_ROOT, 'lib', 'x86_win32') ]
+    
     extra_compile_args += [
         '/EHsc'
     ]
@@ -170,6 +209,7 @@ else:
         extra_link_args += ['-g' , '-O0']
     
     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
+    
     libraries += [
         'boost_python',
         'pthread',
@@ -181,6 +221,9 @@ else:
         'COS4',
     ]
 
+    library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
+
+
     # Note for PyTango developers:
     # Compilation time can be greatly reduced by compiling the file
     # src/precompiled_header.hpp as src/precompiled_header.hpp.gch
@@ -190,6 +233,9 @@ else:
 #        '-includesrc/precompiled_header.hpp',
     ]
 
+    #if not please_debug:
+    #    extra_compile_args += [ '-g0' ]
+
     extra_link_args += [
         '-Wl,-h',
         '-Wl,--strip-all',
@@ -198,14 +244,7 @@ else:
     macros += []
 
 include_dirs = uniquify(include_dirs)
-
-library_dirs = [
-    os.path.join(TANGO_ROOT, 'lib'),
-    os.path.join(OMNI_ROOT, 'lib', 'x86_win32'),
-    os.path.join(BOOST_ROOT, 'lib'),
-]
 library_dirs = uniquify(library_dirs)
-
 
 _cppfiles_exclude = []
 _cppfiles  = [ os.path.join('src',fname) for fname in os.listdir('src') if fname.endswith('.cpp') and not fname in _cppfiles_exclude]
@@ -223,8 +262,11 @@ _pytango = Extension(name               = '_PyTango',
                      depends            = []
                      )
 
+from setuptools import Command
+#from distutils.cmd import Command
 from distutils.command.build import build as dftbuild
-from distutils.cmd import Command
+from distutils.command.build_ext import build_ext as dftbuild_ext
+from distutils.unixccompiler import UnixCCompiler
 
 class build(dftbuild):
 
@@ -239,6 +281,18 @@ class build(dftbuild):
     sub_commands = dftbuild.sub_commands + [('build_doc', has_doc), ('build_spock', has_ipython)]
 
 cmdclass = {'build' : build }
+
+class build_ext(dftbuild_ext): 
+    
+    def build_extensions(self):
+        if isinstance(self.compiler, UnixCCompiler):
+            compiler_pars = self.compiler.compiler_so
+            while '-Wstrict-prototypes' in compiler_pars:
+                del compiler_pars[compiler_pars.index('-Wstrict-prototypes')]
+            #self.compiler.compiler_so = " ".join(compiler_pars)
+        dftbuild_ext.build_extensions(self)
+
+cmdclass = {'build_ext' : build_ext }
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
@@ -296,42 +350,42 @@ if IPython:
                 added_path=True
                 import PyTango.ipython
                 PyTango.ipython.install(self.ipython_dir, verbose=False)
-            except IOError as e:
+            except IOError, ioerr:
                 self.warn("Unable to install Spock IPython extension. Reason:")
-                self.warn(str(e))
-                if e.errno == errno.EACCES:
+                self.warn(str(ioerr))
+                if ioerr.errno == errno.EACCES:
                     self.warn("Probably you don't have enough previledges to install spock as an ipython extension.")
                     self.warn("Try executing setup.py with sudo or otherwise give '--ipython-local' parameter to")
-                    self.warn("setup.py to install spock as a current user ipython profile")
+                    self.warn("setup.py to install spock as a current user ipython profile.")
                     self.warn("type: setup.py --help build_spock for more information")
-            except Exception as e:
+            except Exception, e:
                 self.warn("Unable to install Spock IPython extension. Reason:")
                 self.warn(str(e))
                 
-            finally:
-                if added_path:
-                    sys.path.pop(0)
+            if added_path:
+                sys.path.pop(0)
             
     cmdclass['build_spock'] = build_spock
             
-setup(name          = 'PyTango',
-      version       = Release.version,
-      description   = Release.description,
-      long_description = Release.long_description,
-      author        = author[0],
-      author_email  = author[1],
-      url           = Release.url,
-      download_url  = Release.download_url,
-      platforms     = Release.platform,
-      license       = Release.license,
-      packages      = packages,
-      package_dir   = { 'PyTango' : 'PyTango', 'PyTango3' : 'PyTango3' },
-      classifiers   = classifiers,
-      package_data  = package_data,
-      data_files    = data_files,
-      provides      = provides,
-      keywords      = Release.keywords,
-      requires      = requires,
-      ext_package   = 'PyTango',
-      ext_modules   = [_pytango],
-      cmdclass      = cmdclass)
+dist = setup(
+    name             = 'PyTango',
+    version          = Release.version,
+    description      = Release.description,
+    long_description = Release.long_description,
+    author           = author[0],
+    author_email     = author[1],
+    url              = Release.url,
+    download_url     = Release.download_url,
+    platforms        = Release.platform,
+    license          = Release.license,
+    packages         = packages,
+    package_dir      = { 'PyTango' : 'PyTango', 'PyTango3' : 'PyTango3' },
+    classifiers      = classifiers,
+    package_data     = package_data,
+    data_files       = data_files,
+    provides         = provides,
+    keywords         = Release.keywords,
+    requires         = requires,
+    ext_package      = 'PyTango',
+    ext_modules      = [_pytango],
+    cmdclass         = cmdclass)

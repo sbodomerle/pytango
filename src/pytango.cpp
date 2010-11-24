@@ -1,4 +1,31 @@
+/*******************************************************************************
+
+   This file is part of PyTango, a python binding for Tango
+
+   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+
+   (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+  
+   This is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+  
+   This software is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program; if not, see <http://www.gnu.org/licenses/>.
+   
+*******************************************************************************/
+
 #include <boost/python.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 103400
+#define DISABLE_BOOST_DOCSTRING_OPTIONS
+#endif
 
 #ifndef DISABLE_PYTANGO_NUMPY
 #   define PY_ARRAY_UNIQUE_SYMBOL pytango_ARRAY_API
@@ -19,6 +46,7 @@ void export_event_data();
 void export_attr_conf_event_data();
 void export_data_ready_event_data();
 void export_exceptions();
+void export_api_util();
 void export_connection();
 void export_device_proxy();
 void export_attribute_proxy();
@@ -39,12 +67,15 @@ void export_log4tango();
 
 BOOST_PYTHON_MODULE(_PyTango)
 {
+
+#ifndef DISABLE_BOOST_DOCSTRING_OPTIONS
     // Configure generated docstrings
     const bool show_user_defined = false;
     const bool show_py_signatures = false;
 
     docstring_options doc_opts(show_user_defined,
                                show_py_signatures);
+#endif
 
     // specify that this module is actually a package
     boost::python::object package = boost::python::scope();
@@ -66,6 +97,7 @@ BOOST_PYTHON_MODULE(_PyTango)
     export_attr_conf_event_data();
     export_data_ready_event_data();
     export_exceptions();
+    export_api_util();
     export_connection();
     export_device_proxy();
     export_attribute_proxy();

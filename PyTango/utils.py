@@ -1,5 +1,43 @@
-# -*- coding: utf-8 -*-
-import types, operator
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+from __future__ import with_statement
+
+__all__ = [ "is_scalar_type", "is_array_type", "is_numerical_type", 
+            "is_int_type", "is_float_type", "obj_2_str", "seqStr_2_obj",
+            "document_method", "document_static_method", "document_enum",
+            "CaselessList", "CaselessDict" ]
+
+__docformat__ = "restructuredtext"
+
+import sys
+import os
+import socket
+import types
+import operator
 
 from _PyTango import StdStringVector, DbData, DbDevInfos, DbDevExportInfos, CmdArgType, AttrDataFormat
 
@@ -50,9 +88,13 @@ def is_scalar(tg_type):
     global _scalar_types
     return tg_type in _scalar_types
 
+is_scalar_type = is_scalar
+
 def is_array(tg_type):
     global _array_types
     return tg_type in _array_types
+
+is_array_type = is_array
 
 def is_numerical(tg_type, inc_array=False):
     global _scalar_numerical_types, _array_numerical_types
@@ -62,6 +104,8 @@ def is_numerical(tg_type, inc_array=False):
         return False
     return tg_type in _array_numerical_types
 
+is_numerical_type = is_numerical
+
 def is_int(tg_type, inc_array=False):
     global _scalar_int_types, _array_int_types
     if tg_type in _scalar_int_types:
@@ -70,6 +114,8 @@ def is_int(tg_type, inc_array=False):
         return False
     return tg_type in _array_int_types
 
+is_int_type = is_int
+
 def is_float(tg_type, inc_array=False):
     global _scalar_float_types, _array_float_types
     if tg_type in _scalar_float_types:
@@ -77,6 +123,8 @@ def is_float(tg_type, inc_array=False):
     if not inc_array:
         return False
     return tg_type in _array_float_types
+
+is_float_type = is_float
 
 def seq_2_StdStringVector(seq, vec=None):
     if vec is None:
@@ -169,10 +217,10 @@ def _seqStr_2_obj_from_type(seq, tg_type):
         return seq[0]
 
     if tg_type == CmdArgType.DevBoolean:
-        return seq[0].capitalize() == 'True'
-
+        return seq[0].lower() == 'true'
+    
     #sequence cases
-    if tg_type == CmdArgType.DevVarStringArray:
+    if tg_type in (CmdArgType.DevVarCharArray, CmdArgType.DevVarStringArray):
         return seq
 
     global _array_int_types
@@ -188,6 +236,12 @@ def _seqStr_2_obj_from_type(seq, tg_type):
         for x in seq:
             argout.append(float(x))
         return argout
+
+    if tg_type == CmdArgType.DevVarBooleanArray:
+        argout = []
+        for x in seq:
+            argout.append(x.lower() == 'true')
+        return argout        
 
     return []
 
@@ -457,7 +511,7 @@ class CaselessList(list):
     
     def __iadd__(self, item):
         """To add a list in place."""
-        for entry in item: self.append(entry)        
+        for entry in item: self.append(entry)
 
     def __mul__(self, item):
         """To multiply itself, and return a CaselessList.
@@ -517,4 +571,78 @@ class CaselessDict(dict):
     
     def keys(self):
         return CaselessList(dict.keys(self))
+
+__DEFAULT_FACT_IOR_FILE = "/tmp/rdifact.ior"
+__BASE_LINE             = "notifd"
+__END_NOTIFD_LINE       = "/DEVICE/notifd:"
+__NOTIFD_FACTORY_PREFIX = "notifd/factory/"
+
+def notifd2db(notifd_ior_file=__DEFAULT_FACT_IOR_FILE, files=None, host=None, out=sys.stdout):
+    ior_string = ""
+    with file(notifd_ior_file) as ior_file:
+        ior_string = ior_file.read()
     
+    if files is None:
+        return _notifd2db_real_db(ior_string, host=host, out=out)
+    else:
+        return _notifd2db_file_db(ior_string, files, out=out)
+
+def _notifd2db_file_db(ior_string, files, out=sys.stdout):
+    raise RuntimeError("Not implemented yet")
+
+    print >>out, "going to export notification service event factory to " \
+                 "device server property file(s) ..."
+    for f in files:
+        with file(f, "w") as out_file:
+            pass
+    return
+
+def _notifd2db_real_db(ior_string, host=None, out=sys.stdout):
+    import PyTango
+    print >>out, "going to export notification service event factory to " \
+                 "Tango database ..."
+                 
+    num_retries = 3
+    while num_retries > 0:
+        try:
+            db = PyTango.Database()
+            db.set_timeout_millis(10000)
+            num_retries = 0
+        except PyTango.DevFailed, df:
+            num_retries -= 1
+            if num_retries == 0:
+                print >>out, "Can't create Tango database object"
+                print >>out, str(df)
+                return
+            print >>out, "Can't create Tango database object, retrying...."
+    
+    if host is None:
+        host_name = socket.getfqdn()
+    
+    global __NOTIFD_FACTORY_PREFIX
+    notifd_factory_name = __NOTIFD_FACTORY_PREFIX + host_name
+    
+    args = notifd_factory_name, ior_string, host_name, str(os.getpid()), "1"
+    
+    num_retries = 3
+    while num_retries > 0:
+        try:
+            ret = db.command_inout("DbExportEvent", args)
+            print >>out, "Successfully exported notification service event " \
+                         "factory for host", host_name, "to Tango database !"
+            break
+        except PyTango.CommunicationFailed, cf:
+            if len(cf.errors) >= 2:
+                if e.errors[1].reason == "API_DeviceTimedOut":
+                    if num_retries > 0:
+                        num_retries -= 1
+                else:
+                    num_retries = 0
+            else:
+                num_retries = 0
+        except Exception, e:
+            num_retries = 0
+    
+    if num_retries == 0:
+        print >>out, "Failed to export notification service event factory " \
+                     "to TANGO database"

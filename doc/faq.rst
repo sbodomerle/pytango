@@ -1,3 +1,5 @@
+.. currentmodule:: PyTango
+
 FAQ
 ===
 
@@ -163,9 +165,9 @@ reference, the proper code would be::
 Server
 ~~~~~~
 
-#. replace `PyTango.PyUtil` with :class:`PyTango.Util`
+#. replace `PyTango.PyUtil` with :class:`Util`
 
-#. replace `PyTango.PyDeviceClass` with :class:`PyTango.DeviceClass`
+#. replace `PyTango.PyDeviceClass` with :class:`DeviceClass`
 
 #. state and status overwrite
     in PyTango <= 3.0.4, in order to overwrite the default state and status in a device
@@ -178,7 +180,8 @@ General
 ~~~~~~~
 
 #. AttributeValue does **NOT** exist anymore.
-    - the result of a read_attribute call on a DeviceProxy/Group is now a DeviceAttribute object
+    - the result of a read_attribute call on a :class:`DeviceProxy` / :class:`Group`
+      is now a :class:`DeviceAttribute` object
     - write_attribute does not accept AttributeValue anymore
     
     (See :class:`DeviceProxy` API documentation for more details)
@@ -195,7 +198,7 @@ General
     
         dev_proxy.command_inout( 'Go', [[1.0, 2.0], ['1', '2', '3']] )
 
-#. PyTango.EventType enumeration constants changed to match C++ enumeration
+#. :class:`EventType` enumeration constants changed to match C++ enumeration
     - CHANGE -> CHANGE_EVENT
     - QUALITY -> QUALITY_EVENT
     - PERIODIC -> PERIODIC_EVENT
@@ -204,8 +207,8 @@ General
     - ATTR_CONF_EVENT remains
 
 #. Exception handling
-    in 3.0.4 :class:`PyTango.DevFailed` was a tuple of dictionaries. 
-    Now :class:`PyTango.DevFailed` is a tuple of :class:`PyTango.DevError`.
+    in 3.0.4 :class:`DevFailed` was a tuple of dictionaries. 
+    Now :class:`DevFailed` is a tuple of :class:`DevError`.
     This means that code::
 
         try:
@@ -235,8 +238,18 @@ Server side V3 to V4 upgrade
 If you want your server to support the V4 interface provided by Tango 7
 instead of the V3 provided by Tango 6:
 
-- replace the inheritance of your device class from :class:`PyTango.Device_3Impl` to :class:`PyTango.Device_4Impl`
-- in the `init_device` method replace the call `PyTango.Device_3Impl.init_device(self...` with `PyTango.Device_4Impl.init_device(self...`
+- replace the inheritance of your device class from :class:`Device_3Impl` to :class:`Device_4Impl`
+- in the `init_device` method replace the call::
+     
+     Device_3Impl.init_device(self)
+
+  with::
+  
+     Device_4Impl.init_device(self)
+
+  or better yet, if your device class only inherits from :class:`Device_4Impl`::
+  
+     super(<your class>, self).init_device()
 
 Improved server side image attribute read API
 #############################################

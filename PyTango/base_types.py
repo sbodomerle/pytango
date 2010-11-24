@@ -1,8 +1,38 @@
-from _PyTango import *
-from utils import document_method, document_static_method, document_enum
-from utils import document_enum as __document_enum
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = []
+
+__docformat__ = "restructuredtext"
 
 import operator
+
+from _PyTango import *
+from utils import document_method, document_static_method
+from utils import document_enum as __document_enum
 
 def __StdVector__add(self, seq):
     ret = seq.__class__(self)
@@ -46,16 +76,18 @@ def __fillVectorClass(klass):
     klass.__original_getitem = klass.__getitem__
     klass.__getitem__ = __StdVector__getitem
     
-def init_base_types():
+def __init_base_types():
     
     v_klasses = (StdStringVector,StdLongVector,StdDoubleVector,CommandInfoList, \
                  AttributeInfoList,AttributeInfoListEx,DbData,DbDevInfos, \
                  DbDevExportInfos,DbDevImportInfos,DbHistoryList, \
                  DeviceDataHistoryList, StdGroupReplyVector, \
                  StdGroupCmdReplyVector, StdGroupAttrReplyVector)
-    
+
     for v_klass in v_klasses:
         __fillVectorClass(v_klass)
+
+def __doc_base_types():
     
     def document_enum(enum_name, desc):
         import PyTango
@@ -581,3 +613,8 @@ def init_base_types():
         - tv_sec : seconds
         - tv_usec : microseconds
         - tv_nsec : nanoseconds"""
+
+def init(doc=True):
+    __init_base_types()
+    if doc:
+        __doc_base_types()

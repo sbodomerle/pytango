@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
 import sys
 import os
 import StringIO
@@ -8,7 +30,7 @@ import IPython.genutils
 import PyTango
 
 __PROFILE = """\
-#!/usr/bin/env python
+#!/usr/bin/env ipython
 \"\"\"An automaticaly generated IPython profile designed to provide a user 
 friendly interface to Tango.
 Created with PyTango {pytangover} for IPython {ipyver}\"\"\"
@@ -45,7 +67,7 @@ def install(ipydir=None,verbose=True):
         f.write(profile)
         f.close()
         out.write("[DONE]\n\n")
-    except Exception as e:
+    except Exception, e:
         out.write("[FAILED]\n\n")
         raise e
     
@@ -79,4 +101,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    

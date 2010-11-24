@@ -1,4 +1,38 @@
-import copy, operator, types
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = [ "ChangeEventProp", "PeriodicEventProp", "ArchiveEventProp",
+            "AttributeAlarm", "EventProperties",
+            "AttributeConfig", "AttributeConfig_2", "AttributeConfig_3"]
+
+__docformat__ = "restructuredtext"
+
+import copy
+import operator
+import types
 
 import _PyTango
 from _PyTango import StdStringVector, StdDoubleVector
@@ -12,8 +46,9 @@ from utils import seq_2_StdStringVector, seq_2_StdDoubleVector
 from utils import document_method as __document_method
 from utils import copy_doc
 
+import log4tango
 
-class AttributeAlarm:
+class AttributeAlarm(object):
     """This class represents the python interface for the Tango IDL object
     AttributeAlarm."""
     
@@ -26,7 +61,7 @@ class AttributeAlarm:
         self.delta_val = ''
         self.extensions = []
 
-class ChangeEventProp:
+class ChangeEventProp(object):
     """This class represents the python interface for the Tango IDL object
     ChangeEventProp."""
     
@@ -35,7 +70,7 @@ class ChangeEventProp:
         self.abs_change = ''
         self.extensions = []
 
-class PeriodicEventProp:
+class PeriodicEventProp(object):
     """This class represents the python interface for the Tango IDL object
     PeriodicEventProp."""
     
@@ -43,7 +78,7 @@ class PeriodicEventProp:
         self.period = ''
         self.extensions = []
 
-class ArchiveEventProp:
+class ArchiveEventProp(object):
     """This class represents the python interface for the Tango IDL object
     ArchiveEventProp."""
     
@@ -53,7 +88,7 @@ class ArchiveEventProp:
         self.period = ''
         self.extensions = []
 
-class EventProperties:
+class EventProperties(object):
     """This class represents the python interface for the Tango IDL object
     EventProperties."""
     
@@ -62,7 +97,7 @@ class EventProperties:
         self.per_event = PeriodicEventProp()
         self.arch_event = ArchiveEventProp()
 
-def init_attr_config(attr_cfg):
+def __init_attr_config(attr_cfg):
     """Helper function to initialize attribute config objects"""
     attr_cfg.name = ''
     attr_cfg.writable = -1
@@ -81,31 +116,31 @@ def init_attr_config(attr_cfg):
     attr_cfg.writable_attr_name = ''
     attr_cfg.extensions = []
     
-class AttributeConfig:
+class AttributeConfig(object):
     """This class represents the python interface for the Tango IDL object
     AttributeConfig."""
     
     def __init__(self):
-        init_attr_config(self)
+        __init_attr_config(self)
         self.min_alarm = ''
         self.max_alarm = ''
         
-class AttributeConfig_2:
+class AttributeConfig_2(object):
     """This class represents the python interface for the Tango IDL object
     AttributeConfig_2."""
 
     def __init__(self):
-        init_attr_config(self)
+        __init_attr_config(self)
         self.level = -1
         self.min_alarm = ''
         self.max_alarm = ''
         
-class AttributeConfig_3:
+class AttributeConfig_3(object):
     """This class represents the python interface for the Tango IDL object
     AttributeConfig_3."""
 
     def __init__(self):
-        init_attr_config(self)
+        __init_attr_config(self)
         self.level = -1
         self.att_alarm = AttributeAlarm()
         self.event_prop = EventProperties()
@@ -257,6 +292,10 @@ def __DeviceImpl__debug_stream(self, *msg):
 
             Sends the given message to the tango debug stream.
 
+            Since PyTango 7.1.3, the same can be achieved with::
+            
+                print >>self.log_debug, msg
+            
         Parameters :
             - msg : (str) the message to be sent to the debug stream
         Return     : None
@@ -268,6 +307,10 @@ def __DeviceImpl__info_stream(self, *msg):
     info_stream(self, *msg) -> None
 
             Sends the given message to the tango info stream.
+
+            Since PyTango 7.1.3, the same can be achieved with::
+            
+                print >>self.log_info, msg
 
         Parameters :
             - msg : (str) the message to be sent to the info stream
@@ -281,6 +324,10 @@ def __DeviceImpl__warn_stream(self, *msg):
 
             Sends the given message to the tango warn stream.
 
+            Since PyTango 7.1.3, the same can be achieved with::
+            
+                print >>self.log_warn, msg
+
         Parameters :
             - msg : (str) the message to be sent to the warn stream
         Return     : None
@@ -292,6 +339,10 @@ def __DeviceImpl__error_stream(self, *msg):
     error_stream(self, *msg) -> None
 
             Sends the given message to the tango error stream.
+
+            Since PyTango 7.1.3, the same can be achieved with::
+            
+                print >>self.log_error, msg
 
         Parameters :
             - msg : (str) the message to be sent to the error stream
@@ -305,11 +356,45 @@ def __DeviceImpl__fatal_stream(self, *msg):
 
             Sends the given message to the tango fatal stream.
 
+            Since PyTango 7.1.3, the same can be achieved with::
+            
+                print >>self.log_fatal, msg
+
         Parameters :
             - msg : (str) the message to be sent to the fatal stream
         Return     : None
     """
     self.__fatal_stream(__join_msg(msg))
+
+@property
+def __DeviceImpl__debug(self):
+    if not hasattr(self, "_debug_s"):
+        self._debug_s = log4tango.TangoStream(self.debug_stream)
+    return self._debug_s
+
+@property
+def __DeviceImpl__info(self):
+    if not hasattr(self, "_info_s"):
+        self._info_s = log4tango.TangoStream(self.info_stream)
+    return self._info_s
+
+@property
+def __DeviceImpl__warn(self):
+    if not hasattr(self, "_warn_s"):
+        self._warn_s = log4tango.TangoStream(self.warn_stream)
+    return self._warn_s
+
+@property
+def __DeviceImpl__error(self):
+    if not hasattr(self, "_error_s"):
+        self._error_s = log4tango.TangoStream(self.error_stream)
+    return self._error_s
+
+@property
+def __DeviceImpl__fatal(self):
+    if not hasattr(self, "_fatal_s"):
+        self._fatal_s = log4tango.TangoStream(self.fatal_stream)
+    return self._fatal_s
 
 def __DeviceImpl__str(self):
     return '%s(%s)' % (self.__class__.__name__, self.get_name())
@@ -328,6 +413,11 @@ def __init_DeviceImpl():
     DeviceImpl.warn_stream = __DeviceImpl__warn_stream
     DeviceImpl.error_stream = __DeviceImpl__error_stream
     DeviceImpl.fatal_stream = __DeviceImpl__fatal_stream
+    DeviceImpl.log_debug = __DeviceImpl__debug
+    DeviceImpl.log_info = __DeviceImpl__info
+    DeviceImpl.log_warn = __DeviceImpl__warn
+    DeviceImpl.log_error = __DeviceImpl__error
+    DeviceImpl.log_fatal = __DeviceImpl__fatal
 
 def __Logger__log(self, level, *msg):
     """
@@ -2096,16 +2186,17 @@ def __doc_UserDefaultAttrProp():
         Return     : None
     """ )
     
-def init_DeviceServer():
+def init(doc=True):
     __init_DeviceImpl()
     __init_Attribute()
     __init_Attr()
     __init_Logger()
-    __doc_DeviceImpl()
-    __doc_extra_DeviceImpl(Device_3Impl)
-    __doc_extra_DeviceImpl(Device_4Impl)
-    __doc_Attribute()
-    __doc_WAttribute()
-    __doc_MultiAttribute()
-    __doc_UserDefaultAttrProp()
-    __doc_Attr()
+    if doc:
+        __doc_DeviceImpl()
+        __doc_extra_DeviceImpl(Device_3Impl)
+        __doc_extra_DeviceImpl(Device_4Impl)
+        __doc_Attribute()
+        __doc_WAttribute()
+        __doc_MultiAttribute()
+        __doc_UserDefaultAttrProp()
+        __doc_Attr()

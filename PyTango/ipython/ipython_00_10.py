@@ -1,8 +1,28 @@
 #!/usr/bin/env python
 
-"""An IPython profile designed to provide a user friendly interface to Tango"""
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
 
-from __future__ import with_statement
+"""An IPython profile designed to provide a user friendly interface to Tango"""
 
 import sys
 import os
@@ -24,6 +44,7 @@ import PyTango
 import PyTango.utils
 
 _DB_SYMB = "db"
+_DFT_TANGO_HOST = None
 _SPOCK_STORE = "__spock_store"
 _SPOCK_ERR = "__spock_error"
 _spock_init = False
@@ -199,7 +220,7 @@ def magic_switchdb(self, parameter_s=''):
     In [3]: switchdb homer"""
     
     if parameter_s == '':
-        raise UsageError("%switchdb: Must specify a tango database name. See '%switchdb?'")
+        raise IPython.ipapi.UsageError("%switchdb: Must specify a tango database name. See '%switchdb?'")
     return init_db(IPython.ipapi.get(), parameter_s)
 
 def magic_lsdev(self, parameter_s=''):
@@ -481,10 +502,26 @@ def __tango_exc_handler(ip, etype, value, tb):
 def __safe_tango_exec(f, *args, **kwargs):
     try:
         return f(*args, **kwargs)
-    except PyTango.DevFailed as df:
+    except PyTango.DevFailed, df:
         print df[0].reason,":",df[0].desc
         print "For more information type: get_last_tango_error"
-    
+
+def __get_default_tango_host():
+    global _DFT_TANGO_HOST
+    if _DFT_TANGO_HOST is None:
+        _DFT_TANGO_HOST = os.environ.get("TANGO_HOST")
+        if _DFT_TANGO_HOST is None:
+            # ok, it must have been defined in the tangorc way. Since the
+            # method Tango::Connection::get_env_var is protected we do a hack to
+            # get the tango_host: Create a temporary Database object. It is not
+            #very nice but is done only once in the lifetime of the application 
+            try:
+                db = PyTango.Database()
+                _DFT_TANGO_HOST = "%s:%s" % (db.get_db_host(), db.get_db_port())
+            except:
+                pass
+    return _DFT_TANGO_HOST
+
 def __get_db(host_port=None):
     """host_port == None: Use current DB whatever it is or create
                           default if doesn't exist
@@ -500,9 +537,9 @@ def __get_db(host_port=None):
     
     if host_port is None:
         if db is None:
-            host_port = os.environ.get("TANGO_HOST")
+            host_port = __get_default_tango_host()
     elif host_port == '':
-        host_port = os.environ.get("TANGO_HOST")
+        host_port = __get_default_tango_host()
     else:
         host_port = host_port.strip().replace(" ",":")
         if host_port.count(":") == 0:
@@ -523,13 +560,14 @@ def __get_db(host_port=None):
             ip.user_ns["DB_NAME"] = host_port
         except Exception, e:
             print 
-            print "Could not access Database", host_port
             if db:
+                print "Could not access Database", host_port
                 old_host_port = "%s:%s" % (db.get_db_host(), db.get_db_port())
                 print "Maintaining connection to Database", old_host_port
                 ip.user_ns["DB_NAME"] = old_host_port
             else:
-                print "You are not connected to any Database."
+                print "Could not access any Database."
+                print "Make sure .tangorc, /etc/tangorc or TANGO_HOST environment is defined."
                 ip.user_ns["DB_NAME"] = "OFFLINE"
                 
         # register the 'db' in the user namespace
@@ -903,11 +941,32 @@ def init_magic(ip):
     #__expose_magic(ip, "get_alias_map", get_alias_map)
     #__expose_magic(ip, "get_device_list", get_device_list)
     #__expose_magic(ip, "get_alias_list", get_alias_list)
-    
+
+def complete(text):
+    """a super complete!!!!"""
+    self = IPython.ipapi.get().IP
+    complete = self.Completer.complete
+    state = 0
+    comps = set()
+    while True:
+        newcomp = complete("", state, line_buffer=text)
+        if newcomp is None:
+            break
+        comps.add(newcomp)
+        state += 1
+    outcomps = sorted(comps)
+    return outcomps
 
 def init_ipython(ip, store=True, pytango=True, colors=True, console=True, magic=True):
+    
+    if ip is None:
+        raise Exception("Spock's init_ipython must be called from inside IPython")
+    
     global _spock_init
     if _spock_init is True: return
+    
+    #ip.IP._orig_complete = ip.IP.complete
+    #ip.IP.complete = complete
     
     if colors:  init_colors(ip)
     if store:   init_store(ip)

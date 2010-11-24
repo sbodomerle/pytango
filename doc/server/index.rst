@@ -17,12 +17,14 @@ IOLong and IOStringArray and two attributes called Long_attr and Short_attr_rw.
 Importing python modules
 ------------------------
 
-To write a Python script which is a Tango device server, you need to import two modules which are :
+To write a Python script which is a Tango device server, you need to import 
+two modules which are:
 
 1. The :mod:`PyTango` module which is the Python to C++ interface
 2. The Python classical sys module
 
-This could be done with code like (supposing the PYTHONPATH environment variable is correctly set)::
+This could be done with code like (supposing the PYTHONPATH environment variable
+is correctly set)::
 
     import PyTango
     import sys
@@ -31,17 +33,17 @@ The main part of a Python device server
 ---------------------------------------
 
 The rule of this part of a Tango device server is to:
-- Create the :class:`PyTango.Util` object passing it the Python interpreter command line arguments
-- Add to this object the list of Tango class(es) which have to be hosted by this interpreter
-- Initialize the device server
-- Run the device server loop
+    - Create the :class:`Util` object passing it the Python interpreter command line arguments
+    - Add to this object the list of Tango class(es) which have to be hosted by this interpreter
+    - Initialize the device server
+    - Run the device server loop
 
 The following is a typical code for this main function::
 
     if __name__ == '__main__':
         util = PyTango.Util(sys.argv)
         #Deprecated : util.add_TgClass(PyDsExpClass, PyDsExp, 'PyDsExp')
-        util.add_class(PyDsExpClass, PyDsExp, 'PyDsExp')
+        util.add_class(PyDsExpClass, PyDsExp)
         
         U = PyTango.Util.instance()
         U.server_init()
@@ -50,15 +52,15 @@ The following is a typical code for this main function::
 **Line 2**
     Create the Util object passing it the interpreter command line arguments
 **Line 4**
-    Add the Tango class 'PyDsExp' to the device server. The add_class() 
-    method of the Util class has three arguments which are the Tango class 
-    PyDsExpClass instance, the Tango PyDsExp instance and the Tango class name.
-    This :meth:`PyTango.Util.add_class` method is only available since version 
+    Add the Tango class *PyDsExp* to the device server. The :meth:`Util.add_class`
+    method of the Util class has two arguments which are the Tango class 
+    PyDsExpClass instance and the Tango PyDsExp instance.
+    This :meth:`Util.add_class` method is only available since version 
     7.1.2. If you are using an older version please use 
-    :meth:`PyTango.Util.add_TgClass` instead.
-**Line 6**
-    Initialize the Tango device server
+    :meth:`Util.add_TgClass` instead.
 **Line 7**
+    Initialize the Tango device server
+**Line 8**
     Run the device server loop
 
 The PyDsExpClass class in Python
@@ -88,6 +90,8 @@ In our example, the code of this Python class looks like::
                                            PyTango.AttrDataFormat.SCALAR,
                                            PyTango.AttrWriteType.READ_WRITE ] ]
         }
+
+        
 
 **Line 1** 
     The PyDsExpClass class has to inherit from the PyTango.PyDeviceClass class
@@ -207,89 +211,76 @@ In our example, the code of this class looks like::
 
         def __init__(self,cl,name):
             PyTango.Device_4Impl.__init__(self, cl, name)
-            print 'In PyDsExp __init__'
+            self.info_stream('In PyDsExp.__init__')
             PyDsExp.init_device(self)
 
         def init_device(self):
-            print 'In Python init_device method'
+            self.info_stream('In Python init_device method')
             self.set_state(PyTango.DevState.ON)
             self.attr_short_rw = 66
             self.attr_long = 1246
 
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
 
         def delete_device(self):
-            print "[Device delete_device method] for device",self.get_name()
+            self.info_stream('PyDsExp.delete_device')
 
-    #------------------------------------------------------------------
-    # COMMANDS
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
+        # COMMANDS
+        #------------------------------------------------------------------
 
         def is_IOLong_allowed(self):
             return self.get_state() == PyTango.DevState.ON
 
         def IOLong(self, in_data):
-            print "[IOLong::execute] received number",in_data
-            in_data = in_data * 2;
-            print "[IOLong::execute] return number",in_data
-            return in_data;
+            self.info_stream('IOLong', in_data)
+            in_data = in_data * 2
+            self.info_stream('IOLong returns', in_data)
+            return in_data
 
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
 
         def is_IOStringArray_allowed(self):
             return self.get_state() == PyTango.DevState.ON
 
         def IOStringArray(self, in_data):
-            l = range(len(in_data)-1, -1, -1);
+            l = range(len(in_data)-1, -1, -1)
             out_index=0
             out_data=[]
             for i in l:
-                print "[IOStringArray::execute] received String",in_data[out_index]
+                self.info_stream('IOStringArray <-', in_data[out_index])
                 out_data.append(in_data[i])
-                print "[IOStringArray::execute] return String",out_data[out_index]
+                self.info_stream('IOStringArray ->',out_data[out_index])
                 out_index += 1
             self.y = out_data
             return out_data
 
-    #------------------------------------------------------------------
-    # ATTRIBUTES
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
+        # ATTRIBUTES
+        #------------------------------------------------------------------
 
         def read_attr_hardware(self, data):
-            print 'In read_attr_hardware'
+            self.info_stream('In read_attr_hardware')
 
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
 
         def read_Long_attr(self, the_att):
-            print "[PyDsExp::read_attr] attribute name Long_attr"
+            self.info_stream("read_Long_attr")
 
-            # Before PyTango 7.0.0
-            #PyTango.set_attribute_value(the_att, self.attr_long)
-
-            # Now:
             the_att.set_value(self.attr_long)
 
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
 
         def read_Short_attr_rw(self, the_att):
-            print "[PyDsExp::read_attr] attribute name Short_attr_rw"
+            self.info_stream("read_Short_attr_rw")
 
-            # Before PyTango 7.0.0
-            #PyTango.set_attribute_value(the_att, self.attr_short_rw)
-            
-            # Now:
             the_att.set_value(self.attr_short_rw)
 
-    #------------------------------------------------------------------
+        #------------------------------------------------------------------
 
         def write_Short_attr_rw(self, the_att):
-            print "In write_Short_attr_rw for attribute ",the_att.get_name()
+            self.info_stream("write_Short_attr_rw")
 
-            # Before PyTango 7.0.0
-            #data = []
-            #PyTango.get_write_value(the_att, data)
-
-            # Now:
             self.attr_short_rw = the_att.get_write_value()
 
 **Line 1**
@@ -318,14 +309,14 @@ In our example, the code of this class looks like::
 **Line 53 to 54**
     The *read_attr_hardware()* method. Its argument is a Python sequence of 
     Python integer.
-**Line 58 to 65**
+**Line 58 to 61**
     The method executed when the Long_attr attribute is read. Note that before
     PyTango 7 it sets the attribute value with the PyTango.set_attribute_value
     function. Now the same can be done using the set_value of the attribute
     object
-**Line 69 to 76**
+**Line 65 to 68**
     The method executed when the Short_attr_rw attribute is read.
-**Line 80 to 89**
+**Line 72 to 75**
     The method executed when the Short_attr_rw attribute is written. 
     Note that before PyTango 7 it gets the attribute value with a call to the 
     Attribute method *get_write_value* with a list as argument. Now the write 
@@ -449,34 +440,33 @@ of the appropiate type for output arguments as well, as it is much more efficien
 +-------------------------+-------------------------------------------+
 
 The following code is an example of how you write code executed when a client
-read an attribute which is called Long_attr::
+calls a command named IOLong::
 
-    def read_Long_attr(self, the_att):
-        print "[PyDsExp::read_attr] attribute name Long_attr"
-        the_att.set_value(self.attr_long)
+    def is_IOLong_allowed(self):
+        self.debug_stream("in is_IOLong_allowed")
+        return self.get_state() == PyTango.DevState.ON
 
-**Line 1**
-    Method declaration with "the_att" being an instance of the Attribute class 
-    representing the Long_attr attribute
-**Line 3**
-    Set the attribute value using the method set_value() with the attribute 
-    value as parameter
+    def IOLong(self, in_data):
+        self.info_stream('IOLong', in_data)
+        in_data = in_data * 2
+        self.info_stream('IOLong returns', in_data)
+        return in_data
+
+**Line 1-3**
+    the is_IOLong_allowed method determines in which conditions the command
+    'IOLong' can be executed. In this case, the command can only be executed if
+    the device is in 'ON' state.
+**Line 6**
+    write a log message to the tango INFO stream (click :ref:`here <logging>` for
+    more information about PyTango log system).
+**Line 7**
+    does something with the input parameter
+**Line 8**
+    write another log message to the tango INFO stream (click :ref:`here <logging>` for
+    more information about PyTango log system).
+**Line 9**
+    return the output of executing the tango command
     
-The following code is an example of how you write code executed when a client 
-write the Short_attr_rw attribute::
-
-    def write_Short_attr_rw(self, the_att):
-        print "In write_Short_attr_rw for attribute ",the_att.get_name()
-        self.attr_short_rw = the_att.get_write_value()
-
-**Line 1**
-    Method declaration with "the_att" being an instance of the Attribute class 
-    representing the Short_attr_rw attribute
-**Line 3**
-    Get the value sent by the client using the method *get_write_value()* and
-    store it in the device object. Our attribute is a scalar short attribute so
-    the return value is an int.
-
 Implementing an attribute
 #########################
 
@@ -569,12 +559,15 @@ The following code is an example of how you write code executed when a client re
 called Long_attr::
     
     def read_Long_attr(self, the_att):
-        print "[PyDsExp::read_attr] attribute name Long_attr"
+        self.info_stream("read attribute name Long_attr")
         the_att.set_value(self.attr_long)
 
 **Line 1**
     Method declaration with "the_att" being an instance of the Attribute
     class representing the Long_attr attribute
+**Line 2**
+    write a log message to the tango INFO stream (click :ref:`here <logging>` for
+    more information about PyTango log system).
 **Line 3**
     Set the attribute value using the method set_value() with the attribute 
     value as parameter.
@@ -583,19 +576,135 @@ The following code is an example of how you write code executed when a client
 write the Short_attr_rw attribute::
 
     def write_Short_attr_rw(self,the_att):
-        print "In write_Short_attr_rw for attribute ",the_att.get_name()
+        self.info_stream("In write_Short_attr_rw for attribute ",the_att.get_name())
         self.attr_short_rw = the_att.get_write_value(data)
 
 **Line 1**
        Method declaration with "the_att" being an instance of the Attribute 
        class representing the Short_attr_rw attribute
+**Line 2**
+    write a log message to the tango INFO stream (click :ref:`here <logging>` for
+    more information about PyTango log system).
 **Line 3**
     Get the value sent by the client using the method get_write_value() and
     store the value written in the device object. Our attribute is a scalar 
     short attribute so the return value is an int
 
+.. _logging:
+
+Logging
+#######
+
+This chapter instructs you on how to use the tango logging API (log4tango) to
+create tango log messages on your device server.
+
+The logging system explained here is the Tango Logging Service (TLS). For
+detailed information on how this logging system works please check:
+
+    * `3.5 The tango logging service <http://www.esrf.eu/computing/cs/tango/tango_doc/kernel_doc/ds_prog/node4.html#sec:The-Tango-Logging>`_
+    * `9.3 The tango logging service <http://www.esrf.eu/computing/cs/tango/tango_doc/kernel_doc/ds_prog/node9.html#SECTION00930000000000000000>`_
+
+The easiest way to start seeing log messages on your device server console is
+by starting it with the verbose option. Example::
+
+    python PyDsExp.py PyDs1 -v4
+
+This activates the console tango logging target and filters messages with 
+importance level DEBUG or more.
+The links above provided detailed information on how to configure log levels 
+and log targets. In this document we will focus on how to write log messages on
+your device server.
+
+Basic logging
+~~~~~~~~~~~~~
+
+The most basic way to write a log message on your device is to use the
+:class:`PyTango.DeviceImpl` logging related methods:
+
+    * :meth:`PyTango.DeviceImpl.debug_stream`
+    * :meth:`PyTango.DeviceImpl.info_stream`
+    * :meth:`PyTango.DeviceImpl.warn_stream`
+    * :meth:`PyTango.DeviceImpl.error_stream`
+    * :meth:`PyTango.DeviceImpl.fatal_stream`
+
+Example::
+
+    def read_Long_attr(self, the_att):
+        self.info_stream("read attribute name Long_attr")
+        the_att.set_value(self.attr_long)
+
+This will print a message like::
+
+    1282206864 [-1215867200] INFO test/pydsexp/1 read attribute name Long_attr
+
+every time a client asks to read the 'Long_attr' attribute value.
+
+Logging with print statement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*This feature is only possible since PyTango 7.1.3*
+
+It is possible to use the print statement to log messages into the tango logging
+system. This is achieved by using the python's print extend form sometimes
+refered to as *print chevron*.
+
+Same example as above, but now using *print chevron*::
+
+    def read_Long_attr(self, the_att):
+        print >>self.log_info, "read attribute name Long_attr"
+        the_att.set_value(self.attr_long)
+
+Or using the python 3k print function::
+
+    def read_Long_attr(self, the_att):
+        print("read attribute name Long_attr", file=self.log_info)
+        the_att.set_value(self.attr_long)
+
+Logging with decorators
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*This feature is only possible since PyTango 7.1.3*
+
+PyTango provides a set of decorators that place automatic log messages when
+you enter and when you leave a python method. For example::
+
+    @PyTango.DebugIt()
+    def read_Long_attr(self, the_att):
+        the_att.set_value(self.attr_long)
+
+will generate a pair of log messages each time a client asks for the 'Long_attr'
+value. Your output would look something like::
+
+    1282208997 [-1215965504] DEBUG test/pydsexp/1 -> read_Long_attr()
+    1282208997 [-1215965504] DEBUG test/pydsexp/1 <- read_Long_attr()
+
+Decorators exist for all tango log levels:
+    * :class:`PyTango.DebugIt`
+    * :class:`PyTango.InfoIt`
+    * :class:`PyTango.WarnIt`
+    * :class:`PyTango.ErrorIt`
+    * :class:`PyTango.FatalIt`
+
+The decorators receive three optional arguments:
+    * show_args - shows method arguments in log message (defaults to False)
+    * show_kwargs shows keyword method arguments in log message (defaults to False)
+    * show_ret - shows return value in log message (defaults to False)
+
+Example::
+    
+    @PyTango.DebugIt(show_args=True, show_ret=True)
+    def IOLong(self, in_data):
+        return in_data * 2
+
+will output something like::
+
+    1282221947 [-1261438096] DEBUG test/pydsexp/1 -> IOLong(23)
+    1282221947 [-1261438096] DEBUG test/pydsexp/1 46 <- IOLong()
+
 Dynamic devices
 ###############
+
+*This feature is only possible since PyTango 7.1.2*
 
 Starting from PyTango 7.1.2 it is possible to create devices in a device server
 "en caliente". This means that you can create a command in your "management device"
@@ -605,9 +714,9 @@ There are two ways to create a new device which are described below.
 Dynamic device from a known tango class name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you know the tango class name but you don't have access to the :ref:`PyTango.DeviceClass`
+If you know the tango class name but you don't have access to the :class:`PyTango.DeviceClass`
 (or you are too lazy to search how to get it ;-) the way to do it is call 
-:ref:`PyTango.Util.create_device`/:ref:`PyTango.Util.delete_device`.
+:meth:`PyTango.Util.create_device` / :meth:`PyTango.Util.delete_device`.
 Here is an example of implementing a tango command on one of your devices that 
 creates a device of some arbitrary class (the example assumes the tango commands
 'CreateDevice' and 'DeleteDevice' receive a parameter of type DevVarStringArray
@@ -634,9 +743,9 @@ here.
 Dynamic device from a known tango class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you already have access to the :ref:`PyTango.DeviceClass` object that
+If you already have access to the :class:`PyTango.DeviceClass` object that
 corresponds to the tango class of the device to be created you can call directly
-the :ref:`PyTango.DeviceClass.create_device`/:ref:`PyTango.DeviceClass.delete_device`.
+the :meth:`PyTango.DeviceClass.create_device` / :meth:`PyTango.DeviceClass.delete_device`.
 For example, if you wish to create a clone of your device, you can create a 
 tango command called Clone::
 
@@ -763,5 +872,6 @@ Server API
 
     device
     device_class
+    logging
     attribute
     util

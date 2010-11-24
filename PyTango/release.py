@@ -1,3 +1,32 @@
+#############################################################################
+##
+## This file is part of PyTango, a python binding for Tango
+##
+## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+"""
+This is an internal PyTango module.
+"""
+
+__all__ = [ "Release" ]
+
+__docformat__ = "restructuredtext"
 
 class Release:
     """
@@ -17,14 +46,14 @@ class Release:
             - keywords : (seq<str>) list of keywords
             - licence : (str) the licence"""
     name = 'PyTango'
-    version_info = (7, 1, 2, 'final', 0)
+    version_info = (7, 1, 3, 'final', 0)
     version = '.'.join(map(str, version_info[:3]))
     version_long = version + ''.join(map(str, version_info[3:]))
     version_description = 'This version implements the C++ Tango 7.1 API.'
     version_number = int(version.replace('.',''))
     description = 'A python binding for the Tango control system'
     long_description = 'This module implements the Python Tango Device API mapping'
-    license = 'GPL'
+    license = 'LGPL'
     authors = { 'Coutinho' : ('Tiago Coutinho' , 'tcoutinho@cells.es') }
     url = 'http://packages.python.org/PyTango'
     download_url = 'http://pypi.python.org/packages/source/P/PyTango'

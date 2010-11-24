@@ -1,3 +1,5 @@
+#include <boost/python.hpp>
+#include <boost/python/return_value_policy.hpp>
 #include <tango.h>
 
 #include "exception.h"
