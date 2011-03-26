@@ -95,8 +95,7 @@ please_debug = False
 packages = [
     'PyTango',
     'PyTango.ipython',
-    'PyTango3',
-    'IPython.Extensions'
+    'PyTango3'
 ]
 
 provides = [
@@ -136,7 +135,7 @@ def uniquify(seq):
 
 include_dirs = [
     os.path.abspath('src'),
-    os.path.join(TANGO_ROOT, 'include/tango'),
+    os.path.join(TANGO_ROOT, 'include'),
     os.path.join(OMNI_ROOT, 'include'),
     os.path.join(NUMPY_ROOT, 'include'),
 ]
@@ -211,6 +210,7 @@ else:
     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
     
     libraries += [
+        'boost_python',
         'pthread',
         'rt',
         'dl',
@@ -219,17 +219,6 @@ else:
         'omnithread',
         'COS4',
     ]
-
-    # when building with multiple version of python on debian we need
-    # to link against boost_python-py25/-py26 etc...
-    import platform
-    if platform.dist()[0] in ['debian']:
-        if distutils.sysconfig.get_python_version() == '2.5':
-            libraries += ['boost_python-py25']
-        elif distutils.sysconfig.get_python_version() == '2.6':
-            libraries += ['boost_python-py26']
-    else:
-        libraries += ['boost_python']
 
     library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
 
@@ -302,7 +291,7 @@ class build_ext(dftbuild_ext):
             #self.compiler.compiler_so = " ".join(compiler_pars)
         dftbuild_ext.build_extensions(self)
 
-cmdclass['build_ext'] = build_ext
+cmdclass = {'build_ext' : build_ext }
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
