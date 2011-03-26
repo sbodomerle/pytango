@@ -1,5 +1,6 @@
 pytango (7.1.3-1) unstable; urgency=low
 
   * Initial release (Closes: #614245)
+  * Thanks to Justin B Rye for package description review
 
  -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Mon, 09 Aug 2010 11:26:05 +0200
