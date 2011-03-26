@@ -1,0 +1,39 @@
+From: =?UTF-8?q?Picca=20Fr=C3=A9d=C3=A9ric-Emmanuel?= <picca@synchrotron-soleil.fr>
+Date: Sat, 26 Mar 2011 14:26:18 +0100
+Subject: debian link with boost depending on the python version
+
+---
+ setup.py |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index d04c46b..b395c92 100644
+--- a/setup.py
++++ b/setup.py
+@@ -210,7 +210,6 @@ else:
+     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
+     
+     libraries += [
+-        'boost_python',
+         'pthread',
+         'rt',
+         'dl',
+@@ -220,6 +219,17 @@ else:
+         'COS4',
+     ]
+ 
++    # when building with multiple version of python on debian we need
++    # to link against boost_python-py25/-py26 etc...
++    import platform
++    if platform.dist()[0] in ['debian']:
++        if distutils.sysconfig.get_python_version() == '2.5':
++            libraries += ['boost_python-py25']
++        elif distutils.sysconfig.get_python_version() == '2.6':
++            libraries += ['boost_python-py26']
++    else:
++        libraries += ['boost_python']
++
+     library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
+ 
+ 
+-- 
