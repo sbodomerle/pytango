@@ -1,3 +1,0 @@
-_PyTango
-PyTango
-PyTango3

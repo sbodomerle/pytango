@@ -104,7 +104,7 @@ namespace PyUtil
         AutoPythonAllowThreads guard;
         instance.server_run();
     }
-
+    
     inline Tango::Util* init(boost::python::object &obj)
     {
         PyObject *obj_ptr = obj.ptr();
@@ -238,6 +238,7 @@ void export_util()
             return_value_policy<reference_existing_object>())
         .def("server_init", &PyUtil::server_init, server_init_overload())
         .def("server_run", &PyUtil::server_run)
+        .def("server_cleanup", &Tango::Util::server_cleanup)
         .def("trigger_cmd_polling", &Tango::Util::trigger_cmd_polling)
         .def("trigger_attr_polling", &Tango::Util::trigger_attr_polling)
         .def("set_polling_threads_pool_size", &Tango::Util::set_polling_threads_pool_size)

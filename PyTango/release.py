@@ -46,7 +46,7 @@ class Release:
             - keywords : (seq<str>) list of keywords
             - licence : (str) the licence"""
     name = 'PyTango'
-    version_info = (7, 1, 3, 'final', 0)
+    version_info = (7, 1, 4, 'final', 0)
     version = '.'.join(map(str, version_info[:3]))
     version_long = version + ''.join(map(str, version_info[3:]))
     version_description = 'This version implements the C++ Tango 7.1 API.'
