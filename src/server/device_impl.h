@@ -289,8 +289,7 @@ public:
     /**
      * Destructor
      */
-    virtual ~Device_4ImplWrap()
-    {}
+    virtual ~Device_4ImplWrap();
 
     /**
      * A wrapper around the add_attribute in order to process some

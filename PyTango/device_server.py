@@ -40,6 +40,7 @@ from _PyTango import DeviceImpl, Device_3Impl, Device_4Impl
 from _PyTango import Attribute, WAttribute, MultiAttribute
 from _PyTango import Attr
 from _PyTango import Logger
+from _PyTango import AttrWriteType, AttrDataFormat, DispLevel
 from _PyTango import UserDefaultAttrProp
 
 from utils import seq_2_StdStringVector, seq_2_StdDoubleVector
@@ -97,15 +98,15 @@ class EventProperties(object):
         self.per_event = PeriodicEventProp()
         self.arch_event = ArchiveEventProp()
 
-def __init_attr_config(attr_cfg):
+def _init_attr_config(attr_cfg):
     """Helper function to initialize attribute config objects"""
     attr_cfg.name = ''
-    attr_cfg.writable = -1
-    attr_cfg.data_format = -1
-    attr_cfg.data_type = -1
-    attr_cfg.max_dim_x = -1
-    attr_cfg.max_dim_y = -1
-    attr_cfg.description = -1
+    attr_cfg.writable = AttrWriteType.READ
+    attr_cfg.data_format = AttrDataFormat.SCALAR
+    attr_cfg.data_type = 0
+    attr_cfg.max_dim_x = 0
+    attr_cfg.max_dim_y = 0
+    attr_cfg.description = ''
     attr_cfg.label = ''
     attr_cfg.unit = ''
     attr_cfg.standard_unit = ''
@@ -121,7 +122,7 @@ class AttributeConfig(object):
     AttributeConfig."""
     
     def __init__(self):
-        __init_attr_config(self)
+        _init_attr_config(self)
         self.min_alarm = ''
         self.max_alarm = ''
         
@@ -130,8 +131,8 @@ class AttributeConfig_2(object):
     AttributeConfig_2."""
 
     def __init__(self):
-        __init_attr_config(self)
-        self.level = -1
+        _init_attr_config(self)
+        self.level = DispLevel.OPERATOR
         self.min_alarm = ''
         self.max_alarm = ''
         
@@ -140,11 +141,95 @@ class AttributeConfig_3(object):
     AttributeConfig_3."""
 
     def __init__(self):
-        __init_attr_config(self)
+        _init_attr_config(self)
         self.level = -1
         self.att_alarm = AttributeAlarm()
         self.event_prop = EventProperties()
         self.sys_extensions = []
+
+def __Attribute__get_properties(self, attr_cfg = None):
+    """get_properties(self, attr_cfg = None) -> AttributeConfig
+
+                Get attribute properties.
+
+            Parameters :
+                - conf : (AttributeConfig) the config object to be filled with 
+                         the attribute configuration. Default is None meaning the
+                         method will create internally a new AttributeConfig
+                         and return it
+
+            Return     : (AttributeConfig) the config object filled with
+                         attribute configuration information
+
+            New in PyTango 7.1.4
+    """
+
+    if attr_cfg is None:
+        attr_cfg = AttributeConfig()
+    return self._get_properties(attr_cfg)
+
+def __Attribute__get_properties_2(self, attr_cfg = None):
+    """get_properties_2(self, attr_cfg = None) -> AttributeConfig_2
+
+                Get attribute properties.
+
+            Parameters :
+                - conf : (AttributeConfig_2) the config object to be filled with 
+                         the attribute configuration. Default is None meaning the
+                         method will create internally a new AttributeConfig
+                         and return it
+
+            Return     : (AttributeConfig_2) the config object filled with
+                         attribute configuration information
+
+            New in PyTango 7.1.4
+    """
+
+    if attr_cfg is None:
+        attr_cfg = AttributeConfig_2()
+    return self._get_properties_2(attr_cfg)
+
+def __Attribute__get_properties_3(self, attr_cfg = None):
+    """get_properties_3(self, attr_cfg = None) -> AttributeConfig_3
+
+                Get attribute properties.
+
+            Parameters :
+                - conf : (AttributeConfig_3) the config object to be filled with 
+                         the attribute configuration. Default is None meaning the
+                         method will create internally a new AttributeConfig
+                         and return it
+
+            Return     : (AttributeConfig_3) the config object filled with
+                         attribute configuration information
+
+            New in PyTango 7.1.4
+    """
+
+    if attr_cfg is None:
+        attr_cfg = AttributeConfig_3()
+    return self._get_properties_3(attr_cfg)
+
+def __Attribute__set_properties(self, attr_cfg, dev):
+    """set_properties(self, attr_cfg, dev) -> None
+
+                Set attribute properties.
+
+                This method sets the attribute properties value with the content
+                of the fileds in the AttributeConfig/ AttributeConfig_3 object
+
+            Parameters :
+                - conf : (AttributeConfig or AttributeConfig_3) the config 
+                         object.
+                - dev : (DeviceImpl) the device
+
+            New in PyTango 7.1.4
+    """
+    if isinstance(attr_cfg, AttributeConfig_3):
+        self._set_properties_3(attr_cfg, dev)
+    else:
+        self._set_properties(attr_cfg, dev)
+
 
 def __DeviceImpl__get_device_class(self):
     try:
@@ -519,7 +604,11 @@ def __Attribute__str(self):
 def __init_Attribute():
     Attribute.__str__ = __Attribute__str
     Attribute.__repr__ = __Attribute__str
-
+    Attribute.get_properties = __Attribute__get_properties
+    Attribute.get_properties_2 = __Attribute__get_properties_2
+    Attribute.get_properties_3 = __Attribute__get_properties_3
+    Attribute.set_properties = __Attribute__set_properties
+    
 def __init_Logger():
     Logger.log = __Logger__log
     Logger.log_unconditionally = __Logger__log_unconditionally
@@ -999,7 +1088,7 @@ def __doc_DeviceImpl():
         
         New in PyTango 7.1.2
     """ )
-    
+
 def __doc_extra_DeviceImpl(cls):
     def document_method(method_name, desc, append=True):
         return __document_method(cls, method_name, desc, append)

@@ -329,6 +329,9 @@ namespace PyAttribute
     inline void set_value(Tango::Attribute &att, boost::python::object &value)
     { __set_value("set_value", att, value, 0, 0); }
 
+    inline void set_value(Tango::Attribute &att, Tango::EncodedAttribute *data)
+    { att.set_value(data); }
+
     inline void set_value(Tango::Attribute &att, boost::python::str &data_str, boost::python::str &data)
     { __set_value("set_value", att, data_str, data); }
 
@@ -361,6 +364,48 @@ namespace PyAttribute
                                        double t, Tango::AttrQuality quality,
                                        long x, long y)
     { __set_value("set_value_date_quality", att, value, &x, &y, t, &quality); }
+    
+    inline boost::python::object get_properties(Tango::Attribute &att,
+                                                boost::python::object &attr_cfg)
+    {
+        Tango::AttributeConfig tg_attr_cfg;
+        att.get_properties(tg_attr_cfg);
+        return to_py(tg_attr_cfg, attr_cfg);
+    }
+    
+    inline boost::python::object get_properties_2(Tango::Attribute &att,
+                                                  boost::python::object &attr_cfg)
+    {
+        Tango::AttributeConfig_2 tg_attr_cfg;
+        att.get_properties_2(tg_attr_cfg);
+        return to_py(tg_attr_cfg, attr_cfg);
+    }
+
+    inline boost::python::object get_properties_3(Tango::Attribute &att,
+                                                  boost::python::object &attr_cfg)
+    {
+        Tango::AttributeConfig_3 tg_attr_cfg;
+        att.get_properties_3(tg_attr_cfg);
+        return to_py(tg_attr_cfg, attr_cfg);
+    }
+    
+    void set_properties(Tango::Attribute &att, boost::python::object &attr_cfg,
+                        boost::python::object &dev)
+    {
+        Tango::AttributeConfig tg_attr_cfg;
+        from_py_object(attr_cfg, tg_attr_cfg);
+        Tango::DeviceImpl *dev_ptr = extract<Tango::DeviceImpl*>(dev);
+        att.set_properties(tg_attr_cfg, dev_ptr);
+    }
+
+    void set_properties_3(Tango::Attribute &att, boost::python::object &attr_cfg,
+                          boost::python::object &dev)
+    {
+        Tango::AttributeConfig_3 tg_attr_cfg;
+        from_py_object(attr_cfg, tg_attr_cfg);
+        Tango::DeviceImpl *dev_ptr = extract<Tango::DeviceImpl*>(dev);
+        att.set_properties(tg_attr_cfg, dev_ptr);
+    }
 };
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(set_quality_overloads,
@@ -382,7 +427,7 @@ void export_attribute()
         .value("max_warn", Tango::Attribute::max_warn)
         .value("numFlags", Tango::Attribute::numFlags)
     ;
-
+    
     class_<Tango::Attribute>("Attribute", no_init)
         .def("is_write_associated", &Tango::Attribute::is_writ_associated)
         .def("is_min_alarm", &Tango::Attribute::is_min_alarm)
@@ -429,6 +474,9 @@ void export_attribute()
             (void (*) (Tango::Attribute &, boost::python::str &, boost::python::str &))
             &PyAttribute::set_value)
         .def("set_value",
+            (void (*) (Tango::Attribute &, Tango::EncodedAttribute *))
+            &PyAttribute::set_value)
+        .def("set_value",
             (void (*) (Tango::Attribute &, boost::python::object &, long))
             &PyAttribute::set_value)
         .def("set_value",
@@ -457,5 +505,12 @@ void export_attribute()
         .def("is_archive_event", &Tango::Attribute::is_archive_event)
         .def("is_check_archive_criteria", &Tango::Attribute::is_check_archive_criteria)
         .def("remove_configuration", &Tango::Attribute::remove_configuration)
+        
+        .def("_get_properties", &PyAttribute::get_properties)
+        .def("_get_properties_2", &PyAttribute::get_properties_2)
+        .def("_get_properties_3", &PyAttribute::get_properties_3)
+        
+        .def("_set_properties", &PyAttribute::set_properties)
+        .def("_set_properties_3", &PyAttribute::set_properties_3)
     ;
 }

@@ -23,15 +23,16 @@
 import os
 import sys
 import errno
+import platform
 
-from ez_setup import use_setuptools
-use_setuptools()
+#from ez_setup import use_setuptools
+#use_setuptools()
 
-from setuptools import setup
-from setuptools import Extension, Distribution
+#from setuptools import setup
+#from setuptools import Extension, Distribution
 
-#from distutils.core import setup, Extension
-#from distutils.dist import Distribution
+from distutils.core import setup, Extension
+from distutils.dist import Distribution
 import distutils.sysconfig
 
 
@@ -133,12 +134,34 @@ def uniquify(seq):
     [ no_dups.append(i) for i in seq if not no_dups.count(i) ]
     return no_dups
 
-include_dirs = [
-    os.path.abspath('src'),
-    os.path.join(TANGO_ROOT, 'include'),
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# include directories
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+include_dirs = [ os.path.abspath('src') ]
+
+_tango_root_inc = os.path.join(TANGO_ROOT, 'include')
+include_dirs.append(_tango_root_inc)
+
+# $TANGO_ROOT/include/tango exists since tango 7.2.0
+# we changed the PyTango code include statements from:
+# #include <tango.h> to:
+# #include <tango/tango.h>
+# However tango itself complains that it doesn't know his own header files
+# if we don't add the $TANGO_ROOT/include/tango directory to the path. So we do it
+# here
+_tango_root_inc = os.path.join(_tango_root_inc, 'tango')
+if os.path.isdir(_tango_root_inc):
+    include_dirs.append(_tango_root_inc)
+
+include_dirs.extend([
     os.path.join(OMNI_ROOT, 'include'),
     os.path.join(NUMPY_ROOT, 'include'),
-]
+])
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# library directories
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 libraries = [
         'tango',
@@ -210,7 +233,6 @@ else:
     include_dirs += [ os.path.join(BOOST_ROOT, 'include') ]
     
     libraries += [
-        'boost_python',
         'pthread',
         'rt',
         'dl',
@@ -219,6 +241,15 @@ else:
         'omnithread',
         'COS4',
     ]
+
+    # when building with multiple version of python on debian we need
+    # to link against boost_python-py25/-py26 etc...
+    pyver = "py" + "".join(map(str, platform.python_version_tuple()[:2]))
+    dist = platform.dist()[0].lower()
+    if dist in ['debian']:
+        libraries.append('boost_python-' + pyver)
+    else:
+        libraries.append('boost_python')
 
     library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
 
@@ -229,7 +260,7 @@ else:
     # and then uncommenting this line. Someday maybe this will be
     # automated...
     extra_compile_args += [
-#        '-includesrc/precompiled_header.hpp',
+        '-includesrc/precompiled_header.hpp',
     ]
 
     #if not please_debug:
@@ -261,8 +292,8 @@ _pytango = Extension(name               = '_PyTango',
                      depends            = []
                      )
 
-from setuptools import Command
-#from distutils.cmd import Command
+#from setuptools import Command
+from distutils.cmd import Command
 from distutils.command.build import build as dftbuild
 from distutils.command.build_ext import build_ext as dftbuild_ext
 from distutils.unixccompiler import UnixCCompiler
@@ -291,7 +322,7 @@ class build_ext(dftbuild_ext):
             #self.compiler.compiler_so = " ".join(compiler_pars)
         dftbuild_ext.build_extensions(self)
 
-cmdclass = {'build_ext' : build_ext }
+cmdclass['build_ext'] = build_ext
 
 if sphinx:
     from sphinx.setup_command import BuildDoc

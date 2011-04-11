@@ -656,16 +656,7 @@ PyDeviceImplBase::~PyDeviceImplBase()
 {}
 
 void PyDeviceImplBase::py_delete_dev()
-{
-    try
-    {
-        Py_DECREF(the_self);
-    }
-    catch(error_already_set &eas)
-    {
-        handle_python_exception(eas);
-    }
-}
+{}
 
 Device_3ImplWrap::Device_3ImplWrap(PyObject *self, CppDeviceClass *cl,
                                    std::string &st)
@@ -694,7 +685,7 @@ void Device_3ImplWrap::_init()
 
     // Tell Tango that this is a Python device.
     // Humm, we should try to avoid this in the future
-    this->set_py_device(true);
+    //this->set_py_device(true);
 
     Tango::Device_3ImplExt *tmp_ptr = ext_3;
     Py_Device_3ImplExt *new_ext = new Py_Device_3ImplExt(this);
@@ -852,6 +843,11 @@ Device_4ImplWrap::Device_4ImplWrap(PyObject *self, CppDeviceClass *cl,
     PyDeviceImplBase(self)
 {
     _init();
+}
+
+Device_4ImplWrap::~Device_4ImplWrap()
+{
+    cout << "-----------------------------------------------------hello" <<endl;
 }
 
 void Device_4ImplWrap::_init()
@@ -1045,7 +1041,7 @@ void export_device_impl()
     void (Tango::DeviceImpl::*stop_polling1)() = &Tango::DeviceImpl::stop_polling;
     void (Tango::DeviceImpl::*stop_polling2)(bool) = &Tango::DeviceImpl::stop_polling;
     
-    class_<Tango::DeviceImpl, DeviceImplWrap, boost::noncopyable>("DeviceImpl",
+    class_<Tango::DeviceImpl, auto_ptr<DeviceImplWrap>, boost::noncopyable>("DeviceImpl",
         init<CppDeviceClass *, const char *,
              optional<const char *, Tango::DevState, const char *> >())
 
@@ -1233,7 +1229,8 @@ void export_device_impl()
         .def("__error_stream", &PyDeviceImpl::error)
         .def("__fatal_stream", &PyDeviceImpl::fatal)
     ;
-
+    implicitly_convertible<auto_ptr<DeviceImplWrap>, auto_ptr<Tango::DeviceImpl> >();
+    
     class_<Tango::Device_2Impl, Device_2ImplWrap,
            bases<Tango::DeviceImpl>,
            boost::noncopyable>
@@ -1269,7 +1266,7 @@ void export_device_impl()
         .def("set_attribute_config_3", &PyDevice_3Impl::set_attribute_config_3)
     ;
 
-    class_<Tango::Device_4Impl, Device_4ImplWrap,
+    class_<Tango::Device_4Impl, auto_ptr<Device_4ImplWrap>,
            bases<Tango::Device_3Impl>,
            boost::noncopyable>
            ("Device_4Impl",
@@ -1291,4 +1288,5 @@ void export_device_impl()
         .def("signal_handler", &Tango::Device_4Impl::signal_handler,
             &Device_4ImplWrap::default_signal_handler)
     ;
+    implicitly_convertible<auto_ptr<Device_4ImplWrap>, auto_ptr<Tango::Device_4Impl> >();
 }

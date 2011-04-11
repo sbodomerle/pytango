@@ -126,6 +126,11 @@ struct PyDatabase
         Tango::Connection *conn = static_cast<Tango::Connection *>(&self);
         return boost::python::str(conn->dev_name());
     }
+
+    //static inline boost::python::str get_file_name(Tango::Database& self)
+    //{
+    //    return boost::python::str(self.get_file_name());
+    //}
 };
 
 void export_database()
@@ -249,7 +254,8 @@ void export_database()
         .def("get_access_except_errors",
             &Tango::Database::get_access_except_errors,
             return_internal_reference<1>())
-
+        .def("is_multi_tango_host", &Tango::Database::is_multi_tango_host)
+        
         //
         // General methods
         //
