@@ -1,4 +1,1 @@
-0001-feature-fix-compilation-with-tango-7.2.0.patch
-0002-feature-fix-the-doc-generation.patch
-0003-debian-link-with-boost-depending-on-the-python-versi.patch
-0004-debian-install-the-spock-ipython-profile.patch
+0001-debian-install-the-spock-ipython-profile.patch

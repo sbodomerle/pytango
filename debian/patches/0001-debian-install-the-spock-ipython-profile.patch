@@ -32,10 +32,10 @@ index 0000000..3ba6579
 +
 +main()
 diff --git a/setup.py b/setup.py
-index b395c92..7c48b58 100644
+index 850cd08..36e05e1 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -95,7 +95,8 @@ please_debug = False
+@@ -96,7 +96,8 @@ please_debug = False
  packages = [
      'PyTango',
      'PyTango.ipython',
