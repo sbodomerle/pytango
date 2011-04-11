@@ -1,24 +1,33 @@
-This package was debianized by picca <picca@mordor> on
-Tue, 17 Feb 2009 22:35:15 +0100.
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=173
+Upstream-Name: Tiago Coutinho
+Upstream-Contact: tcoutinho@cells.es
+Source: http://pypi.python.org/packages/source/P/PyTango
 
-It was downloaded from <url://example.com>
+Files: debian/*
+Copyright: © 2006-2011, Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
+Licence: LGPL-3+
+ The Debian packaging information is under the GPL, version 3 or later
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL'.
 
-Upstream Author(s):
+Files: *
+Copyright : © 2010, 2011, The Tango team <tango@esrf.fr>
+Licence LGPL-3+
 
-    <put author's name and email here>
-    <likewise for another author>
+Licence LGPL-3+
+ Tango is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ Tango is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-Copyright:
+ You should have received a copy of the GNU Lesser General Public License
+ along with this package; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
-
-License:
-
-    <Put the license of the package here indented by 4 spaces>
-
-The Debian packaging is copyright 2009, picca <picca@mordor> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License can be found in `/usr/share/common-licenses/LGPL'.
