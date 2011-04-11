@@ -1,0 +1,22 @@
+From: =?UTF-8?q?Picca=20Fr=C3=A9d=C3=A9ric-Emmanuel?= <picca@synchrotron-soleil.fr>
+Date: Mon, 11 Apr 2011 12:13:19 +0200
+Subject: * feature fix the compilation issue.
+
+---
+ src/server/encoded_attribute.cpp |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/server/encoded_attribute.cpp b/src/server/encoded_attribute.cpp
+index 20e3662..f44e222 100644
+--- a/src/server/encoded_attribute.cpp
++++ b/src/server/encoded_attribute.cpp
+@@ -381,7 +381,7 @@ namespace PyEncodedAttribute
+         unsigned char *buffer;
+         int width, height;
+ 
+-        self.decode_gray8(attr, &width, &height, &buffer, true);
++        self.decode_gray8(attr, &width, &height, &buffer);
+         
+         char *ch_ptr = reinterpret_cast<char *>(buffer);
+         PyObject *ret = NULL;
+-- 
