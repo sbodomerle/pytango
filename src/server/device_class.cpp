@@ -1,3 +1,26 @@
+/*******************************************************************************
+
+   This file is part of PyTango, a python binding for Tango
+
+   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+
+   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+   
+   PyTango is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
+   PyTango is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+   
+*******************************************************************************/
+
 #include "pytgutils.h"
 #include "exception.h"
 #include "server/device_class.h"
@@ -150,10 +173,6 @@ CppDeviceClassWrap::~CppDeviceClassWrap()
 void CppDeviceClassWrap::init_class()
 {
     AutoPythonGIL python_guard;
-    
-    //@TODO remove this line when Tango C++ is cleaned up
-    //set_py_class(true);
-
     signal_handler_defined = is_method_defined(m_self, "signal_handler");
 }
 
@@ -322,7 +341,6 @@ void export_device_class()
         .def("_device_destroyer",
             (void (Tango::DeviceClass::*) (const char *))
             &Tango::DeviceClass::device_destroyer)
-        .def("is_py_class", &Tango::DeviceClass::is_py_class)
         .def("_create_attribute", &CppDeviceClass::create_attribute)
         .def("_create_command", &CppDeviceClass::create_command)
     ;

@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -99,6 +100,7 @@ def __doc_base_types():
     in all the cases.
 
     Valid possible values are:
+    
         - Numpy    : Value will be stored in [value, w_value]. If the
           attribute is an scalar, they will contain a value. If it's
           an SPECTRUM or IMAGE it will be exported as a numpy array.
@@ -381,13 +383,15 @@ def __doc_base_types():
     ArchiveEventInfo.__doc__ = """
     A structure containing available archiving event information for an attribute
     with the folowing members:
+        
         - archive_rel_change : (str) relative change that will generate an event
         - archive_abs_change : (str) absolute change that will generate an event
         - extensions : (sequence<str>) extensions (currently not used)"""
 
     EventData.__doc__ = """
     This class is used to pass data to the callback method when an event
-    is sent to the client. It contains the following public fields
+    is sent to the client. It contains the following public fields:
+    
          - device : (DeviceProxy) The DeviceProxy object on which the call was
            executed.
          - attr_name : (str) The attribute name
@@ -414,6 +418,7 @@ def __doc_base_types():
     This class is used to pass data to the callback method when a
     configuration event is sent to the client. It contains the
     following public fields:
+    
         - device : (DeviceProxy) The DeviceProxy object on which the call was executed
         - attr_name : (str) The attribute name
         - event : (str) The event name
@@ -438,6 +443,7 @@ def __doc_base_types():
     AttributeAlarmInfo.__doc__ = """
     A structure containing available alarm information for an attribute
     with the folowing members:
+        
         - min_alarm : (str) low alarm level
         - max_alarm : (str) high alarm level
         - min_warning : (str) low warning level
@@ -449,12 +455,14 @@ def __doc_base_types():
     AttributeDimension.__doc__ = """
     A structure containing x and y attribute data dimensions with
     the following members:
+    
         - dim_x : (int) x dimension
         - dim_y : (int) y dimension"""
 
     AttributeEventInfo.__doc__ = """
     A structure containing available event information for an attribute
     with the folowing members:
+        
         - ch_event : (ChangeEventInfo) change event information
         - per_event : (PeriodicEventInfo) periodic event information
         - arch_event :  (ArchiveEventInfo) archiving event information"""
@@ -462,6 +470,7 @@ def __doc_base_types():
     DeviceAttributeConfig.__doc__ = """
     A base structure containing available information for an attribute
     with the following members:
+        
         - name : (str) attribute name
         - writable : (AttrWriteType) write type (R, W, RW, R with W)
         - data_format : (AttrDataFormat) data format (SCALAR, SPECTRUM, IMAGE)
@@ -484,9 +493,11 @@ def __doc_base_types():
     AttributeInfo.__doc__ = """
     A structure (inheriting from :class:`DeviceAttributeConfig`) containing
     available information for an attribute with the following members:
+    
         - disp_level : (DispLevel) display level (OPERATOR, EXPERT)
 
         Inherited members are:
+        
             - name : (str) attribute name
             - writable : (AttrWriteType) write type (R, W, RW, R with W)
             - data_format : (AttrDataFormat) data format (SCALAR, SPECTRUM, IMAGE)
@@ -509,11 +520,13 @@ def __doc_base_types():
     AttributeInfoEx.__doc__ = """
     A structure (inheriting from :class:`AttributeInfo`) containing
     available information for an attribute with the following members:
+    
         - alarms : object containing alarm information (see AttributeAlarmInfo).
         - events : object containing event information (see AttributeEventInfo).
         - sys_extensions : StdStringVector
 
         Inherited members are:
+        
             - name : (str) attribute name
             - writable : (AttrWriteType) write type (R, W, RW, R with W)
             - data_format : (AttrDataFormat) data format (SCALAR, SPECTRUM, IMAGE)
@@ -537,12 +550,21 @@ def __doc_base_types():
     ChangeEventInfo.__doc__ = """
     A structure containing available change event information for an attribute
     with the folowing members:
+        
         - rel_change : (str) relative change that will generate an event
         - abs_change : (str) absolute change that will generate an event
         - extensions : (StdStringVector) extensions (currently not used)"""
 
+    PeriodicEventInfo.__doc__ = """
+    A structure containing available periodic event information for an attribute
+    with the folowing members:
+        
+        - period : (str) event period
+        - extensions : (StdStringVector) extensions (currently not used)"""
+
     DevCommandInfo.__doc__ = """
     A device command info with the following members:
+    
         - cmd_name : (str) command name
         - cmd_tag : command as binary value (for TACO)
         - in_type : (CmdArgType) input type
@@ -554,9 +576,11 @@ def __doc_base_types():
 
     CommandInfo.__doc__ = """
     A device command info (inheriting from :class:`DevCommandInfo`) with the following members:
+    
         - disp_level : (DispLevel) command display level
 
         Inherited members are (from :class:`DevCommandInfo`):
+        
             - cmd_name : (str) command name
             - cmd_tag : (str) command as binary value (for TACO)
             - in_type : (CmdArgType) input type
@@ -568,6 +592,7 @@ def __doc_base_types():
     This class is used to pass data to the callback method when an
     attribute data ready event is sent to the clien. It contains the
     following public fields:
+    
         - device : (DeviceProxy) The DeviceProxy object on which the call was executed
         - attr_name : (str) The attribute name
         - event : (str) The event name
@@ -581,6 +606,36 @@ def __doc_base_types():
 
         New in PyTango 7.0.0"""
 
+    DeviceInfo.__doc__ = """
+    A structure containing available information for a device with the"
+    following members:
+    
+        - dev_class : (str) device class
+        - server_id : (str) server ID
+        - server_host : (str) host name
+        - server_version : (str) server version
+        - doc_url : (str) document url"""
+
+    LockerInfo.__doc__ = """
+    A structure with information about the locker with the folowing members:
+    
+        - ll : (PyTango.LockerLanguage) the locker language
+        - li : (pid_t / UUID) the locker id
+        - locker_host : (str) the host
+        - locker_class : (str) the class
+        
+        pid_t should be an int, UUID should be a tuple of four numbers.
+        
+        New in PyTango 7.0.0"""
+    
+    PollDevice.__doc__ = """
+    A structure containing PollDevice information with the folowing members:
+    
+        - dev_name : (str) device name
+        - ind_list : (sequence<int>) index list
+        
+        New in PyTango 7.0.0"""
+    
     document_method(DataReadyEventData, "get_date", """
     get_date(self) -> TimeVal
 
@@ -593,7 +648,8 @@ def __doc_base_types():
     """ )
 
     TimeVal.__doc__ = """
-    Time value structure with the following members
+    Time value structure with the following members:
+    
         - tv_sec : seconds
         - tv_usec : microseconds
         - tv_nsec : nanoseconds"""

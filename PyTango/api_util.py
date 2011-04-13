@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -46,7 +47,8 @@ def __doc_api_util():
         import PyTango
         apiutil = PyTango.ApiUtil.instance()
         
-    .. versionadded:: 7.1.3"""
+    New in PyTango 7.1.3
+    """
     
     document_static_method(ApiUtil, "instance", """
     instance() -> ApiUtil
@@ -56,7 +58,7 @@ def __doc_api_util():
         Parameters : None
         Return     : (ApiUtil) a reference to the ApiUtil singleton object.
 
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
     """ )
 
     document_method(ApiUtil, "pending_asynch_call", """
@@ -74,7 +76,7 @@ def __doc_api_util():
             
         Return     : (int) the number of pending requests for the given type
 
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
     """ )
     
     document_method(ApiUtil, "get_asynch_replies", """
@@ -89,9 +91,9 @@ def __doc_api_util():
         Return     : None
 
         Throws     : None, all errors are reported using the err and errors fields
-        of the parameter passed to the callback method.
+                     of the parameter passed to the callback method.
         
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
         
     get_asynch_replies(self) -> None
 
@@ -108,9 +110,10 @@ def __doc_api_util():
         Return     : None
         
         Throws     : AsynReplyNotArrived. All other errors are reported using 
-        the err and errors fields of the object passed to the callback methods.
+                     the err and errors fields of the object passed to the 
+                     callback methods.
         
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
     """ )
 
     document_method(ApiUtil, "set_asynch_cb_sub_model", """
@@ -126,7 +129,7 @@ def __doc_api_util():
             - model : (cb_sub_model) the callback sub-model
         Return     : None
 
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
     """ )
 
     document_method(ApiUtil, "get_asynch_cb_sub_model", """
@@ -137,7 +140,7 @@ def __doc_api_util():
         Parameters : None
         Return     : (cb_sub_model) the active asynchronous callback sub-model.
 
-        .. versionadded:: 7.1.3
+        New in PyTango 7.1.3
     """ )
 
 def init(doc=True):
