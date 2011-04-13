@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -259,10 +260,12 @@ def __DeviceImpl__get_device_properties(self, ds_class = None):
         except:
             return
     try:
-        self.prop_util = ds_class.prop_util
+        pu = self.prop_util = ds_class.prop_util
         self.device_property_list = copy.deepcopy(ds_class.device_property_list)
         class_prop = ds_class.class_property_list
-        self.prop_util.get_device_properties(self, class_prop, self.device_property_list)
+        pu.get_device_properties(self, class_prop, self.device_property_list)
+        for prop_name in class_prop.keys():
+            setattr(self, prop_name, pu.get_property_values(prop_name, class_prop))
         for prop_name in self.device_property_list.keys():
             setattr(self, prop_name, self.prop_util.get_property_values(prop_name, self.device_property_list))
     except _PyTango.DevFailed, e:
@@ -280,12 +283,11 @@ def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_me
         Parameters :
             attr : (Attr) the new attribute to be added to the list.
             r_meth : (callable) the read method to be called on a read request
-            w_meth : (callable) th write method to be called on a write request (if attr is writable)
-            is_allo_meth: (callable) the method that is called to check if it is possible to access
-                          the attribute or not
-
+            w_meth : (callable) the write method to be called on a write request (if attr is writable)
+            is_allo_meth: (callable) the method that is called to check if it is possible to access the attribute or not
+        
         Return     : None
-
+        
         Throws     : DevFailed"""
     att_name = attr.get_name()
 
@@ -1129,7 +1131,7 @@ def __doc_extra_DeviceImpl(cls):
             Write the hardware for attributes.
             Default method to implement an action necessary on a device to write
             the hardware involved in a a write attribute. This method must be
-             redefined in sub-classes in order to support writable attribute
+            redefined in sub-classes in order to support writable attribute
 
         Parameters :
             attr_list : (sequence<int>) list of indices in the device object attribute vector
@@ -1433,12 +1435,13 @@ def __doc_Attribute():
     
     document_method("set_value", """
     set_value(self, data, dim_x = 1, dim_y = 0) -> None <= DEPRECATED
-    set_value(self, data)
+    set_value(self, data) -> None
     set_value(self, str_data, data) -> None
 
             Set internal attribute value.
             This method stores the attribute read value inside the object.
             This method also stores the date when it is called and initializes the attribute quality factor.
+            
         Parameters :
             - data : the data to be set. Data must be compatible with the attribute type and format.
                      In the DEPRECATED form for SPECTRUM and IMAGE attributes, data

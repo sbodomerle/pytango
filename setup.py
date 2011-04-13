@@ -1,40 +1,38 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 import os
 import sys
 import errno
 import platform
-
-#from ez_setup import use_setuptools
-#use_setuptools()
-
-#from setuptools import setup
-#from setuptools import Extension, Distribution
+import copy
+import shutil
+import imp
+import StringIO
 
 from distutils.core import setup, Extension
 from distutils.dist import Distribution
 import distutils.sysconfig
-
 
 try:
     import sphinx
@@ -49,9 +47,20 @@ try:
 except:
     IPython = None
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'PyTango'))
+def abspath(*path):
+    """A method to determine absolute path for a given relative path to the
+    directory where this setup.py script is located"""
+    setup_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(setup_dir, *path)
 
-from release import Release
+def get_release_info():
+    name = "release"
+    release_dir = abspath('PyTango')
+    data = imp.find_module(name, [release_dir])
+    release = imp.load_module(name, *data)
+    return release.Release
+
+Release = get_release_info()
 
 BOOST_ROOT = OMNI_ROOT = TANGO_ROOT = NUMPY_ROOT = '/usr'
 
@@ -96,8 +105,9 @@ please_debug = False
 packages = [
     'PyTango',
     'PyTango.ipython',
-    'PyTango3'
 ]
+
+py_modules = []
 
 provides = [
     'PyTango',
@@ -260,7 +270,7 @@ else:
     # and then uncommenting this line. Someday maybe this will be
     # automated...
     extra_compile_args += [
-        '-includesrc/precompiled_header.hpp',
+#        '-includesrc/precompiled_header.hpp',
     ]
 
     #if not please_debug:
@@ -296,19 +306,40 @@ _pytango = Extension(name               = '_PyTango',
 from distutils.cmd import Command
 from distutils.command.build import build as dftbuild
 from distutils.command.build_ext import build_ext as dftbuild_ext
+from distutils.command.install import install as dftinstall
 from distutils.unixccompiler import UnixCCompiler
 
 class build(dftbuild):
+    
+    user_options = dftbuild.user_options + \
+        [('with-pytango3', None, "distribute PyTango3 module"),
+         ('without-spock', None, "spock IPython extension")]
+    
+    boolean_options = dftbuild.boolean_options + ['with-pytango3', 'without-spock']
+    
+    def initialize_options (self):
+        dftbuild.initialize_options(self)
+        self.with_pytango3 = None
+        self.without_spock = None
+    
+    def finalize_options(self):
+        dftbuild.finalize_options(self)
+        
+    def run(self):
+        if self.with_pytango3:
+            self.distribution.packages.append('PyTango3')
+        
+        if IPython and not self.without_spock:
+            self.distribution.py_modules.append('IPython.Extensions.ipy_profile_spock')
+
+        dftbuild.run(self)
 
     def has_doc(self):
         if sphinx is None: return False
         setup_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.isdir(os.path.join(setup_dir, 'doc'))
 
-    def has_ipython(self):
-        return IPython is not None
-
-    sub_commands = dftbuild.sub_commands + [('build_doc', has_doc), ('build_spock', has_ipython)]
+    sub_commands = dftbuild.sub_commands + [('build_doc', has_doc),]
 
 cmdclass = {'build' : build }
 
@@ -340,63 +371,58 @@ if sphinx:
     
     cmdclass['build_doc'] = build_doc
 
-if IPython:
-    class build_spock(Command):
-        
-        description = "Build Spock, the PyTango's IPython extension"
 
-        user_options = [
-            ('ipython-local', None, "install spock as current user profile instead of as an ipython extension"),
-            ('ipython-dir=', None, "Location of the ipython installation. (Defaults to '%s' if ipython-local is NOT set or to '%s' otherwise" % (_IPY_ROOT, _IPY_LOCAL) ) ]
+class install_html(Command):
 
-        boolean_options = [ 'ipython-local' ]
+    user_options = [
+        ('install-dir=', 'd', 'base directory for installing HTML documentation files')]
+    
+    def initialize_options(self):
+        self.install_dir = None
+        
+    def finalize_options(self):
+        self.set_undefined_options('install',
+                                   ('install_html', 'install_dir'))
+                                   
+    def run(self):
+        build_doc = self.get_finalized_command('build_doc')
+        src_html_dir = abspath(build_doc.build_dir, 'html')
+        self.copy_tree(src_html_dir, self.install_dir)
 
-        def initialize_options (self):
-            self.ipython_dir = None
-            self.ipython_local = False
+cmdclass['install_html'] = install_html
+
+class install(dftinstall):
+    
+    user_options = dftinstall.user_options + \
+        [('install-html=', None, "installation directory for HTML documentation"),]
+
+    def initialize_options(self):
+        dftinstall.initialize_options(self)
+        self.install_html = None
+
+    def finalize_options(self):
+        dftinstall.finalize_options(self)
+        # We do a hack here. We cannot trust the 'install_base' value because it
+        # is not always the final target. For example, in unix, the install_base
+        # is '/usr' and all other install_* are directly relative to it. However,
+        # in unix-local (like ubuntu) install_base is still '/usr' but, for 
+        # example, install_data, is '$install_base/local' which breaks everything.
+        #
+        # The hack consists in using install_data instead of install_base since
+        # install_data seems to be, in practice, the proper install_base on all
+        # different systems.
+        if self.install_html is None:
+            self.install_html = os.path.join(self.install_data, 'share', 'doc', 'PyTango', 'html')
         
-        def finalize_options(self):
-            if self.ipython_dir is None:
-                if self.ipython_local:
-                    global _IPY_LOCAL
-                    self.ipython_dir = _IPY_LOCAL
-                else:
-                    global _IPY_ROOT
-                    self.ipython_dir = os.path.join(_IPY_ROOT, "Extensions")
-            else:
-                if ipython-local:
-                    self.warn("Both options 'ipython-dir' and 'ipython-local' were given. " \
-                              "'ipython-dir' will be used.")
-            self.ensure_dirname('ipython_dir')
-        
-        def run(self):
-            added_path = False
-            try:
-                # make sure the python path is pointing to the newly built
-                # code so that the documentation is built on this and not a
-                # previously installed version
-                build = self.get_finalized_command('build')
-                sys.path.insert(0, os.path.abspath(build.build_lib))
-                added_path=True
-                import PyTango.ipython
-                PyTango.ipython.install(self.ipython_dir, verbose=False)
-            except IOError, ioerr:
-                self.warn("Unable to install Spock IPython extension. Reason:")
-                self.warn(str(ioerr))
-                if ioerr.errno == errno.EACCES:
-                    self.warn("Probably you don't have enough previledges to install spock as an ipython extension.")
-                    self.warn("Try executing setup.py with sudo or otherwise give '--ipython-local' parameter to")
-                    self.warn("setup.py to install spock as a current user ipython profile.")
-                    self.warn("type: setup.py --help build_spock for more information")
-            except Exception, e:
-                self.warn("Unable to install Spock IPython extension. Reason:")
-                self.warn(str(e))
-                
-            if added_path:
-                sys.path.pop(0)
-            
-    cmdclass['build_spock'] = build_spock
-            
+    def has_html(self):
+        return sphinx is not None
+    
+    sub_commands = list(dftinstall.sub_commands)
+    sub_commands.append(('install_html', has_html))
+
+
+cmdclass['install'] = install
+
 dist = setup(
     name             = 'PyTango',
     version          = Release.version,
@@ -410,6 +436,7 @@ dist = setup(
     license          = Release.license,
     packages         = packages,
     package_dir      = { 'PyTango' : 'PyTango', 'PyTango3' : 'PyTango3' },
+    py_modules       = py_modules,
     classifiers      = classifiers,
     package_data     = package_data,
     data_files       = data_files,

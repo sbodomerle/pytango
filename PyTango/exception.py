@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 """
@@ -35,6 +36,7 @@ def __doc_Except():
     
     Except.__doc__ = """
     A containner for the static methods:
+    
         - throw_exception
         - re_throw_exception
         - print_exception
@@ -97,7 +99,8 @@ def __doc_DevError():
     DevError.__doc__ = """
     Structure describing any error resulting from a command execution,
     or an attribute query, with following members:
-        - reason : (str)
+    
+        - reason : (str) reason
         - severity : (ErrSeverity) error severty (WARN, ERR, PANIC)
         - desc : (str) error description
         - origin : (str) Tango server method in which the error happened"""

@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -374,25 +375,26 @@ def __DeviceProxy__delete_property(self, value):
     
             Delete a the given of properties for this device.
             This method accepts the following types as value parameter:
-            1. string [in] - single property to be deleted
-            2. PyTango.DbDatum [in] - single property data to be deleted
-            3. PyTango.DbData [in] - several property data to be deleted
-            4. sequence<string> [in]- several property data to be deleted
-            5. sequence<DbDatum> [in] - several property data to be deleted
-            6. dict<str, obj> [in] - keys are property names to be deleted (values are ignored)
-            7. dict<str, DbDatum> [in] - several DbDatum.name are property names to be
-               deleted (keys are ignored)
+            
+                1. string [in] - single property to be deleted
+                2. PyTango.DbDatum [in] - single property data to be deleted
+                3. PyTango.DbData [in] - several property data to be deleted
+                4. sequence<string> [in]- several property data to be deleted
+                5. sequence<DbDatum> [in] - several property data to be deleted
+                6. dict<str, obj> [in] - keys are property names to be deleted (values are ignored)
+                7. dict<str, DbDatum> [in] - several DbDatum.name are property names to be deleted (keys are ignored)
 
         Parameters :
             - value : can be one of the following:
+            
                 1. string [in] - single property data to be deleted
                 2. PyTango.DbDatum [in] - single property data to be deleted
                 3. PyTango.DbData [in] - several property data to be deleted
                 4. sequence<string> [in]- several property data to be deleted
                 5. sequence<DbDatum> [in] - several property data to be deleted
                 6. dict<str, obj> [in] - keys are property names to be deleted (values are ignored)
-                7. dict<str, DbDatum> [in] - several DbDatum.name are property names
-                   to be deleted (keys are ignored)
+                7. dict<str, DbDatum> [in] - several DbDatum.name are property names to be deleted (keys are ignored)
+        
         Return     : None
 
         Throws     : ConnectionFailed, CommunicationFailed
@@ -1222,6 +1224,7 @@ def __doc_DeviceProxy():
         Parameters : None
         Return     : (sequence<str>) One string for each polled command/attribute.
                      Each string is multi-line string with:
+                     
                         - attribute/command name
                         - attribute/command polling period in milliseconds
                         - attribute/command polling ring buffer

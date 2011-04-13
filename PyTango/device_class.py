@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -285,15 +286,13 @@ class DeviceClass(_DeviceClass):
         _DeviceClass.__init__(self,name)
         self.dyn_att_added_methods = []
         try:
-            self.prop_util = PropUtil()
+            pu = self.prop_util = PropUtil()
             self.py_dev_list = []
-            has_cl_prop = hasattr(self,"class_property_list")
-            has_dev_prop = hasattr(self,"device_property_list")
-            if has_cl_prop and has_dev_prop:
-                self.prop_util.set_default_property_values(self,self.class_property_list, self.device_property_list)
-                self.prop_util.get_class_properties(self, self.class_property_list)
-                for prop_name in self.class_property_list.keys():
-                    setattr(self, prop_name, self.prop_util.get_property_values(prop_name, self.class_property_list))
+            pu.set_default_property_values(self, self.class_property_list,
+                                           self.device_property_list)
+            pu.get_class_properties(self, self.class_property_list)
+            for prop_name in self.class_property_list.keys():
+                setattr(self, prop_name, pu.get_property_values(prop_name, self.class_property_list))
         except DevFailed, df:
             print("PyDS: %s: A Tango error occured in the constructor:" % name)
             Except.print_exception(df)

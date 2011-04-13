@@ -1,3 +1,26 @@
+/*******************************************************************************
+
+   This file is part of PyTango, a python binding for Tango
+
+   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
+
+   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+   
+   PyTango is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
+   PyTango is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+   
+*******************************************************************************/
+
 #include <boost/python.hpp>
 #include <boost/python/return_value_policy.hpp>
 #include <string>
@@ -657,7 +680,7 @@ PyDeviceImplBase::~PyDeviceImplBase()
 
 void PyDeviceImplBase::py_delete_dev()
 {}
-
+ 
 Device_3ImplWrap::Device_3ImplWrap(PyObject *self, CppDeviceClass *cl,
                                    std::string &st)
     :Tango::Device_3Impl(cl,st),
@@ -682,15 +705,6 @@ void Device_3ImplWrap::_init()
     // Make sure the wrapper contains a valid pointer to the self
     // I found out this is needed by inspecting the boost wrapper_base.hpp code
     initialize_wrapper(the_self, this);
-
-    // Tell Tango that this is a Python device.
-    // Humm, we should try to avoid this in the future
-    //this->set_py_device(true);
-
-    Tango::Device_3ImplExt *tmp_ptr = ext_3;
-    Py_Device_3ImplExt *new_ext = new Py_Device_3ImplExt(this);
-    ext_3 = new_ext;
-    delete tmp_ptr;
 }
 
 void Device_3ImplWrap::init_device()
@@ -846,24 +860,13 @@ Device_4ImplWrap::Device_4ImplWrap(PyObject *self, CppDeviceClass *cl,
 }
 
 Device_4ImplWrap::~Device_4ImplWrap()
-{
-    cout << "-----------------------------------------------------hello" <<endl;
-}
+{ delete_device(); }
 
 void Device_4ImplWrap::_init()
 {
     // Make sure the wrapper contains a valid pointer to the self
     // I found out this is needed by inspecting the boost wrapper_base.hpp code
     initialize_wrapper(the_self, this);
-
-    // Tell Tango that this is a Python device.
-    // Humm, we should try to avoid this in the future
-    this->set_py_device(true);
-
-    Tango::Device_3ImplExt *tmp_ptr = ext_3;
-    Py_Device_3ImplExt *new_ext = new Py_Device_3ImplExt(this);
-    ext_3 = new_ext;
-    delete tmp_ptr;
 }
 
 void Device_4ImplWrap::init_device()
@@ -989,22 +992,6 @@ void Device_4ImplWrap::signal_handler(long signo)
 void Device_4ImplWrap::default_signal_handler(long signo)
 {
     this->Tango::Device_4Impl::signal_handler(signo);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Ext
-///////////////////////////////////////////////////////////////////////////////
-
-Py_Device_3ImplExt::Py_Device_3ImplExt(PyDeviceImplBase *ptr)
-    :Tango::Device_3ImplExt(), my_dev(ptr)
-{}
-
-Py_Device_3ImplExt::~Py_Device_3ImplExt()
-{}
-
-void Py_Device_3ImplExt::delete_dev()
-{
-    my_dev->py_delete_dev();
 }
 
 #if ((defined sun) || (defined WIN32))

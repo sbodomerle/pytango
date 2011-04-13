@@ -1,24 +1,25 @@
-#############################################################################
+################################################################################
 ##
 ## This file is part of PyTango, a python binding for Tango
-##
+## 
 ## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
 ##
-## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## This is free software; you can redistribute it and/or modify
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## PyTango is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
+## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
-## This software is distributed in the hope that it will be useful,
+## 
+## PyTango is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with this program; if not, see <http://www.gnu.org/licenses/>.
-###########################################################################
+## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
+##
+################################################################################
 
 """
 This is an internal PyTango module.
@@ -235,9 +236,11 @@ def __Database__put_property(self, obj_name, value):
         put_property(self, obj_name, value) -> None
 
             Insert or update a list of properties for the specified object.
+            
         Parameters :
             - obj_name : (str) object name
             - value : can be one of the following:
+            
                 1. DbDatum - single property data to be inserted
                 2. DbData - several property data to be inserted
                 3. sequence<DbDatum> - several property data to be inserted
@@ -259,20 +262,21 @@ def __Database__get_property(self, obj_name, value):
             Parameters :
                 - obj_name : (str) object name
                 - value : can be one of the following:
+                
                     1. str [in] - single property data to be fetched
                     2. DbDatum [in] - single property data to be fetched
                     3. DbData [in,out] - several property data to be fetched
-                       In this case (direct C++ API) the DbData will be filled with the
-                       property values
+                       In this case (direct C++ API) the DbData will be filled with
+                       the property values
                     4. sequence<str> [in] - several property data to be fetched
                     5. sequence<DbDatum> [in] - several property data to be fetched
                     6. dict<str, obj> [in,out] - keys are property names
-                       In this case the given dict values will be changed to contain the
-                       several property values
+                       In this case the given dict values will be changed to contain
+                       the several property values
 
             Return     : a dictionary which keys are the property names the value
-                        associated with each key being a a sequence of strings being the
-                        property value.
+                         associated with each key being a a sequence of strings being
+                         the property value.
 
             Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)"""
     return __Database__generic_get_property(self, obj_name, value, self._get_property)
@@ -291,15 +295,16 @@ def __Database__delete_property(self, obj_name, value):
             Parameters :
                 - obj_name : (str) object name
                 - value : can be one of the following:
+                
                     1. str [in] - single property data to be deleted
                     2. DbDatum [in] - single property data to be deleted
                     3. DbData [in] - several property data to be deleted
                     4. sequence<string> [in]- several property data to be deleted
                     5. sequence<DbDatum> [in] - several property data to be deleted
                     6. dict<str, obj> [in] - keys are property names to be deleted
-                                             (values are ignored)
+                       (values are ignored)
                     7. dict<str, DbDatum> [in] - several DbDatum.name are property names
-                                                 to be deleted (keys are ignored)
+                       to be deleted (keys are ignored)
             Return     : None
 
             Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)"""
@@ -314,16 +319,17 @@ def __Database__get_device_property(self, dev_name, value):
             Parameters :
                 - dev_name : (str) object name
                 - value : can be one of the following:
+                
                     1. str [in] - single property data to be fetched
                     2. DbDatum [in] - single property data to be fetched
                     3. DbData [in,out] - several property data to be fetched
-                       In this case (direct C++ API) the DbData will be filled with the
-                       property values
+                       In this case (direct C++ API) the DbData will be filled with
+                       the property values
                     4. sequence<str> [in] - several property data to be fetched
                     5. sequence<DbDatum> [in] - several property data to be fetched
                     6. dict<str, obj> [in,out] - keys are property names
-                       In this case the given dict values will be changed to contain the
-                       several property values
+                       In this case the given dict values will be changed to contain
+                       the several property values
 
             Return     : a dictionary which keys are the property names the value
                         associated with each key being a a sequence of strings being the
@@ -341,6 +347,7 @@ def __Database__put_device_property(self, dev_name, value):
             Parameters :
                 - dev_name : (str) object name
                 - value : can be one of the following:
+                
                     1. DbDatum - single property data to be inserted
                     2. DbData - several property data to be inserted
                     3. sequence<DbDatum> - several property data to be inserted
@@ -416,16 +423,17 @@ def __Database__get_device_attribute_property(self, dev_name, value):
             Parameters :
                 - dev_name : (string) device name
                 - value : can be one of the following:
+                
                     1. str [in] - single attribute properties to be fetched
                     2. DbDatum [in] - single attribute properties to be fetched
                     3. DbData [in,out] - several attribute properties to be fetched
-                       In this case (direct C++ API) the DbData will be filled with the property
-                       values
+                       In this case (direct C++ API) the DbData will be filled with
+                       the property values
                     4. sequence<str> [in] - several attribute properties to be fetched
                     5. sequence<DbDatum> [in] - several attribute properties to be fetched
                     6. dict<str, obj> [in,out] - keys are attribute names
-                       In this case the given dict values will be changed to contain the several
-                       attribute property values
+                       In this case the given dict values will be changed to contain the
+                       several attribute property values
 
             Return     :  a dictionary which keys are the attribute names the
                                  value associated with each key being a another
@@ -489,11 +497,13 @@ def __Database__put_device_attribute_property(self, dev_name, value):
             Parameters :
                 - dev_name : (str) device name
                 - value : can be one of the following:
+                
                     1. DbData - several property data to be inserted
                     2. sequence<DbDatum> - several property data to be inserted
                     3. dict<str, dict<str, obj>> keys are attribute names and value being another
                        dictionary which keys are the attribute property names and the value
                        associated with each key being:
+                       
                        3.1 seq<str>
                        3.2 PyTango.DbDatum
 
@@ -571,20 +581,21 @@ def __Database__get_class_property(self, class_name, value):
             Parameters :
                 - class_name : (str) class name
                 - value : can be one of the following:
+                
                     1. str [in] - single property data to be fetched
                     2. PyTango.DbDatum [in] - single property data to be fetched
                     3. PyTango.DbData [in,out] - several property data to be fetched
-                       In this case (direct C++ API) the DbData will be filled with the
-                       property values
+                       In this case (direct C++ API) the DbData will be filled with
+                       the property values
                     4. sequence<str> [in] - several property data to be fetched
                     5. sequence<DbDatum> [in] - several property data to be fetched
                     6. dict<str, obj> [in,out] - keys are property names
-                       In this case the given dict values will be changed to contain the
-                       several property values
+                       In this case the given dict values will be changed to contain
+                       the several property values
 
             Return     : a dictionary which keys are the property names the value
-                        associated with each key being a a sequence of strings being the
-                        property value.
+                         associated with each key being a a sequence of strings being the
+                         property value.
 
             Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)"""
     return __Database__generic_get_property(self, class_name, value, self._get_class_property)
@@ -618,15 +629,17 @@ def __Database__delete_class_property(self, class_name, value):
             Parameters :
                 - class_name : (str) class name
                 - value : can be one of the following:
+                
                     1. str [in] - single property data to be deleted
                     2. DbDatum [in] - single property data to be deleted
                     3. DbData [in] - several property data to be deleted
                     4. sequence<str> [in]- several property data to be deleted
                     5. sequence<DbDatum> [in] - several property data to be deleted
                     6. dict<str, obj> [in] - keys are property names to be deleted
-                                             (values are ignored)
+                       (values are ignored)
                     7. dict<str, DbDatum> [in] - several DbDatum.name are property names
-                                                 to be deleted (keys are ignored)
+                       to be deleted (keys are ignored)
+                       
             Return     : None
 
             Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)"""
@@ -643,6 +656,7 @@ def __Database__get_class_attribute_property(self, class_name, value):
             Parameters :
                 - class_name : (str) class name
                 - propnames : can be one of the following:
+                
                     1. str [in] - single attribute properties to be fetched
                     2. DbDatum [in] - single attribute properties to be fetched
                     3. DbData [in,out] - several attribute properties to be fetched
@@ -716,11 +730,13 @@ def __Database__put_class_attribute_property(self, class_name, value):
             Parameters :
                 - class_name : (str) class name
                 - propdata : can be one of the following:
+                
                     1. PyTango.DbData - several property data to be inserted
                     2. sequence<DbDatum> - several property data to be inserted
                     3. dict<str, dict<str, obj>> keys are attribute names and value
                        being another dictionary which keys are the attribute property
                        names and the value associated with each key being:
+                       
                        3.1 seq<str>
                        3.2 PyTango.DbDatum
 
@@ -763,11 +779,13 @@ def __Database__delete_class_attribute_property(self, class_name, value):
             Parameters :
                 - class_name : (str) class name
                 - propnames : can be one of the following:
+                
                     1. DbData [in] - several property data to be deleted
                     2. sequence<str> [in]- several property data to be deleted
                     3. sequence<DbDatum> [in] - several property data to be deleted
                     4. dict<str, seq<str>> keys are attribute names and value being a
                        list of attribute property names
+            
             Return     : None
 
             Throws     : ConnectionFailed, CommunicationFailed
@@ -835,11 +853,14 @@ def __doc_Database():
 
     Database.__doc__ = """
     Database is the high level Tango object which contains the link to the static database.
-    Database provides methods for all database commands : get_device_property(), put_device_property(), info(), etc..
-    To create a Database, use the default constructor.
-    Example:
+    Database provides methods for all database commands : get_device_property(), 
+    put_device_property(), info(), etc..
+    To create a Database, use the default constructor. Example::
+    
         db = Database()
-    The constructor uses the TANGO_HOST env. variable to determine which instance of the Database to connect to."""
+        
+    The constructor uses the TANGO_HOST env. variable to determine which 
+    instance of the Database to connect to."""
 
     document_method("write_filedatabase", """
     write_filedatabase(self) -> None
@@ -1668,9 +1689,10 @@ def __doc_Database():
             wildcard character (eg: 'prop*').
 
         Parameters :
-            - devn_ame : (str) device name
+            - dev_name : (str) device name
             - attn_ame : (str) attribute name
             - prop_name : (str) property name
+            
         Return     : DbHistoryList containing the list of modifications
 
         Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
@@ -1964,28 +1986,31 @@ def __doc_DbDevExportInfo():
     DbDevExportInfo.__doc__ = """
     import info for a device (should be retrived from the database) with
     the following members:
-        - name : device name
-        - ior : CORBA reference of the device
+    
+        - name : (str) device name
+        - ior : (str) CORBA reference of the device
         - host : name of the computer hosting the server
-        - version : str
+        - version : (str) version
         - pid : process identifier"""
 
 def __doc_DbDevImportInfo():
     DbDevImportInfo.__doc__ = """
     import info for a device (should be retrived from the database) with
     the following members:
-        - name : device name
+    
+        - name : (str) device name
         - exported : 1 if device is running, 0 else
-        - ior : CORBA reference of the device
-        - version : str"""
+        - ior : (str)CORBA reference of the device
+        - version : (str) version"""
 
 def __doc_DbDevInfo():
     DbDevInfo.__doc__ = """
     A structure containing available information for a device with
     the following members:
-        - name : str
-        - _class : str
-        - server : str"""
+    
+        - name : (str) name
+        - _class : (str) device class
+        - server : (str) server"""
 
 def __doc_DbHistory():
     def document_method(method_name, desc, append=True):
@@ -2043,10 +2068,11 @@ def __doc_DbServerInfo():
     DbServerInfo.__doc__ = """
     A structure containing available information for a device server with
     the following members:
-        - name : str
-        - host : str
-        - mode : str
-        - level : str"""
+    
+        - name : (str) name
+        - host : (str) host
+        - mode : (str) mode
+        - level : (str) level"""
 
 def init(doc=True):
     __init_DbDatum()
