@@ -1,4 +1,4 @@
-pytango (7.1.5-1) unstable; urgency=low
+pytango (7.1.6-1) unstable; urgency=low
 
   * Initial release (Closes: #614245)
   * Thanks to Justin B Rye for package description review
