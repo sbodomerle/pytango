@@ -3,7 +3,6 @@ Section: python
 Priority: extra
 Maintainer: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 Build-Depends: debhelper (>= 8.0.0),
-	       python-support (>= 0.7.6),
 	       python-all-dev,
 	       python-setuptools,
 	       liblog4tango4-dev,
