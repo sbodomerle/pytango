@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 8.0.0),
 	       ipython,
 	       python-sphinx,
 	       graphviz
-XS-Python-Version: >= 2.5
+X-Python-Version: >= 2.5
 Standards-Version: 3.9.1
 Homepage: http://www.tango-controls.org
 
@@ -24,7 +24,11 @@ Depends: ${shlibs:Depends},
 	 python-numpy,
 	 ipython,
 	 libjs-jquery
-XB-Python-Version: ${python:Versions}
 Provides: ${python:Provides}
-Description: The Tango Control System python binding
- <insert long description, indented with spaces>
+Description: API for the TANGO control system
+ TANGO is an object oriented distributed control system using CORBA,
+ mainly developed by the Controls Section of the ALBA Synchrotron.
+ PyTango provides bindings for its client- and server-side C++ APIs.
+ With PyTango, you can write TANGO device servers and TANGO applications
+ (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
+
