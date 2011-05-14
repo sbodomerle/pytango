@@ -1,3 +1,9 @@
+pytango (7.2.0-2) UNRELEASED; urgency=low
+
+  * Bump the Standards-Version to 3.9.2
+
+ -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Sat, 14 May 2011 14:01:37 +0200
+
 pytango (7.2.0-1) unstable; urgency=low
 
   * Initial release (Closes: #614245)

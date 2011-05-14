@@ -13,7 +13,7 @@ Build-Depends: debhelper (>= 8.0.0),
 	       python-sphinx,
 	       graphviz
 X-Python-Version: >= 2.5
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Homepage: http://www.tango-controls.org
 
 Package: python-pytango
