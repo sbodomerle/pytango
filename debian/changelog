@@ -1,9 +1,18 @@
 pytango (7.2.0-2) unstable; urgency=low
 
-  * Bump the Standards-Version to 3.9.2
-  * Require at least libtango7 >= 7.2
+  * debian/control
+    - bump the Standards-Version to 3.9.2
+    - Build-Depends
+      + libtango7 (>= 7.2) (updated)
+      + python-all-dev  (>= 2.6.6-3~) (updated)
+      + python-setuptool (removed)
+  * debian/copyright
+    - use the right dep5 location
+  * Install the spock profile also for python2.7 Thanks Jakub Wilk for
+    the report (Closes: #632077)
+  * Update my email address since I am DD now.
 
- -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Sat, 14 May 2011 14:01:37 +0200
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 14 May 2011 14:01:37 +0200
 
 pytango (7.2.0-1) unstable; urgency=low
 

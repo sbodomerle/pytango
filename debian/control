@@ -1,10 +1,9 @@
 Source: pytango
 Section: python
 Priority: extra
-Maintainer: Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
+Maintainer: Picca Frédéric-Emmanuel <picca@debian.org>
 Build-Depends: debhelper (>= 8.0.0),
-	       python-all-dev,
-	       python-setuptools,
+	       python-all-dev (>= 2.6.6-3~),
 	       liblog4tango4-dev,
 	       libtango7-dev (>= 7.2),
 	       libboost-python-dev,

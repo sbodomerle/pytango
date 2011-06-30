@@ -1,4 +1,4 @@
-Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=173
+Format: http://dep.debian.net/deps/dep5
 Upstream-Name: Tiago Coutinho
 Upstream-Contact: tcoutinho@cells.es
 Source: http://pypi.python.org/packages/source/P/PyTango
