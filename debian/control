@@ -1,7 +1,8 @@
 Source: pytango
-Section: python
+Section: science
 Priority: extra
-Maintainer: Picca Frédéric-Emmanuel <picca@debian.org>
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
 Build-Depends: debhelper (>= 8.0.0),
 	       python-all-dev (>= 2.6.6-3~),
 	       liblog4tango4-dev,
@@ -14,8 +15,11 @@ Build-Depends: debhelper (>= 8.0.0),
 X-Python-Version: >= 2.5
 Standards-Version: 3.9.2
 Homepage: http://www.tango-controls.org
+Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
 
 Package: python-pytango
+Section: python
 Architecture: any
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
