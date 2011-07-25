@@ -3,8 +3,9 @@ pytango (7.2.0-3) UNRELEASED; urgency=low
   * debian/control
     - add the Vcs- fields
     - follow Debian Science policy for Maintainers
+  * debian/copyright fixed using config-edit
 
- -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 02 Jul 2011 17:42:36 +0200
+ -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Mon, 25 Jul 2011 23:05:59 +0200
 
 pytango (7.2.0-2) unstable; urgency=low
 
