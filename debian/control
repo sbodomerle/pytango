@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 8.0.0),
 	       libboost-python-dev,
 	       python-numpy,
 	       ipython,
-	       python-sphinx,
+	       python-sphinx (>= 1.0.7+dfsg),
 	       graphviz
 X-Python-Version: >= 2.5
 Standards-Version: 3.9.2
@@ -24,9 +24,9 @@ Architecture: any
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 ${python:Depends},
+	 ${sphinxdoc:Depends},
 	 python-numpy,
-	 ipython,
-	 libjs-jquery
+	 ipython
 Provides: ${python:Provides}
 Description: API for the TANGO control system
  TANGO is an object oriented distributed control system using CORBA,
