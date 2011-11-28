@@ -7,6 +7,8 @@ pytango (7.2.0-3) UNRELEASED; urgency=low
     - add the Vcs- fields
     - follow Debian Science policy for Maintainers
   * debian/copyright fixed using config-edit
+  * debian/patches
+    - remove all patches thanks to the --install-html option.
 
  -- Picca Frédéric-Emmanuel <picca@debian.org>  Mon, 25 Jul 2011 23:05:59 +0200
 

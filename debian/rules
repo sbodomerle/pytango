@@ -4,5 +4,8 @@ override_dh_clean:
 	rm -rf build/sphinx
 	dh_clean
 
+override_dh_auto_install:
+	dh_auto_install -- --install-html=$(CURDIR)/debian/python-pytango/usr/share/doc/python-pytango/
+
 %:
 	dh $@ --with python2 --with sphinxdoc
