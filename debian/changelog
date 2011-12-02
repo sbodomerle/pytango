@@ -9,6 +9,7 @@ pytango (7.2.0-3) UNRELEASED; urgency=low
   * debian/copyright fixed using config-edit
   * debian/patches
     - remove all patches thanks to the --install-html option.
+  * use pyinstall file to install the ipython profile.
 
  -- Picca Frédéric-Emmanuel <picca@debian.org>  Mon, 25 Jul 2011 23:05:59 +0200
 
