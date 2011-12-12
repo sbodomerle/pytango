@@ -21,11 +21,7 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <string>
-#include <tango/tango.h>
-
+#include "precompiled_header.hpp"
 #include "defs.h"
 #include "pytgutils.h"
 #include "exception.h"
@@ -475,16 +471,44 @@ namespace PyDeviceImpl
         }
     }
 
-    void add_attribute(Tango::DeviceImpl &self, const Tango::Attr &c_new_attr)
+    void add_attribute(Tango::DeviceImpl &self, const Tango::Attr &c_new_attr,
+                       boost::python::object read_meth_name,
+                       boost::python::object write_meth_name,
+                       boost::python::object is_allowed_meth_name)
     {
         Tango::Attr &new_attr = const_cast<Tango::Attr &>(c_new_attr);
-
+        
         std::string
             attr_name = new_attr.get_name(),
-            is_allowed_method = "is_" + attr_name + "_allowed",
-            read_name_met = "read_" + attr_name,
-            write_name_met = "write_" + attr_name;
+            read_name_met, write_name_met, is_allowed_method;
+            
+        if (read_meth_name.ptr() == Py_None)
+        {
+            read_name_met = "read_" + attr_name;
+        }
+        else
+        {
+            read_name_met = boost::python::extract<const char *>(read_meth_name);
+        }
 
+        if (write_meth_name.ptr() == Py_None)
+        {
+            write_name_met = "write_" + attr_name;
+        }
+        else
+        {
+            write_name_met = boost::python::extract<const char *>(write_meth_name);
+        }
+
+        if (is_allowed_meth_name.ptr() == Py_None)
+        {
+            is_allowed_method = "is_" + attr_name + "_allowed";
+        }
+        else
+        {
+            is_allowed_method = boost::python::extract<const char *>(is_allowed_meth_name);
+        }
+        
         Tango::AttrWriteType attr_write = new_attr.get_writable();
 
         //
@@ -540,7 +564,19 @@ namespace PyDeviceImpl
         py_attr_ptr->set_read_name(read_name_met);
         py_attr_ptr->set_write_name(write_name_met);
         py_attr_ptr->set_allowed_name(is_allowed_method);
-
+        
+        if (new_attr.get_memorized())
+            attr_ptr->set_memorized();
+        attr_ptr->set_memorized_init(new_attr.get_memorized_init());
+        
+        attr_ptr->set_disp_level(new_attr.get_disp_level());
+        attr_ptr->set_polling_period(new_attr.get_polling_period());
+        attr_ptr->set_change_event(new_attr.is_change_event(),
+                                   new_attr.is_check_change_criteria());
+        attr_ptr->set_archive_event(new_attr.is_archive_event(),
+                                    new_attr.is_check_archive_criteria());
+        attr_ptr->set_data_ready_event(new_attr.is_data_ready_event());
+        
         //
         // Install attribute in Tango.
         //
@@ -1211,6 +1247,8 @@ void export_device_impl()
 
         .def("push_data_ready_event", &Tango::DeviceImpl::push_data_ready_event,
             push_data_ready_event_overload())
+
+        .def("push_att_conf_event", &Tango::DeviceImpl::push_att_conf_event)
 
         .def("get_logger", &Tango::DeviceImpl::get_logger, return_internal_reference<>())
         .def("__debug_stream", &PyDeviceImpl::debug)

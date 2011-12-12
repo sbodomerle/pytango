@@ -21,8 +21,8 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <boost/version.hpp>
+#include "precompiled_header.hpp"
+
 #if BOOST_VERSION < 103400
 #define DISABLE_BOOST_DOCSTRING_OPTIONS
 #endif
@@ -32,9 +32,7 @@
 #   include <numpy/arrayobject.h>
 #endif
 
-#include <tango/tango.h>
-#include <iostream>
-#include <string>
+#include <tango.h>
 
 using namespace boost::python;
 
@@ -58,6 +56,7 @@ void export_attribute();
 void export_encoded_attribute();
 void export_wattribute();
 void export_multi_attribute();
+void export_multi_class_attribute();
 void export_user_default_attr_prop();
 void export_sub_dev_diag();
 void export_dserver();
@@ -109,6 +108,7 @@ BOOST_PYTHON_MODULE(_PyTango)
     export_encoded_attribute();
     export_wattribute();
     export_multi_attribute();
+    export_multi_class_attribute();
     export_user_default_attr_prop();
     export_sub_dev_diag();
     export_device_class();

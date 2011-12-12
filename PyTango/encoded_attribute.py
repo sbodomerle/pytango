@@ -32,17 +32,20 @@ __docformat__ = "restructuredtext"
 import types
 import operator
 
-from _PyTango import Except
+import _PyTango
 from _PyTango import EncodedAttribute
 from _PyTango import ExtractAs
 from _PyTango import _ImageFormat
-from utils import document_method as __document_method
 
-try:
-    import numpy
-except:
-    numpy = None
-
+if _PyTango.constants.NUMPY_SUPPORT:
+    try:
+        import numpy
+        np = numpy
+    except:
+        np = None
+else:
+    np = None
+    
 _allowed_extract = ExtractAs.Numpy, ExtractAs.String, ExtractAs.Tuple, \
                    ExtractAs.List, ExtractAs.PyTango3
 
@@ -130,7 +133,7 @@ def __EncodedAttribute_generic_encode_gray8(self, gray8, width=0, height=0, qual
             raise ValueError("When giving a string as data, you must also "
                              "supply width and height")
     
-    if numpy and isinstance(gray8, numpy.ndarray):
+    if np and isinstance(gray8, np.ndarray):
         if gray8.ndim != 2:
             if not width or not height:
                 raise ValueError("When giving a non 2D numpy array, width and "
@@ -167,7 +170,7 @@ def __EncodedAttribute_encode_gray16(self, gray16, width=0, height=0):
     """Encode a 16 bit grayscale image (no compression)
     
            :param gray16: an object containning image information
-           :type gray16: :py:obj:`str` or :class:`numpy.ndarray` or seq< seq<element> >
+           :type gray16: :py:obj:`str` or :py:obj:`buffer` or :class:`numpy.ndarray` or seq< seq<element> >
            :param width: image width. **MUST** be given if gray16 is a string or
                          if it is a :class:`numpy.ndarray` with ndims != 2.
                          Otherwise it is calculated internally.
@@ -206,7 +209,8 @@ def __EncodedAttribute_encode_gray16(self, gray16, width=0, height=0):
             raise ValueError("When giving a string as data, you must also "
                              "supply width and height")
     
-    if numpy and isinstance(gray16, numpy.ndarray):
+    
+    if np and isinstance(gray16, np.ndarray):
         if gray16.ndim != 2:
             if not width or not height:
                 raise ValueError("When giving a non 2D numpy array, width and "
@@ -222,7 +226,7 @@ def __EncodedAttribute_encode_gray16(self, gray16, width=0, height=0):
         if gray16.flags.aligned != True:
             raise TypeError("Currently, only contiguous, aligned numpy arrays "
                             "are supported")
-
+    
     if not is_str and (not width or not height):
         height = len(gray16)
         if height < 1:
@@ -235,9 +239,8 @@ def __EncodedAttribute_encode_gray16(self, gray16, width=0, height=0):
         width = len(row0)
         if type(row0) in types.StringTypes or type(row0) == bytearray:
             width /= 2
-
+    
     self._encode_gray16(gray16, width, height)
-
 
 def __EncodedAttribute_encode_jpeg_rgb24(self, rgb24, width=0, height=0, quality=100.0):
     """Encode a 24 bit rgb color image as JPEG format.
@@ -325,7 +328,7 @@ def __EncodedAttribute_generic_encode_rgb24(self, rgb24, width=0, height=0, qual
             raise ValueError("When giving a string as data, you must also "
                              "supply width and height")
     
-    if numpy and isinstance(rgb24, numpy.ndarray):
+    if np and isinstance(rgb24, np.ndarray):
         if rgb24.ndim != 3:
             if not width or not height:
                 raise ValueError("When giving a non 2D numpy array, width and "
@@ -401,7 +404,7 @@ def __EncodedAttribute_encode_jpeg_rgb32(self, rgb32, width=0, height=0, quality
             raise ValueError("When giving a string as data, you must also "
                              "supply width and height")
     
-    if numpy and isinstance(rgb32, numpy.ndarray):
+    if np and isinstance(rgb32, np.ndarray):
         if rgb32.ndim != 2:
             if not width or not height:
                 raise ValueError("When giving a non 2D numpy array, width and "

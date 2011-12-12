@@ -25,28 +25,33 @@
 
 """An IPython profile designed to provide a user friendly interface to Tango"""
 
+__all__ = ["load_config", "load_ipython_extension", "unload_ipython_extension"]
+
 import sys
 import os
-import token
-import tokenize
-import copy
 import re
-import operator
 import StringIO
 import textwrap
-import IPython.ipapi
-import IPython.ColorANSI
-import IPython.Prompts
-import IPython.PyColorize
-import IPython.excolors
-import IPython.ipstruct
-import IPython.genutils
+
+from IPython.core import ipapi
+from IPython.core.error import UsageError
+from IPython.utils.ipstruct import Struct
+from IPython.core.page import page
+
 import PyTango
 import PyTango.utils
+
+_TG_EXCEPTIONS = PyTango.DevFailed, PyTango.CommunicationFailed, \
+    PyTango.NamedDevFailed, PyTango.NamedDevFailedList, \
+    PyTango.WrongNameSyntax, PyTango.NonDbDevice, PyTango.WrongData, \
+    PyTango.NonSupportedFeature, PyTango.AsynCall, \
+    PyTango.AsynReplyNotArrived, PyTango.EventSystemFailed, \
+    PyTango.DeviceUnlocked, PyTango.NotAllowed
 
 _DB_SYMB = "db"
 _DFT_TANGO_HOST = None
 _SPOCK_STORE = "__spock_store"
+_TANGO_ERR = "__tango_error"
 _SPOCK_ERR = "__spock_error"
 _spock_init = False
 
@@ -167,7 +172,7 @@ def __AttributeProxy_completer(ip, evt):
 def __get_device_proxy(dev_name):
     db = __get_db()
     if db is None: return
-    cache = db._db_cache
+    cache = db._db_cacheIPyh
     from_alias = cache.aliases.get(dev_name)
     
     if from_alias is not None:
@@ -206,7 +211,7 @@ __monitor_completer = __AttributeProxy_completer
 #-------------------------------------------------------------------------------
 
 def magic_refreshdb(self, parameter_s=''):
-    init_db(IPython.ipapi.get(), parameter_s)
+    init_db(ipapi.get(), parameter_s)
 
 def magic_switchdb(self, parameter_s=''):
     """Switches the active tango Database.
@@ -221,8 +226,9 @@ def magic_switchdb(self, parameter_s=''):
     In [3]: switchdb homer"""
     
     if parameter_s == '':
-        raise IPython.ipapi.UsageError("%switchdb: Must specify a tango database name. See '%switchdb?'")
-    return init_db(IPython.ipapi.get(), parameter_s)
+        raise UsageError("%switchdb: Must specify a tango database name. "\
+                         "See '%switchdb?'")
+    return init_db(ipapi.get(), parameter_s)
 
 def magic_lsdev(self, parameter_s=''):
     """Lists all known tango devices.
@@ -253,7 +259,7 @@ def magic_lsdev(self, parameter_s=''):
         if reg_exp and not reg_exp.match(d): continue
         print >>s, l % (d, v[0], v[1], v[2])
     s.seek(0)
-    IPython.genutils.page(s.read())
+    page(s.read())
 
 def magic_lsdevclass(self, parameter_s=''):
     """Lists all known tango device classes.
@@ -278,7 +284,7 @@ def magic_lsdevclass(self, parameter_s=''):
     s = StringIO.StringIO()
     data = [ "%-030s" % klass for klass in data.keys() if not reg_exp or reg_exp.match(klass) ]
     s = textwrap.fill(" ".join(data), 80)
-    IPython.genutils.page(s)
+    page(s)
 
 def magic_lsserv(self, parameter_s=''):
     """Lists all known tango servers.
@@ -303,24 +309,35 @@ def magic_lsserv(self, parameter_s=''):
     s = StringIO.StringIO()
     data = [ "%-030s" % server for server in data.keys() if not reg_exp or reg_exp.match(server) ]
     s = textwrap.fill(" ".join(data), 80)
-    IPython.genutils.page(s)
+    page(s)
 
 def magic_tango_error(self, parameter_s=''):
     """Displays detailed information about the last tango error"""
     
-    global _SPOCK_ERR
-    err_info = self.user_ns.get(_SPOCK_ERR)
+    global _TANGO_ERR
+    err_info = self.user_ns.get(_TANGO_ERR)
     if err_info is None:
         print "No tango error reported so far."
         return
     print "Last tango error:"
     print err_info[1]
+
+def magic_spock_error(self, parameter_s=''):
+    """Displays detailed information about the last spock error"""
     
+    global _SPOCK_ERR
+    err_info = self.user_ns.get(_SPOCK_ERR)
+    if err_info is None:
+        print "No error reported so far."
+        return
+    ip = ipapi.get()
+    ip.InteractiveTB(*err_info, tb_offset=None)
+
 _EVT_LOG = None
 def __get_event_log():
     global _EVT_LOG
     if _EVT_LOG is None:
-        qthreads = IPython.ipapi.get().options.q4thread
+        qthreads = ipapi.get().options.q4thread
         if qthreads:
             import ipy_qt
             model = ipy_qt.EventLoggerTableModel(capacity=10000)
@@ -347,13 +364,12 @@ def magic_mon(self, parameter_s=''):
         return
     opts, args = self.parse_options(parameter_s,'adril', mode='list')
     if len(args) > 3:
-        raise IPython.ipapi.UsageError("%mon: too many arguments")
+        raise UsageError("%mon: too many arguments")
     if opts.has_key('d'):
         try:
             todel = args[0]
         except IndexError:
-            raise IPython.ipapi.UsageError(
-                "%mon -d: must provide an attribute to unmonitor")
+            raise UsageError("%mon -d: must provide an attribute to unmonitor")
         else:
             try:
                 dev, sep, attr = todel.rpartition("/")
@@ -364,21 +380,18 @@ def magic_mon(self, parameter_s=''):
                 d.unsubscribe_event(id)
                 print "Stopped monitoring '%s'" % todel
             except KeyError:
-                raise IPython.ipapi.UsageError(
-                    "%%mon -d: Not monitoring '%s'" % todel)
+                raise UsageError("%%mon -d: Not monitoring '%s'" % todel)
                     
     elif opts.has_key('a'):
         try:
             toadd = args[0]
         except IndexError:
-            raise IPython.ipapi.UsageError(
-                "%mon -a: must provide an attribute to monitor")
+            raise UsageError("%mon -a: must provide an attribute to monitor")
         dev, sep, attr = toadd.rpartition("/")
         subscriptions = __get_device_subscriptions(dev)
         id = subscriptions.get(attr.lower())
         if id is not None:
-            raise IPython.ipapi.UsageError(
-                "%%mon -a: Already monitoring '%s'" % toadd)
+            raise UsageError("%%mon -a: Already monitoring '%s'" % toadd)
         d = __get_device_proxy(dev)
         w = __get_event_log()
         model = w.model()
@@ -395,11 +408,9 @@ def magic_mon(self, parameter_s=''):
         try:
             evtid = int(args[0])
         except IndexError:
-            raise IPython.ipapi.UsageError(
-                "%mon -i: must provide an event ID")
+            raise UsageError("%mon -i: must provide an event ID")
         except ValueError:
-            raise IPython.ipapi.UsageError(
-                "%mon -i: must provide a valid event ID")
+            raise UsageError("%mon -i: must provide a valid event ID")
         try:
             w = __get_event_log()
             e = w.getEvents()[evtid]
@@ -408,15 +419,14 @@ def magic_mon(self, parameter_s=''):
             else:
                 print str(e)
         except IndexError:
-            raise IPython.ipapi.UsageError(
-                "%mon -i: must provide a valid event ID")
+            raise UsageError("%mon -i: must provide a valid event ID")
     elif opts.has_key('l'):
         try:
             dexpr = args[0]
             aexpr = args[1]
         except IndexError:
-            raise IPython.ipapi.UsageError(
-                "%mon -l: must provide valid device and attribute filters")
+            raise UsageError("%mon -l: must provide valid device and " \
+                             "attribute filters")
         w = __get_event_log()
         w.show(dexpr, aexpr)
     else:
@@ -492,20 +502,22 @@ def get_alias_list():
 # Private helper methods
 #-------------------------------------------------------------------------------
 
-def __tango_exc_handler(ip, etype, value, tb):
-    global _SPOCK_ERR
-    ip.user_ns[_SPOCK_ERR] = etype, value, tb
-    if etype == PyTango.DevFailed:
-        v = value[0]
-        print v.reason,":",v.desc
-        print "For more detailed information type: tango_error"
-        
-def __safe_tango_exec(f, *args, **kwargs):
-    try:
-        return f(*args, **kwargs)
-    except PyTango.DevFailed, df:
-        print df[0].reason,":",df[0].desc
-        print "For more information type: get_last_tango_error"
+def __exc_handler(ip, etype, value, tb, tb_offset=None):
+    global _TG_EXCEPTIONS
+    if etype in _TG_EXCEPTIONS:
+        global _TANGO_ERR
+        ip.user_ns[_TANGO_ERR] = etype, value, tb, tb_offset
+        if len(value.args):
+            v = value[0]
+            print "%s: %s" % (v.reason ,v.desc)
+        else:
+            print "Empty DevFailed"
+        print "(For more detailed information type: tango_error)"
+    else:
+        global _SPOCK_ERR
+        ip.user_ns[_SPOCK_ERR] = etype, value, tb, tb_offset
+        print etype.__name__ + ": " + str(value)
+        print "(For more detailed information type: spock_error)"
 
 def __get_default_tango_host():
     global _DFT_TANGO_HOST
@@ -532,7 +544,7 @@ def __get_db(host_port=None):
                           and return it
     """
     
-    ip = IPython.ipapi.get()
+    ip = ipapi.get()
     global _DB_SYMB
     db = ip.user_ns.get(_DB_SYMB)
     
@@ -545,7 +557,8 @@ def __get_db(host_port=None):
         host_port = host_port.strip().replace(" ",":")
         if host_port.count(":") == 0:
             host_port += ":10000"
-        
+    host_port = str(host_port)
+    
     if db is None:
         create_db = True
     elif host_port is None:
@@ -560,19 +573,20 @@ def __get_db(host_port=None):
             
             ip.user_ns["DB_NAME"] = host_port
         except Exception, e:
-            print 
             if db:
-                print "Could not access Database", host_port
+                print "\nCould not access Database %s:" % host_port
+                print str(e)
                 old_host_port = "%s:%s" % (db.get_db_host(), db.get_db_port())
                 print "Maintaining connection to Database", old_host_port
                 ip.user_ns["DB_NAME"] = old_host_port
             else:
-                print "Could not access any Database."
-                print "Make sure .tangorc, /etc/tangorc or TANGO_HOST environment is defined."
+                print "\nCould not access any Database. Make sure:"
+                print "\t- .tangorc, /etc/tangorc or TANGO_HOST environment is defined."
+                print "\t- the Database DS is running"
                 ip.user_ns["DB_NAME"] = "OFFLINE"
                 
         # register the 'db' in the user namespace
-        ip.to_user_ns({ _DB_SYMB : db })
+        ip.user_ns.update({ _DB_SYMB : db })
         
     return db
 
@@ -593,12 +607,12 @@ def __completer_wrapper(f):
         except Exception, e:
             print
             print "An unexpected exception ocorred during Spock command completer."
-            print "Please send a bug report to the PyTango team with the following informantion:"
-            print IPython.ipapi.get().options.banner
+            print "Please send a bug report to the PyTango team with the following information:"
             print 80*"-"
             print "Completer:",__get_obj_name(f)
             print 80*"-"
-            print str(e)
+            import traceback
+            traceback.print_exc()
             print 80*"-"
             raise e
     return wrapper
@@ -608,16 +622,11 @@ def __get_python_version():
 
 def __get_ipython_version():
     """Returns the current IPython version"""
-    v = None
+    import IPython
+    v = "<Unknown>"
     try:
-        try:
-            v = IPython.Release.version
-        except Exception, e1:
-            try:
-                v = IPython.release.version
-            except Exception, e2:
-                pass
-    except Exception, e3:
+        v = IPython.release.version
+    except Exception:
         pass
     return v
 
@@ -626,10 +635,10 @@ def __get_pytango_version():
     return ".".join(map(str,vi[:3]))+vi[3]
 
 def __get_ipapi():
-    return IPython.ipapi.get()
+    return ipapi.get()
 
 def __expose_magic(ip, name, fn, completer_func=None):
-    ip.expose_magic(name, fn)
+    ip.define_magic(name, fn)
     
     if completer_func is None:
         return
@@ -638,16 +647,16 @@ def __expose_magic(ip, name, fn, completer_func=None):
     ip.set_hook('complete_command', completer_func, re_key = ".*" + name)
 
 def __unexpose_magic(ip, name):
-    mg = 'magic_%s' % name
-    delattr(ip.IP, mg)
+    delattr(ip, 'magic_' + name)
 
 def __build_color_scheme(ip, name):
-    
+
+    import IPython.Prompts
+    import IPython.PyColorize
+    import IPython.excolors
+    from IPython.utils.coloransi import TermColors, InputTermColors
+
     # make some schemes as instances so we can copy them for modification easily:
-    ColorANSI = IPython.ColorANSI
-    ColorScheme = ColorANSI.ColorScheme
-    InputColors = ColorANSI.InputTermColors
-    TermColors = ColorANSI.TermColors
     PromptColors = IPython.Prompts.PromptColors
     ANSICodeColors = IPython.PyColorize.ANSICodeColors
     ExceptionColors = IPython.excolors.ExceptionColors
@@ -663,9 +672,9 @@ def __build_color_scheme(ip, name):
     inspectTangoColors = InspectColors['Linux'].copy(name)
     
     # initialize prompt with default tango colors
-    promptTangoColors.colors.in_prompt  = InputColors.Purple
-    promptTangoColors.colors.in_number  = InputColors.LightPurple
-    promptTangoColors.colors.in_prompt2 = InputColors.Purple
+    promptTangoColors.colors.in_prompt  = InputTermColors.Purple
+    promptTangoColors.colors.in_number  = InputTermColors.LightPurple
+    promptTangoColors.colors.in_prompt2 = InputTermColors.Purple
     promptTangoColors.colors.out_prompt = TermColors.Blue
     promptTangoColors.colors.out_number = TermColors.LightBlue
 
@@ -689,7 +698,10 @@ def __set_store(ip, key=None, value=None):
     __store(ip, _SPOCK_STORE)
 
 def __get_store(ip, key, nvalue=None):
+    # ipython 0.11 doesn't have 'store' magic command so...
     spock_store = ip.user_ns.get(_SPOCK_STORE)
+    if spock_store is None:
+        ip.user_ns[_SPOCK_STORE] = spock_store = {}
     v = spock_store.get(key)
     if v is None and nvalue is not None:
         spock_store[key] = nvalue
@@ -699,6 +711,9 @@ def __get_store(ip, key, nvalue=None):
 def __store(ip, var):
     # this executes the magic command store which prints a lot of info. So, first
     # we hide the standard output 
+    # ipython 0.11 doesn't have 'store' magic command so...
+    return
+
     stdout = sys.stdout
     try:
         sys.stdout = StringIO.StringIO()
@@ -710,47 +725,8 @@ def __store(ip, var):
 # Initialization methods
 #-------------------------------------------------------------------------------
 
-def init_colors(ip):
-    ColorANSI = IPython.ColorANSI
-    ColorScheme = ColorANSI.ColorScheme
-    InputColors = ColorANSI.InputTermColors
-    TermColors = ColorANSI.TermColors
-    
-    name = "Tango"
-    scheme = __build_color_scheme(ip, name)
-    for k, v in scheme.items():
-        v[0].add_scheme(v[1])
-
-    name = "PurpleTango"
-    scheme = __build_color_scheme(ip, name)
-    for k, v in scheme.items():
-        v[0].add_scheme(v[1])
-
-    name = "BlueTango"
-    scheme = __build_color_scheme(ip, name)
-    prompt = scheme["prompt"][1]
-    prompt.colors.in_prompt  = InputColors.Blue
-    prompt.colors.in_number  = InputColors.LightBlue
-    prompt.colors.in_prompt2 = InputColors.Blue
-    prompt.colors.out_prompt = TermColors.Cyan
-    prompt.colors.out_number = TermColors.LightCyan
-    for k, v in scheme.items():
-        v[0].add_scheme(v[1])
-
-    name = "GreenTango"
-    scheme = __build_color_scheme(ip, name)
-    prompt = scheme["prompt"][1]
-    prompt.colors.in_prompt  = InputColors.Green
-    prompt.colors.in_number  = InputColors.LightGreen
-    prompt.colors.in_prompt2 = InputColors.Green
-    prompt.colors.out_prompt = TermColors.Red
-    prompt.colors.out_number = TermColors.LightRed
-    for k, v in scheme.items():
-        v[0].add_scheme(v[1])
-
 def init_pytango(ip):
     """Initializes the IPython environment with PyTango elements"""
-    TermColors = IPython.ColorANSI.TermColors
 
     # export symbols to IPython namepspace
     ip.ex("import PyTango")
@@ -766,7 +742,7 @@ def init_pytango(ip):
     ip.set_hook('complete_command', attr_completer, re_key = ".*AttributeProxy[^\w\.]+")
     ip.set_hook('complete_command', attr_completer, re_key = ".*Attribute[^\w\.]+")
     
-    ip.set_custom_exc((PyTango.DevFailed,), __tango_exc_handler)
+    ip.set_custom_exc((Exception,), __exc_handler)
 
 def init_db(ip, parameter_s=''):
     global _DB_SYMB
@@ -836,7 +812,7 @@ def init_db(ip, parameter_s=''):
             print "Failed to add completer for DeviceClass",klass
     
     # expose classes no user namespace
-    ip.to_user_ns(exposed_klasses)
+    ip.user_ns.update(exposed_klasses)
     
     # Initialize attribute information
     query = "SELECT name, alias FROM attribute_alias order by alias"
@@ -857,13 +833,10 @@ def init_db(ip, parameter_s=''):
     attr_alias_list = PyTango.utils.CaselessList(attr_alias_dict.keys())
     
     # Build cache
-    db_cache = IPython.ipstruct.Struct(devices=dev_dict, aliases=alias_dict,
-                                       servers=serv_dict, klasses=klass_dict,
-                                       junk=exposed_klasses,
-                                       attr_aliases=attr_alias_dict,
-                                       device_list=device_list,
-                                       alias_list=alias_list,
-                                       attr_alias_list=attr_alias_list)
+    db_cache = Struct(devices=dev_dict, aliases=alias_dict,
+        servers=serv_dict, klasses=klass_dict, junk=exposed_klasses,
+        attr_aliases=attr_alias_dict, device_list=device_list,
+        alias_list=alias_list, attr_alias_list=attr_alias_list)
     
     db._db_cache = db_cache
 
@@ -878,50 +851,6 @@ def init_db(ip, parameter_s=''):
     
     return db
 
-def init_store(ip):
-    # recover the environment
-    ip.magic("store -r")
-    spock_store = ip.user_ns.get(_SPOCK_STORE)
-    
-    if spock_store is None:
-        print "Initializing spock store (should only happen once)"
-        spock_store = {}
-        ip.to_user_ns( { _SPOCK_STORE : spock_store} )
-        __store(ip, _SPOCK_STORE)
-        
-def init_console(ip):
-    
-    TermColors = IPython.ColorANSI.TermColors
-    
-    d = { "version" : PyTango.Release.version,
-          "pyver" : __get_python_version(),
-          "ipyver" : __get_ipython_version(),
-          "pytangover" : __get_pytango_version() }
-    d.update(TermColors.__dict__)
-
-    o = ip.options
-
-    so = IPython.ipstruct.Struct(
-        spock_banner = """%(Blue)shint: Try typing: mydev = Device("%(LightBlue)s<tab>%(Normal)s\n""")
-
-    so = ip.user_ns.get("spock_options", so)
-    
-    o.colors = "Tango"
-    o.prompt_in1 = "Spock <$DB_NAME> [\\#]: "
-    o.prompt_out = "Result [\\#]: "
-    banner = """
-%(Purple)sSpock %(version)s%(Normal)s -- An interactive %(Purple)sTango%(Normal)s client.
-
-Running on top of Python %(pyver)s, IPython %(ipyver)s and PyTango %(pytangover)s
-
-help      -> Spock's help system.
-object?   -> Details about 'object'. ?object also works, ?? prints more.
-
-""" + so.spock_banner
-    o.banner = banner % d
-    if hasattr(o.banner, "format"):
-        o.banner = o.banner.format(**d)
-    
 def init_magic(ip):
     __expose_magic(ip, "refreshdb", magic_refreshdb)
     __expose_magic(ip, "reloaddb", magic_refreshdb)
@@ -930,10 +859,11 @@ def init_magic(ip):
     __expose_magic(ip, "lsdevclass", magic_lsdevclass)
     __expose_magic(ip, "lsserv", magic_lsserv)
     __expose_magic(ip, "tango_error", magic_tango_error)
+    __expose_magic(ip, "spock_error", magic_spock_error)
     __expose_magic(ip, "mon", magic_mon, __monitor_completer)
     #__expose_magic(ip, "umon", magic_umon, __monitor_completer)
     
-    ip.to_user_ns({"get_device_map"   : get_device_map,
+    ip.user_ns.update({"get_device_map"   : get_device_map,
                    "get_server_map"  : get_server_map,
                    "get_class_map"   : get_class_map,
                    "get_alias_map"   : get_alias_map,
@@ -949,7 +879,7 @@ def init_magic(ip):
 
 def complete(text):
     """a super complete!!!!"""
-    self = IPython.ipapi.get().IP
+    self = ipapi.get().IP
     complete = self.Completer.complete
     state = 0
     comps = set()
@@ -962,22 +892,109 @@ def complete(text):
     outcomps = sorted(comps)
     return outcomps
 
-def init_ipython(ip, store=True, pytango=True, colors=True, console=True, magic=True):
+def init_ipython(ip=None, store=True, pytango=True, colors=True, console=True,
+                 magic=True):
     
     if ip is None:
-        raise Exception("Spock's init_ipython must be called from inside IPython")
+        ip = ipapi.get()
     
     global _spock_init
     if _spock_init is True: return
     
-    #ip.IP._orig_complete = ip.IP.complete
-    #ip.IP.complete = complete
+    if pytango:
+        init_pytango(ip)
     
-    if colors:  init_colors(ip)
-    if store:   init_store(ip)
-    if pytango: init_pytango(ip)
     init_db(ip)
-    if console: init_console(ip)
-    if magic:   init_magic(ip)
+
+    if magic:
+        init_magic(ip)
     
     _spock_init = True
+
+def load_config(config):
+    
+    import IPython.utils.coloransi
+    d = { "version" : PyTango.Release.version,
+          "pyver" : __get_python_version(),
+          "ipyver" : __get_ipython_version(),
+          "pytangover" : __get_pytango_version() }
+    d.update(IPython.utils.coloransi.TermColors.__dict__)
+
+    so = Struct(
+        spock_banner="""%(Blue)shint: Try typing: mydev = Device("%(LightBlue)s<tab>%(Normal)s""")
+
+    so = config.get("spock_options", so)
+
+    # ------------------------------------
+    # Application
+    # ------------------------------------
+    app = config.Application
+    app.log_level = 30
+
+    # ------------------------------------
+    # InteractiveShell
+    # ------------------------------------
+    i_shell = config.InteractiveShell
+    i_shell.colors = 'Linux'
+    i_shell.prompt_in1 = 'Spock <$DB_NAME> [\\#]: '
+    i_shell.prompt_out = 'Result [\\#]: '
+    
+    # ------------------------------------
+    # InteractiveShellApp
+    # ------------------------------------
+    i_shell_app = config.InteractiveShellApp
+    extensions = getattr(i_shell_app, 'extensions', [])
+    extensions.append('PyTango.ipython')
+    i_shell_app.extensions = extensions
+    
+    # ------------------------------------
+    # TerminalIPythonApp: options for the IPython terminal (and not Qt Console)
+    # ------------------------------------
+    term_app = config.TerminalIPythonApp
+    term_app.display_banner = True
+    #term_app.nosep = False
+    #term_app.classic = True
+    
+    # ------------------------------------
+    # IPKernelApp: options for the  Qt Console
+    # ------------------------------------
+    #kernel_app = config.IPKernelApp
+    ipython_widget = config.IPythonWidget
+    ipython_widget.in_prompt  = 'Spock [<span class="in-prompt-number">%i</span>]: '
+    ipython_widget.out_prompt = '  Out [<span class="out-prompt-number">%i</span>]: '
+    
+    #zmq_i_shell = config.ZMQInteractiveShell
+    
+    # ------------------------------------
+    # TerminalInteractiveShell
+    # ------------------------------------
+    term_i_shell = config.TerminalInteractiveShell
+    banner = """\
+%(Purple)sSpock %(version)s%(Normal)s -- An interactive %(Purple)sTango%(Normal)s client.
+
+Running on top of Python %(pyver)s, IPython %(ipyver)s and PyTango %(pytangover)s
+
+help      -> Spock's help system.
+object?   -> Details about 'object'. ?object also works, ?? prints more.
+"""
+    
+    banner = banner % d
+    banner = banner.format(**d)
+    spock_banner = so.spock_banner % d
+    spock_banner = spock_banner.format(**d)
+    term_i_shell.banner1 = banner
+    term_i_shell.banner2 = spock_banner
+        
+    
+
+def load_ipython_extension(ipython):
+    # The ``ipython`` argument is the currently active
+    # :class:`InteractiveShell` instance that can be used in any way.
+    # This allows you do to things like register new magics, plugins or
+    # aliases.
+    init_ipython(ip=ipython, store=False, colors=False)
+
+def unload_ipython_extension(ipython):
+    # If you want your extension to be unloadable, put that logic here.
+    #print "Unloading PyTango IPython extension"
+    pass

@@ -21,13 +21,9 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <tango/tango.h>
-
+#include "precompiled_header.hpp"
 #include "defs.h"
 #include "pytgutils.h"
-
 #include "fast_from_py.h"
 #include "base_types_numpy.hpp"
 
@@ -180,6 +176,22 @@ int raise_asynch_exception(long thread_id, boost::python::object exp_klass)
     return PyThreadState_SetAsyncExc(thread_id, exp_klass.ptr());
 }
 
+bool isBufferLikeType(PyObject* obj)
+{
+#if PY_VERSION_HEX < 0x02060000
+    // Returns true for buffer
+    if (PyBuffer_Check(obj))
+        return true;
+    if (PyString_Check(obj))
+        return true;
+#else
+    // Returns true for str, buffer bytes, bytearray, memoryview
+    if (PyObject_CheckBuffer(obj))
+        return true;
+#endif
+    return false;
+}
+
 void export_base_types()
 {
     enum_<PyTango::ExtractAs>("ExtractAs")
@@ -243,6 +255,9 @@ void export_base_types()
     class_<std::vector<Tango::Attr *> >("AttrList")
         .def(vector_indexing_suite<std::vector<Tango::Attr *>, true>());
 
+    class_<std::vector<Tango::Attribute *> >("AttributeList")
+        .def(vector_indexing_suite<std::vector<Tango::Attribute *>, true>());
+
     //class_<Tango::EventDataList>("EventDataList")
     //    .def(vector_indexing_suite<Tango::EventDataList>());
 
@@ -294,7 +309,8 @@ void export_base_types()
     to_python_converter<Tango::DevVarDoubleStringArray, CORBA_sequence_to_list<Tango::DevVarDoubleStringArray> >();
     to_python_converter<Tango::DevVarLong64Array, CORBA_sequence_to_list<Tango::DevVarLong64Array> >();
     to_python_converter<Tango::DevVarULong64Array, CORBA_sequence_to_list<Tango::DevVarULong64Array> >();
-
+    
+    to_python_converter<Tango::DevEncoded, DevEncoded_to_tuple>();
     //to_python_converter<unsigned char, UChar_to_str>();
     
     convert_PySequence_to_CORBA_Sequence<Tango::DevVarCharArray>();
@@ -347,4 +363,6 @@ void export_base_types()
     export_time_val();
     
     def("raise_asynch_exception", &raise_asynch_exception);
+    
+    def("isBufferLikeType", &isBufferLikeType);
 }

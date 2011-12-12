@@ -32,21 +32,18 @@ __all__ = [ "ChangeEventProp", "PeriodicEventProp", "ArchiveEventProp",
 __docformat__ = "restructuredtext"
 
 import copy
-import operator
-import types
 
 import _PyTango
-from _PyTango import StdStringVector, StdDoubleVector
 from _PyTango import DeviceImpl, Device_3Impl, Device_4Impl
-from _PyTango import Attribute, WAttribute, MultiAttribute
+from _PyTango import Attribute, WAttribute, MultiAttribute, MultiClassAttribute
 from _PyTango import Attr
 from _PyTango import Logger
 from _PyTango import AttrWriteType, AttrDataFormat, DispLevel
 from _PyTango import UserDefaultAttrProp
 
-from utils import seq_2_StdStringVector, seq_2_StdDoubleVector
 from utils import document_method as __document_method
 from utils import copy_doc
+from attr_data import AttrData
 
 import log4tango
 
@@ -273,7 +270,7 @@ def __DeviceImpl__get_device_properties(self, ds_class = None):
         raise e
 
 def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None):
-    """add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> None
+    """add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> Attr
 
             Add a new attribute to the device attribute list. Please, note that if you add
             an attribute to a device at device creation time, this attribute will be added
@@ -281,43 +278,57 @@ def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_me
             same class created after this attribute addition will also have this attribute.
 
         Parameters :
-            attr : (Attr) the new attribute to be added to the list.
-            r_meth : (callable) the read method to be called on a read request
-            w_meth : (callable) the write method to be called on a write request (if attr is writable)
-            is_allo_meth: (callable) the method that is called to check if it is possible to access the attribute or not
+            - attr : (Attr or AttrData) the new attribute to be added to the list.
+            - r_meth : (callable) the read method to be called on a read request
+            - w_meth : (callable) the write method to be called on a write request
+                       (if attr is writable)
+            - is_allo_meth: (callable) the method that is called to check if it
+                            is possible to access the attribute or not
         
-        Return     : None
+        Return     : (Attr) the newly created attribute.
         
         Throws     : DevFailed"""
+    
+    attr_data = None
+    if isinstance(attr, AttrData):
+        attr_data = attr
+        attr = attr.to_attr()
+    
     att_name = attr.get_name()
 
     add_name_in_list = False
-    if r_meth is not None:
-        r_meth_name = 'read_%s' % att_name
-        if not hasattr(self.__class__, r_meth_name):
-            setattr(self.__class__, r_meth_name, r_meth)
-            add_name_in_list = True
-
-    if w_meth is not None:
-        w_meth_name = 'write_%s' % att_name
-        if not hasattr(self.__class__, w_meth_name):
-            setattr(self.__class__, w_meth_name, w_meth)
-            add_name_in_list = True
-
-    if is_allo_meth is not None:
-        allo_meth_name = 'is_%s_allowed' % att_name
-        if not hasattr(self.__class__, allo_meth_name):
-            setattr(self.__class__, allo_meth_name,is_allo_meth)
-            add_name_in_list = True
-
+    
+    r_name = 'read_%s' % att_name
+    if r_meth is None:
+        if attr_data is not None:
+            r_name = attr_data.read_method_name
+    else:
+        r_name = r_meth.__name__
+        
+    w_name = 'write_%s' % att_name
+    if w_meth is None:
+        if attr_data is not None:
+            w_name = attr_data.write_method_name
+    else:
+        w_name = w_meth.__name__
+    
+    ia_name = 'is_%s_allowed' % att_name
+    if is_allo_meth is None:
+        if attr_data is not None:
+            ia_name = attr_data.is_allowed_name
+    else:
+        ia_name = is_allo_meth.__name__
+    
     try:
-        self._add_attribute(attr)
+        self._add_attribute(attr, r_name, w_name, ia_name)
         if add_name_in_list:
             cl = self.get_device_class()
             cl.dyn_att_added_methods.append(att_name)
     except:
         if add_name_in_list:
             self._remove_attr_meth(att_name)
+        raise
+    return attr
 
 def __DeviceImpl__remove_attribute(self, attr_name):
     """
@@ -610,7 +621,7 @@ def __init_Attribute():
     Attribute.get_properties_2 = __Attribute__get_properties_2
     Attribute.get_properties_3 = __Attribute__get_properties_3
     Attribute.set_properties = __Attribute__set_properties
-    
+
 def __init_Logger():
     Logger.log = __Logger__log
     Logger.log_unconditionally = __Logger__log_unconditionally
@@ -1124,6 +1135,18 @@ def __doc_DeviceImpl():
         New in PyTango 7.2.0
     """ )
 
+    document_method("push_att_conf_event", """
+    push_att_conf_event(self, attr) -> None
+
+            Push an attribute configuration event.
+
+        Parameters : (Attribute) the attribute for which the configuration event
+                     will be sent.
+        Return     : None
+        
+        New in PyTango 7.2.1
+    """ )
+    
 def __doc_extra_DeviceImpl(cls):
     def document_method(method_name, desc, append=True):
         return __document_method(cls, method_name, desc, append)
@@ -1188,7 +1211,7 @@ def __doc_extra_DeviceImpl(cls):
 
         Throws     : DevFailed This method does not throw exception but a redefined method can.
     """ )
-
+    
     copy_doc(cls, "dev_state")
     copy_doc(cls, "dev_status")
 
@@ -1643,6 +1666,7 @@ def __doc_Attribute():
         New in PyTango 7.1.0
     """ )
 
+
 def __doc_WAttribute():
     def document_method(method_name, desc, append=True):
         return __document_method(WAttribute, method_name, desc, append)
@@ -1747,21 +1771,73 @@ def __doc_WAttribute():
         Return     : (obj) the attribute write value.
     """ )
 
+def __doc_MultiClassAttribute():
+    def document_method(method_name, desc, append=True):
+        return __document_method(MultiClassAttribute, method_name, desc, append)
+
+    MultiClassAttribute.__doc__ = """
+    There is one instance of this class for each device class.
+    This class is mainly an aggregate of :class:`~PyTango.Attr` objects. 
+    It eases management of multiple attributes
+    
+    New in PyTango 7.2.1"""
+    
+    document_method("get_attr", """
+    get_attr(self, attr_name) -> Attr
+
+            Get the :class:`~PyTango.Attr` object for the attribute with
+            name passed as parameter
+
+        Parameters :
+            - attr_name : (str) attribute name
+        Return     : (Attr) the attribute object
+        
+        Throws     : DevFailed If the attribute is not defined.
+        
+        New in PyTango 7.2.1
+    """ )
+
+    document_method("remove_attr", """
+    remove_attr(self, attr_name, cl_name) -> None
+
+            Remove the :class:`~PyTango.Attr` object for the attribute with
+            name passed as parameter. Does nothing if the attribute does not
+            exist.
+
+        Parameters :
+            - attr_name : (str) attribute name
+            - cl_name : (str) the attribute class name
+        
+        New in PyTango 7.2.1
+    """ )
+
+    document_method("get_attr_list", """
+    get_attr_list(self) -> seq<Attr>
+
+            Get the list of :class:`~PyTango.Attr` for this device class.
+
+        Return     : (seq<Attr>) the list of attribute objects
+        
+        New in PyTango 7.2.1
+    """ )
+
 def __doc_MultiAttribute():
     def document_method(method_name, desc, append=True):
         return __document_method(MultiAttribute, method_name, desc, append)
 
     MultiAttribute.__doc__ = """
     There is one instance of this class for each device.
-    This class is mainly an aggregate of Attribute or WAttribute objects. 
-    It eases management of multiple attributes"""
+    This class is mainly an aggregate of :class:`~PyTango.Attribute` or
+    :class:`~PyTango.WAttribute` objects. It eases management of multiple
+    attributes"""
     
     document_method("get_attr_by_name", """
     get_attr_by_name(self, attr_name) -> Attribute
 
-            Get Attribute object from its name.
-            This method returns an Attribute object with a name passed as 
-            parameter. The equality on attribute name is case independant.
+            Get :class:`~PyTango.Attribute` object from its name.
+            This method returns an :class:`~PyTango.Attribute` object with a
+            name passed as parameter. The equality on attribute name is case
+            independant.
 
         Parameters :
             - attr_name : (str) attribute name
@@ -1773,9 +1849,9 @@ def __doc_MultiAttribute():
     document_method("get_attr_by_ind", """
     get_attr_by_ind(self, ind) -> Attribute
 
-            Get Attribute object from its index.
-            This method returns an Attribute object from the index in the 
-            main attribute vector.
+            Get :class:`~PyTango.Attribute` object from its index.
+            This method returns an :class:`~PyTango.Attribute` object from the
+            index in the main attribute vector.
 
         Parameters :
             - ind : (int) the attribute index
@@ -1786,8 +1862,9 @@ def __doc_MultiAttribute():
     get_w_attr_by_name(self, attr_name) -> WAttribute
 
             Get a writable attribute object from its name.
-            This method returns an WAttribute object with a name passed as 
-            parameter. The equality on attribute name is case independant.
+            This method returns an :class:`~PyTango.WAttribute` object with a
+            name passed as parameter. The equality on attribute name is case
+            independant.
 
         Parameters :
             - attr_name : (str) attribute name
@@ -1800,8 +1877,8 @@ def __doc_MultiAttribute():
     get_w_attr_by_ind(self, ind) -> WAttribute
 
             Get a writable attribute object from its index.
-            This method returns an WAttribute object from the index in the 
-            main attribute vector.
+            This method returns an :class:`~PyTango.WAttribute` object from the
+            index in the main attribute vector.
 
         Parameters :
             - ind : (int) the attribute index
@@ -1813,8 +1890,8 @@ def __doc_MultiAttribute():
 
             Get Attribute index into the main attribute vector from its name.
             This method returns the index in the Attribute vector (stored in the 
-            MultiAttribute object) of an attribute with a given name. 
-            The name equality is case independant.
+            :class:`~PyTango.MultiAttribute` object) of an attribute with a
+            given name. The name equality is case independant.
 
         Parameters :
             - attr_name : (str) attribute name
@@ -1867,6 +1944,16 @@ def __doc_MultiAttribute():
         Return     : None
         
         New in PyTango 7.0.0
+    """ )
+    
+    document_method("get_attribute_list", """
+    get_attribute_list(self) -> seq<Attribute>
+
+            Get the list of attribute objects.
+
+        Return     : (seq<Attribute>) list of attribute objects
+    
+        New in PyTango 7.2.1
     """ )
     
 def __doc_Attr():
@@ -2393,5 +2480,6 @@ def init(doc=True):
         __doc_Attribute()
         __doc_WAttribute()
         __doc_MultiAttribute()
+        __doc_MultiClassAttribute()
         __doc_UserDefaultAttrProp()
         __doc_Attr()

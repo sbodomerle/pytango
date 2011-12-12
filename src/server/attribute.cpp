@@ -21,11 +21,7 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <string>
-#include <tango/tango.h>
-
+#include "precompiled_header.hpp"
 #include "defs.h"
 #include "pytgutils.h"
 #include "attribute.h"
@@ -72,6 +68,8 @@ inline static void throw_wrong_python_data_type_in_array(const std::string &att_
             o.str(), method);
 }
 
+extern long TANGO_VERSION_HEX;
+
 namespace PyAttribute
 {
     /**
@@ -116,16 +114,17 @@ namespace PyAttribute
     {
         Tango::DevString *v = new Tango::DevString;
 
-        if (att.get_writable() == Tango::READ)
-        { // No memory leak here. Do the standard thing
-            from_py<Tango::DEV_STRING>::convert(value, *v);
-        }
-        else
+        if (TANGO_VERSION_HEX < 0x07020000 && att.get_writable() != Tango::READ)
         { // MEMORY LEAK: use the python string directly instead of creating a
           // string
             v[0] = PyString_AsString(value.ptr());
+            att.set_value(v, 1, 0);
         }
-        att.set_value(v, 1, 0, true);
+        else
+        { // No memory leak here. Do the standard thing
+            from_py<Tango::DEV_STRING>::convert(value, *v);
+            att.set_value(v, 1, 0, true);
+        }
     }
     */
     
@@ -429,6 +428,28 @@ namespace PyAttribute
         Tango::DeviceImpl *dev_ptr = extract<Tango::DeviceImpl*>(dev);
         att.set_properties(tg_attr_cfg, dev_ptr);
     }
+
+    inline void fire_change_event(Tango::Attribute &self)
+    {
+        self.fire_change_event();
+    }
+
+    inline void fire_change_event(Tango::Attribute &self, object &data)
+    {
+        boost::python::extract<Tango::DevFailed> except_convert(data);
+        if (except_convert.check()) {
+            self.fire_change_event(
+                           const_cast<Tango::DevFailed*>( &except_convert() ));
+            return;
+        }
+        TangoSys_OMemStream o;
+        o << "Wrong Python argument type for attribute " << self.get_name()
+            << ". Expected a DevFailed." << ends;
+        Tango::Except::throw_exception(
+                "PyDs_WrongPythonDataTypeForAttribute",
+                o.str(),
+                "fire_change_event()");
+    }
 };
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(set_quality_overloads,
@@ -537,5 +558,12 @@ void export_attribute()
         
         .def("_set_properties", &PyAttribute::set_properties)
         .def("_set_properties_3", &PyAttribute::set_properties_3)
-    ;
+        
+        .def("fire_change_event",
+            (void (*) (Tango::Attribute &))
+            &PyAttribute::fire_change_event)
+        .def("fire_change_event",
+            (void (*) (Tango::Attribute &, boost::python::object &))
+            &PyAttribute::fire_change_event)
+        ;
 }

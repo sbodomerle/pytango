@@ -25,23 +25,23 @@
 This is an internal PyTango module.
 """
 
+from __future__ import with_statement
+
 __all__ = []
-            
+
 __docformat__ = "restructuredtext"
 
-import sys
 import operator
 import types
 import threading
-import traceback
 
 from _PyTango import StdStringVector
 from _PyTango import DbData, DbDatum
 from _PyTango import AttributeInfo, AttributeInfoEx
 from _PyTango import AttributeInfoList, AttributeInfoListEx
-from _PyTango import DeviceProxy, DeviceAttribute, DeviceData
+from _PyTango import DeviceProxy
 from _PyTango import __CallBackAutoDie, __CallBackPushEvent, EventType
-from _PyTango import DevFailed
+from _PyTango import DevFailed, Except
 from _PyTango import ExtractAs
 from PyTango.utils import seq_2_StdStringVector, StdStringVector_2_seq
 from PyTango.utils import seq_2_DbData, DbData_2_dict
@@ -58,7 +58,12 @@ def __check_read_attribute(dev_attr):
     return dev_attr
 
 def __DeviceProxy__refresh_cmd_cache(self):
-    self.__cmd_cache = [cmd.cmd_name.lower() for cmd in self.command_list_query()]
+    cmd_list = self.command_list_query()
+    cmd_cache = {}
+    for cmd in cmd_list:
+        n = cmd.cmd_name.lower()
+        cmd_cache[n] = cmd, None
+    self.__dict__['__cmd_cache'] = cmd_cache
 
 def __DeviceProxy__refresh_attr_cache(self):
     attr_cache = [attr_name.lower() for attr_name in self.get_attribute_list()]
@@ -71,25 +76,37 @@ def __DeviceProxy__getattr(self, name):
     if name[:2] == "__" or name == 'trait_names':
         raise AttributeError, name
     
-    find_cmd = True
-    if not hasattr(self, '__cmd_cache') or name.lower() not in self.__cmd_cache:
+    name_l = name.lower()
+    cmd_info = None
+    if not hasattr(self, '__cmd_cache'):
         try:
             self.__refresh_cmd_cache()
         except:
-            find_cmd = False
-    
-    if find_cmd and name.lower() in self.__cmd_cache:
-        def f(*args,**kwds): return self.command_inout(name, *args, **kwds)
+            pass
+    try:
+        cmd_info = self.__cmd_cache[name_l]
+    except:
+        pass
+        
+    if cmd_info is not None:
+        d, f = cmd_info
+        if f is None:
+            doc =  "%s(%s) -> %s\n\n" % (d.cmd_name, d.in_type, d.out_type)
+            doc += " -  in (%s): %s\n" % (d.in_type, d.in_type_desc)
+            doc += " - out (%s): %s\n" % (d.out_type, d.out_type_desc)
+            def f(*args,**kwds): return self.command_inout(name, *args, **kwds)
+            f.__doc__ = doc
+            self.__cmd_cache[name_l] = d, f
         return f
     
     find_attr = True
-    if not hasattr(self, '__attr_cache') or name.lower() not in self.__attr_cache:
+    if not hasattr(self, '__attr_cache') or name_l not in self.__attr_cache:
         try:
             self.__refresh_attr_cache()
         except:
             find_attr = False
     
-    if not find_attr or name.lower() not in self.__attr_cache:
+    if not find_attr or name_l not in self.__attr_cache:
         raise AttributeError, name
     
     return self.read_attribute(name).value
@@ -119,9 +136,6 @@ def __DeviceProxy__getAttributeNames(self):
     except Exception:
         pass
     return []
-
-def __DeviceProxy__del(self):
-    self.__unsubscribe_event_all()
 
 def __DeviceProxy__getitem(self, key):
     return self.read_attribute(key)
@@ -621,6 +635,15 @@ def __DeviceProxy__set_attribute_config(self, value):
 
     return self._set_attribute_config(v)
 
+def __DeviceProxy__get_event_map_lock(self):
+    """
+    Internal helper method"""
+    if not hasattr(self, '_subscribed_events_lock'):
+        # do it like this instead of self._subscribed_events = dict() to avoid
+        # calling __setattr__ which requests list of tango attributes from device
+        self.__dict__['_subscribed_events_lock'] = threading.Lock()
+    return self._subscribed_events_lock
+
 def __DeviceProxy__get_event_map(self):
     """
     Internal helper method"""
@@ -709,8 +732,16 @@ def __DeviceProxy__subscribe_event ( self, attr_name, event_type, cb_or_queuesiz
 
     event_id = self.__subscribe_event(attr_name, event_type, cb, filters, stateless, extract_as)
 
-    se = self.__get_event_map()
-    se[event_id] = (cb, event_type, attr_name)
+    with self.__get_event_map_lock():
+        se = self.__get_event_map()
+        evt_data = se.get(event_id)
+        if evt_data is not None:
+            desc = "Internal PyTango error:\n" \
+                   "%s.subscribe_event(%s, %s) already has key %d assigned to (%s, %s)\n" \
+                   "Please report error to PyTango" % \
+                   (self, attr_name, event_type, event_id, evt_data[2], evt_data[1])
+            Except.throw_exception("Py_InternalError", desc, "DeviceProxy.subscribe_event")
+        se[event_id] = (cb, event_type, attr_name)
     return event_id
 
 def __DeviceProxy__unsubscribe_event(self, event_id):
@@ -729,20 +760,20 @@ def __DeviceProxy__unsubscribe_event(self, event_id):
 
         Throws     : EventSystemFailed
     """
-    se = self.__get_event_map()
-    if event_id not in se:
-        raise IndexError("This device proxy does not own this subscription " + str(event_id))
+    with self.__get_event_map_lock():
+        se = self.__get_event_map()
+        if event_id not in se:
+            raise IndexError("This device proxy does not own this subscription " + str(event_id))
+        del se[event_id]
     self.__unsubscribe_event(event_id)
-    del se[event_id]
 
 def __DeviceProxy__unsubscribe_event_all(self):
-    se = self.__get_event_map()
-    for event_id in se:
-        try:
-            self.__unsubscribe_event(event_id)
-        except Exception:
-            pass # @todo print or something, but not rethrow
-    se.clear()
+    with self.__get_event_map_lock():
+        se = self.__get_event_map()
+        event_ids = se.keys()
+        se.clear()
+    for event_id in event_ids:
+        self.__unsubscribe_event(event_id)
 
 def __DeviceProxy__get_events(self, event_id, callback=None, extract_as=ExtractAs.Numpy):
     """
@@ -817,7 +848,6 @@ def __DeviceProxy__str(self):
 def __init_DeviceProxy():
     DeviceProxy.__getattr__ = __DeviceProxy__getattr
     DeviceProxy.__setattr__ = __DeviceProxy__setattr
-    DeviceProxy.__del__ = __DeviceProxy__del
     DeviceProxy.__getitem__ = __DeviceProxy__getitem
     DeviceProxy.__setitem__ = __DeviceProxy__setitem
     DeviceProxy.__contains__ = __DeviceProxy__contains
@@ -845,6 +875,7 @@ def __init_DeviceProxy():
     DeviceProxy.set_attribute_config = __DeviceProxy__set_attribute_config
 
     DeviceProxy.__get_event_map = __DeviceProxy__get_event_map
+    DeviceProxy.__get_event_map_lock = __DeviceProxy__get_event_map_lock
     DeviceProxy.subscribe_event = __DeviceProxy__subscribe_event
     DeviceProxy.unsubscribe_event = __DeviceProxy__unsubscribe_event
     DeviceProxy.__unsubscribe_event_all = __DeviceProxy__unsubscribe_event_all
@@ -1397,6 +1428,45 @@ def __doc_DeviceProxy():
     write_attributes_reply(self, id, timeout) -> None
 
             Check if the answer of an asynchronous write_attributes is arrived
+            (polling model). id is the asynchronous call identifier. If the
+            reply is arrived and if it is a valid reply, the call returned. If
+            the reply is an exception, it is re-thrown by this call. If the
+            reply is not yet arrived, the call will wait (blocking the process)
+            for the time specified in timeout. If after timeout milliseconds,
+            the reply is still not there, an exception is thrown. If timeout is
+            set to 0, the call waits until the reply arrived.
+            
+        Parameters :
+            - id      : (int) the asynchronous call identifier.
+            - timeout : (int) the timeout
+            
+        Return     : None
+
+        Throws     : AsynCall, AsynReplyNotArrived, CommunicationFailed, DevFailed from device.
+
+        New in PyTango 7.0.0
+    """ )
+    
+    document_method("write_attribute_reply", """
+    write_attribute_reply(self, id) -> None
+
+            Check if the answer of an asynchronous write_attribute is arrived
+            (polling model). If the reply is arrived and if it is a valid reply,
+            the call returned. If the reply is an exception, it is re-thrown by
+            this call. An exception is also thrown in case of the reply is not
+            yet arrived.
+
+        Parameters :
+            - id : (int) the asynchronous call identifier.
+        Return     : None
+
+        Throws     : AsynCall, AsynReplyNotArrived, CommunicationFailed, DevFailed from device.
+
+        New in PyTango 7.0.0
+
+    write_attribute_reply(self, id, timeout) -> None
+
+            Check if the answer of an asynchronous write_attribute is arrived
             (polling model). id is the asynchronous call identifier. If the
             reply is arrived and if it is a valid reply, the call returned. If
             the reply is an exception, it is re-thrown by this call. If the
