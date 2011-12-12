@@ -21,13 +21,12 @@
    
 *******************************************************************************/
 
+#include "precompiled_header.hpp"
 #include "pytgutils.h"
 #include "exception.h"
 #include "server/device_class.h"
 #include "server/attr.h"
 #include "server/command.h"
-
-#include <sstream>
 
 using namespace boost::python;
 
@@ -278,7 +277,7 @@ namespace PyDeviceClass
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS (export_device_overload,
                                         CppDeviceClass::export_device, 1, 2)
 
-#if ((defined sun) || (defined WIN32))
+#if !(defined __linux)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS (register_signal_overload,
                                         Tango::DeviceClass::register_signal, 1, 1)
 #else
@@ -343,6 +342,8 @@ void export_device_class()
             &Tango::DeviceClass::device_destroyer)
         .def("_create_attribute", &CppDeviceClass::create_attribute)
         .def("_create_command", &CppDeviceClass::create_command)
+        .def("get_class_attr", &Tango::DeviceClass::get_class_attr,
+            return_value_policy<reference_existing_object>())
     ;
     implicitly_convertible<auto_ptr<CppDeviceClassWrap>, auto_ptr<CppDeviceClass> >();
 }

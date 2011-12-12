@@ -24,7 +24,7 @@
 #pragma once
 
 #include <boost/python.hpp>
-#include <tango/tango.h>
+#include <tango.h>
 #include <iostream>
 #include <string>
 
@@ -84,7 +84,7 @@ namespace PyDeviceAttribute {
                         }
                     }
                 }
-                catch(Tango::DevFailed &df)
+                catch(Tango::DevFailed &)
                 {
                     // if we fail to get info about the missing attributes from
                     // the server (because it as shutdown, for example) we assume
@@ -166,8 +166,8 @@ namespace PyDeviceAttribute {
     {
         typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
 
-    TangoScalarType value;
-    from_py<tangoTypeConst>::convert(py_value.ptr(), value);
+        TangoScalarType value;
+        from_py<tangoTypeConst>::convert(py_value.ptr(), value);
         dev_attr << const_cast<TangoScalarType&>(value);
     }
 
@@ -206,8 +206,8 @@ namespace PyDeviceAttribute {
         // void insert(char *&,unsigned char *&,unsigned int);
         dev_attr.insert(encoded_format, encoded_data, encoded_data_len);
 
-        std::string value = boost::python::extract<std::string>(py_value);
-        dev_attr << value;
+        //std::string value = boost::python::extract<std::string>(py_value);
+        //dev_attr << value;
     }
 
 }

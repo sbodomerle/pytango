@@ -21,8 +21,8 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <tango/tango.h>
+#include "precompiled_header.hpp"
+#include <tango.h>
 
 using namespace boost::python;
 

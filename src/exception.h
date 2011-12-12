@@ -24,7 +24,7 @@
 #pragma once
 
 #include <boost/python.hpp>
-#include <tango/tango.h>
+#include <tango.h>
 
 /**
  * Translates a seq<DevError> into a C++ DevErrorList
@@ -49,9 +49,16 @@ void PyDevFailed_2_DevFailed(PyObject *obj, Tango::DevFailed &df);
 void throw_python_dev_failed();
 
 /**
+ * Transforms a python exception into a Tango::DevFailed
+ */
+Tango::DevFailed to_dev_failed(PyObject *type=NULL, PyObject *value=NULL,
+                               PyObject *traceback=NULL);
+
+/**
  * Throws the current python exception as a DevFailed exception.
  */
-void throw_python_generic_exception();
+void throw_python_generic_exception(PyObject *type=NULL, PyObject *value=NULL,
+                                    PyObject *traceback=NULL);
 
 /**
  * Handles the current python exception:
@@ -63,7 +70,7 @@ void throw_python_generic_exception();
 void handle_python_exception(boost::python::error_already_set &eas);
 
 #define SAFE_CATCH_REPORT(meth_name) \
-    catch(boost::python::error_already_set &eas) \
+    catch(boost::python::error_already_set &) \
     { \
         std::cerr << "PyTango generated an unexpected python exception in " \
                   << meth_name << "." << std::endl \
@@ -87,7 +94,7 @@ void handle_python_exception(boost::python::error_already_set &eas);
     }
 
 #define SAFE_CATCH_INFORM(meth_name) \
-    catch(boost::python::error_already_set &eas) \
+    catch(boost::python::error_already_set &) \
     { \
         std::cerr << meth_name << " generated the following python exception:" << std::endl; \
         PyErr_Print(); \

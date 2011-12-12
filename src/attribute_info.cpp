@@ -21,8 +21,8 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <tango/tango.h>
+#include "precompiled_header.hpp"
+#include <tango.h>
 
 using namespace boost::python;
 
@@ -30,6 +30,7 @@ void export_attribute_info()
 {
     class_<Tango::AttributeInfo, bases<Tango::DeviceAttributeConfig> >
         ("AttributeInfo")
-        .def_readonly("disp_level", &Tango::AttributeInfo::disp_level)
+        .def(init<const Tango::AttributeInfoEx&>())
+        .def_readwrite("disp_level", &Tango::AttributeInfo::disp_level)
     ;
 }

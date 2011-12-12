@@ -30,7 +30,8 @@ from __future__ import with_statement
 __all__ = [ "is_scalar_type", "is_array_type", "is_numerical_type", 
             "is_int_type", "is_float_type", "obj_2_str", "seqStr_2_obj",
             "document_method", "document_static_method", "document_enum",
-            "CaselessList", "CaselessDict", "EventCallBack", "get_home" ]
+            "CaselessList", "CaselessDict", "EventCallBack", "get_home",
+            "from_version_str_to_hex_str", "from_version_str_to_int", ]
 
 __docformat__ = "restructuredtext"
 
@@ -40,9 +41,9 @@ import socket
 import types
 import operator
 
-from _PyTango import StdStringVector, DbData, DbDevInfos, DbDevExportInfos, CmdArgType, AttrDataFormat
+from _PyTango import StdStringVector, StdDoubleVector
+from _PyTango import DbData, DbDevInfos, DbDevExportInfos, CmdArgType, AttrDataFormat
 from _PyTango import EventData, AttrConfEventData, DataReadyEventData
-from _PyTango import ApiUtil
 
 _scalar_int_types = (CmdArgType.DevShort, CmdArgType.DevUShort,
     CmdArgType.DevInt, CmdArgType.DevLong, CmdArgType.DevULong,
@@ -246,7 +247,7 @@ def StdDoubleVector_2_seq(vec, seq=None):
     if seq is None: seq = []
     if not isinstance(vec, StdDoubleVector):
         raise TypeError('vec must be a PyTango.StdDoubleVector')
-    for e in vec: sec.append(float(e))
+    for e in vec: seq.append(float(e))
     return seq
 
 def seq_2_DbDevInfos(seq, vec=None):
@@ -725,7 +726,7 @@ def _notifd2db_file_db(ior_string, files, out=sys.stdout):
     print >>out, "going to export notification service event factory to " \
                  "device server property file(s) ..."
     for f in files:
-        with file(f, "w") as out_file:
+        with file(f, "w"):
             pass
     return
 
@@ -759,20 +760,20 @@ def _notifd2db_real_db(ior_string, host=None, out=sys.stdout):
     num_retries = 3
     while num_retries > 0:
         try:
-            ret = db.command_inout("DbExportEvent", args)
+            db.command_inout("DbExportEvent", args)
             print >>out, "Successfully exported notification service event " \
                          "factory for host", host_name, "to Tango database !"
             break
         except PyTango.CommunicationFailed, cf:
             if len(cf.errors) >= 2:
-                if e.errors[1].reason == "API_DeviceTimedOut":
+                if cf.errors[1].reason == "API_DeviceTimedOut":
                     if num_retries > 0:
                         num_retries -= 1
                 else:
                     num_retries = 0
             else:
                 num_retries = 0
-        except Exception, e:
+        except Exception:
             num_retries = 0
     
     if num_retries == 0:
@@ -824,17 +825,41 @@ class EventCallBack(object):
         try:
             self._push_event(evt)
         except Exception, e:
-            print >>self._fd, "Unexpected error in callback: %s" % str(e)
+            print >>self._fd, "Unexpected error in callback for %s: %s" \
+                % (str(evt), str(e))
     
     def _push_event(self, evt):
         """Internal usage only"""
         self._append(evt)
-        d = { "date" : evt.get_date().todatetime(),
-              "reception_date" : evt.reception_date.todatetime(),
-              "type" : evt.event.upper(),
-              "dev_name" : evt.device.dev_name().upper(),
-              "name" : evt.attr_name.split("/")[-1].upper(),
-              "value" : self._get_value(evt) }
+        import datetime
+        now = datetime.datetime.now()
+        try:
+            date = evt.get_date().todatetime()
+        except:
+            date = now
+        try:
+            reception_date = evt.reception_date.todatetime()
+        except:
+            reception_date = now
+        try:
+            evt_type = evt.event.upper()
+        except:
+            evt_type = "<UNKNOWN>"
+        try:
+            dev_name = evt.device.dev_name().upper()
+        except:
+            dev_name = "<UNKNOWN>"
+        try:
+            attr_name = evt.attr_name.split("/")[-1].upper()
+        except:
+            attr_name = "<UNKNOWN>"
+        try:
+            value = self._get_value(evt)
+        except Exception, e:
+            value = "Unexpected exception in getting event value: %s" % str(e)
+        d = { "date" : date, "reception_date" : reception_date,
+              "type" : evt_type, "dev_name" : dev_name, "name" : attr_name,
+              "value" : value }
         print >>self._fd, self._msg.format(**d)
 
     def _append(self, evt):
@@ -927,3 +952,11 @@ def _get_env_var(env_var_name):
         key, val = map(str.strip, tup)
         if key == env_var_name:
             return val
+
+def from_version_str_to_hex_str(version_str):
+    v = map(int, version_str.split('.'));
+    return "0x%02d%02d%02d00" % (v[0],v[1],v[2])
+
+def from_version_str_to_int(version_str):
+    return int(from_version_str_to_hex_str(version_str, 16))
+

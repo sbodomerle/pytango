@@ -21,15 +21,9 @@
    
 *******************************************************************************/
 
-#include <boost/python.hpp>
-#include <boost/python/return_value_policy.hpp>
-#include <tango/tango.h>
-#include <string>
-#include <memory>
-
+#include "precompiled_header.hpp"
 #include "device_attribute.h"
 #include "callback.h"
-
 #include "defs.h"
 #include "pytgutils.h"
 
@@ -127,7 +121,6 @@ namespace PyDeviceProxy
 
     static inline void write_attribute(Tango::DeviceProxy& self, const Tango::AttributeInfo & attr_info, object py_value)
     {
-
         Tango::DeviceAttribute da;
         PyDeviceAttribute::reset(da, attr_info, py_value);
         AutoPythonAllowThreads guard;

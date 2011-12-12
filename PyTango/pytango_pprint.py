@@ -29,7 +29,22 @@ __all__ = []
 
 __docformat__ = "restructuredtext"
 
-from _PyTango import *
+import operator
+
+from _PyTango import (StdStringVector, StdLongVector, CommandInfoList,
+    AttributeInfoList, AttributeInfoListEx,
+    DeviceDataHistoryList,
+    GroupReplyList, GroupAttrReplyList, GroupCmdReplyList,
+    DbData, DbDevInfos, DbDevExportInfos, DbDevImportInfos, DbHistoryList,
+    LockerInfo, DevCommandInfo, AttributeDimension, CommandInfo,
+    DeviceInfo, DeviceAttributeConfig, AttributeInfo, AttributeAlarmInfo,
+    ChangeEventInfo, PeriodicEventInfo, ArchiveEventInfo,
+    AttributeEventInfo, AttributeInfoEx,
+    DeviceAttribute, DeviceAttributeHistory, DeviceData, DeviceDataHistory,
+    DbDatum, DbDevInfo, DbDevImportInfo, DbDevExportInfo, DbServerInfo,
+    GroupElement, GroupReply, GroupAttrReply, GroupCmdReply,
+    DevError, EventData, AttrConfEventData, DataReadyEventData,
+    TimeVal, DevFailed, CmdArgType)
 
 from device_server import AttributeAlarm, EventProperties
 from device_server import ChangeEventProp, PeriodicEventProp, ArchiveEventProp
@@ -90,8 +105,6 @@ def __registerSeqStr():
     for seq in seqs:
         seq.__str__ = _SeqStr
         seq.__repr__ = _SeqRepr
-
-import operator
 
 def __str__DevFailed(self):
     if operator.isSequenceType(self.args):
