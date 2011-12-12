@@ -1,5 +1,6 @@
-pytango (7.2.0-3) UNRELEASED; urgency=low
+pytango (7.2.2-1) unstable; urgency=low
 
+  * import 7.2.2 upstream version. (Closes: #636468)
   * use dh_sphinxdoc
   * debian/control
     - Build-Depends
@@ -11,7 +12,7 @@ pytango (7.2.0-3) UNRELEASED; urgency=low
     - remove all patches thanks to the --install-html option.
   * use pyinstall file to install the ipython profile.
 
- -- Picca Frédéric-Emmanuel <picca@debian.org>  Mon, 25 Jul 2011 23:05:59 +0200
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Mon, 12 Dec 2011 18:05:59 +0200
 
 pytango (7.2.0-2) unstable; urgency=low
 
