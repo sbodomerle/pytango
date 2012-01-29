@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 8.0.0),
 	       liblog4tango4-dev,
 	       libtango7-dev (>= 7.2),
 	       libboost-python-dev,
-	       python-numpy,
+	       python-numpy (>= 1:1.4.1-4~),
 	       ipython,
 	       python-sphinx (>= 1.0.7+dfsg),
 	       graphviz
@@ -25,7 +25,6 @@ Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 ${python:Depends},
 	 ${sphinxdoc:Depends},
-	 python-numpy,
 	 ipython
 Provides: ${python:Provides}
 Description: API for the TANGO control system
