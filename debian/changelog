@@ -1,3 +1,9 @@
+pytango (7.2.2-3) UNRELEASED; urgency=low
+
+  * prepare for backport on stable without bpo
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 19 Feb 2012 14:49:19 +0100
+
 pytango (7.2.2-2) unstable; urgency=low
 
   * use dh_numpy for better python-numpy dependency.

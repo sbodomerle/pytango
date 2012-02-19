@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+# for backport on stable without bpo
+WITH_SPHINXDOC = $(shell if [ -x /usr/bin/dh_sphinxdoc ]; then echo "--with sphinxdoc"; fi)
+
 override_dh_clean:
 	rm -rf build/sphinx
 	dh_clean
@@ -12,4 +15,4 @@ override_dh_auto_build:
 	dh_auto_build -- --without-spock
 
 %:
-	dh $@ --with python2 --with sphinxdoc
+	dh $@ --with python2 $(WITH_SPHINXDOC)
