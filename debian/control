@@ -1,31 +1,31 @@
 Source: pytango
-Section: science
-Priority: extra
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
 Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
+Section: science
+Priority: extra
 Build-Depends: debhelper (>= 8),
-	       graphviz,
-	       ipython,
-	       libboost-python-dev,
-	       liblog4tango4-dev,
-	       libtango7-dev (>= 7.2),
-	       python-all-dev (>= 2.6.6-3~),
-	       python-numpy (>= 1:1.4.1-4~),
-	       python-sphinx
-X-Python-Version: >= 2.5
+               graphviz,
+               ipython,
+               libboost-python-dev,
+               liblog4tango4-dev,
+               libtango7-dev,
+               python-all-dev (>= 2.6.6-3~),
+               python-numpy (>= 1:1.4.1-4~),
+               python-sphinx
 Standards-Version: 3.9.2
-Homepage: http://www.tango-controls.org/static/PyTango/latest/doc/html/
-Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
+Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
+Homepage: http://www.tango-controls.org/static/PyTango/latest/doc/html/
+X-Python-Version: >= 2.5
 
 Package: python-pytango
-Section: python
 Architecture: any
+Section: python
 Depends: ${shlibs:Depends},
-	 ${misc:Depends},
-	 ${python:Depends},
-	 ${sphinxdoc:Depends},
-	 ipython
+         ${misc:Depends},
+         ${python:Depends},
+         ${sphinxdoc:Depends},
+         ipython
 Provides: ${python:Provides}
 Description: API for the TANGO control system
  TANGO is an object oriented distributed control system using CORBA,
