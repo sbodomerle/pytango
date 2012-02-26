@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 8),
                python-all-dev (>= 2.6.6-3~),
                python-numpy (>= 1:1.4.1-4~),
                python-sphinx
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
 Homepage: http://www.tango-controls.org/static/PyTango/latest/doc/html/

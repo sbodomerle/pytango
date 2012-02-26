@@ -1,8 +1,13 @@
-pytango (7.2.2-3) UNRELEASED; urgency=low
+pytango (7.2.2-3) unstable; urgency=low
 
-  * prepare for backport on stable without bpo
+  * bump the Standards-Version to 3.9.3
+    - use the copyright format 1.0
+  * dpkg/rules
+    - updated to build on squeeze
+  * dpkg/control
+    - better dependencies thanks to cme (config-edit)
 
- -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 19 Feb 2012 14:49:19 +0100
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 26 Feb 2012 14:49:19 +0100
 
 pytango (7.2.2-2) unstable; urgency=low
 
