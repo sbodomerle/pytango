@@ -6,6 +6,7 @@ pytango (7.2.2-3) unstable; urgency=low
     - updated to build on squeeze
   * dpkg/control
     - better dependencies thanks to cme (config-edit)
+    - X-Python-Version: >= 2.5 ->  2.6
 
  -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 26 Feb 2012 14:49:19 +0100
 
