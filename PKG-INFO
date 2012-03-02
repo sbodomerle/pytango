@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: PyTango
-Version: 7.2.2
+Version: 7.2.3
 Summary: A python binding for the Tango control system
 Home-page: http://www.tango-controls.org/static/PyTango/latest/doc/html/
 Author: Tiago Coutinho
