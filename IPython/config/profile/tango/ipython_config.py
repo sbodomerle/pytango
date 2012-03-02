@@ -21,22 +21,14 @@
 ##
 ################################################################################
 
-import os
+config = get_config()
 
-import IPython
-ipython = IPython
+# This can be used at any point in a config file to load a sub config
+# and merge it into the current one.
+load_subconfig('ipython_config.py', profile='default')
 
-def get_ipython_dir():
-    """Find the ipython local directory. Usually is <home>/.ipython"""
-    return ipython.iplib.get_ipython_dir()
+import PyTango.ipython
+PyTango.ipython.load_config(config)
 
-def get_ipython_profiles():
-    """Helper functions to find ipython profiles"""
-    ret = []
-    ipydir = get_ipython_dir()
-    if os.path.isdir(ipydir):
-        for i in os.listdir(ipydir):
-            if i.startswith("ipy_profile_") and i.endswith(".py") and \
-                os.path.isfile(i):
-                ret.append(i[len("ipy_profile_"):i.rfind(".")])
-    return ret
+
+

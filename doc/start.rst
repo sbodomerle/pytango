@@ -58,7 +58,7 @@ The current PyTango version has four major dependencies:
   
 plus two optional dependencies (activated by default) on:
 
-- IPyhon (>=0.10) (http://ipython.scipy.org/) (necessary for :ref:`spock`)
+- IPyhon (>=0.10) (http://ipython.scipy.org/) (necessary for :ref:`itango`)
 - numpy (>= 1.1.0) (http://numpy.scipy.org/)
 
 .. note::
@@ -83,13 +83,14 @@ distributions. Check the **Ubuntu GNU/Linux binary distribution** chapter under
 Windows
 ~~~~~~~
 
-PyTango team provides a limited set of binary PyTango distributables for 
-Windows XP/Vista/7. The complete list of binaries can be downloaded from 
+PyTango team provides a limited set of binary PyTango distributables for
+Windows XP/Vista/7. The complete list of binaries can be downloaded from
+`PyTango PyPI website <http://pypi.python.org/pypi/PyTango/>`_.
 
-.. _PyTango-7.2.2.win32-py2.6.msi: http://pypi.python.org/packages/source/P/PyTango/PyTango-7.2.2.win32-py2.6.msi
-.. _PyTango-7.2.2.win32-py2.6.exe: http://pypi.python.org/packages/source/P/PyTango/PyTango-7.2.2.win32-py2.6.exe
-.. _PyTango-7.2.2.win32-py2.7.msi: http://pypi.python.org/packages/source/P/PyTango/PyTango-7.2.2.win32-py2.7.msi
-.. _PyTango-7.2.2.win32-py2.7.exe: http://pypi.python.org/packages/source/P/PyTango/PyTango-7.2.2.win32-py2.7.exe
+.. _PyTango-7.2.2.win32-py2.6.msi: http://pypi.python.org/packages/2.6/P/PyTango/PyTango-7.2.2.win32-py2.6.msi
+.. _PyTango-7.2.2.win32-py2.6.exe: http://pypi.python.org/packages/2.6/P/PyTango/PyTango-7.2.2.win32-py2.6.exe
+.. _PyTango-7.2.2.win32-py2.7.msi: http://pypi.python.org/packages/2.7/P/PyTango/PyTango-7.2.2.win32-py2.7.msi
+.. _PyTango-7.2.2.win32-py2.7.exe: http://pypi.python.org/packages/2.7/P/PyTango/PyTango-7.2.2.win32-py2.7.exe
 
 +----------------------------------+--------------------------------------------------+----------------------------------------------+
 | version                          | Dependencies                                     | Compilation env.                             |
@@ -247,14 +248,14 @@ Finally::
     sudo python setup.py install
     
 This will install PyTango in the system python installation directory and, since
-version 7.1.2, it will also install :ref:`spock` as an IPython_ extension.
+version 7.1.2, it will also install :ref:`itango` as an IPython_ extension.
     
 Or if you whish to install in a different directory::
     
     python setup.py build
     python setup.py install --prefix=/home/homer/local --ipython-local
 
-(This will try to install :ref:`spock` as an IPython profile to the local
+(This will try to install :ref:`itango` as an IPython profile to the local
 user, since probably there is no permission to write into the IPython_ extension
 directory)
 
@@ -270,26 +271,33 @@ test
 ####
 
 If you have IPython_ installed, the best way to test your PyTango installation
-is by starting the new PyTango CLI called :ref:`spock` by typing on the command
-line::
+is by starting the new PyTango CLI called :ref:`itango` by typing on the command
+line:
 
-    $ ipython -p spock
+    #. IPython <= 0.10::
 
-then, in spock type:
+        $ ipython -p tango
 
-.. sourcecode:: spock
+    #.IPython > 0.10::
 
-    Spock <homer:10000> [1]: PyTango.Release.version
-                 Result [1]: '7.1.2'
+        $ ipython --profile=tango
 
-(if you are wondering, :ref:`spock` automaticaly does ``import PyTango`` for you!)
+
+then, in ITango type:
+
+.. sourcecode:: itango
+
+    ITango <homer:10000> [1]: PyTango.Release.version
+                  Result [1]: '7.2.3'
+
+(if you are wondering, :ref:`itango` automaticaly does ``import PyTango`` for you!)
 
 If you don't have IPython_ installed, to test the installation start a python console
 and type:
 
     >>> import PyTango
     >>> print PyTango.Release.version
-    7.1.2
+    7.2.3
 
 .. toctree::
     :hidden:

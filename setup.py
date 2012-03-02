@@ -95,16 +95,16 @@ class build(dftbuild):
     
     user_options = dftbuild.user_options + \
         [('with-pytango3', None, "distribute PyTango3 module"),
-         ('without-spock', None, "spock IPython extension"),
+         ('without-ipython', None, "Tango IPython extension"),
          ('strip-lib', None, "strips the shared library of debugging symbols (Unix like systems only)"),
          ('no-doc', None, "do not build documentation") ]
     
-    boolean_options = dftbuild.boolean_options + ['with-pytango3', 'without-spock', 'strip-lib', 'no-doc']
+    boolean_options = dftbuild.boolean_options + ['with-pytango3', 'without-ipython', 'strip-lib', 'no-doc']
     
     def initialize_options (self):
         dftbuild.initialize_options(self)
         self.with_pytango3 = None
-        self.without_spock = None
+        self.without_ipython = None
         self.strip_lib = None
         self.no_doc = None
 
@@ -119,11 +119,11 @@ class build(dftbuild):
         if self.with_pytango3:
             self.distribution.packages.append('PyTango3')
         
-        if IPython and not self.without_spock:
+        if IPython and not self.without_ipython:
             if _IPY_VER > [0,10]:
-                self.distribution.py_modules.append('IPython.config.profile.spock')
+                self.distribution.py_modules.append('IPython.config.profile.tango.ipython_config')
             else:
-                self.distribution.py_modules.append('IPython.Extensions.ipy_profile_spock')
+                self.distribution.py_modules.append('IPython.Extensions.ipy_profile_tango')
             
         dftbuild.run(self)
         
@@ -252,6 +252,7 @@ def main():
         'PyTango.ipython',
         'PyTango.ipython.ipython_00_10',
         'PyTango.ipython.ipython_00_11',
+        'PyTango.ipython.ipython_00_12',
     ]
 
     py_modules = []
@@ -266,7 +267,7 @@ def main():
     ]
 
     package_data = {
-        'PyTango' : []
+        'PyTango' : [],
     }
 
     data_files = []

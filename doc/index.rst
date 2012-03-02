@@ -9,26 +9,17 @@
 Welcome to PyTango |version| documentation!
 ===========================================
 
-|PyTangoLogoMedium| |spocklogo|
-
-.. sidebar:: Latest news:
-    
-    2011-12-12:
-        PyTango 7.2.2 is out!
-
-    2011-04-15:
-        PyTango 7.2.0 is out!
-
-    2011-04-14:
-        PyTango 7.1.6 is out!
-
-
-PyTango is a python module that exposes to Python_ the complete Tango_ C++ API.
-This includes both client and server API.
+PyTango is a python module that exposes to Python_ the complete Tango_ C++ API
+(including both client and server).
 
 This means that you can write not only tango applications (scripts, CLIs, GUIs) 
 that access tango device servers but also tango device servers themselves, all 
 of this in pure Python_.
+
+.. figure:: itango/itango07.png
+    :width: 700
+    :align: center
+    :alt: ITango
 
 Check out the :ref:`getting started guide<getting-started>` to learn how to
 build and/or install PyTango and after that the :ref:`quick tour <quick-tour>` 
@@ -44,14 +35,6 @@ Tango_ homepage where you will find plenty of documentation, faq and tutorials.
 
     
 :Last Update: |today|
-
-.. |PyTangoLogoMedium| image:: logo-medium.png
-    :align: middle
-    :alt: PyTango logo
-    
-.. |spocklogo| image:: spock/spock03.png
-    :align: middle
-    :alt: Spock console
 
 .. _Python: http://www.python.org/
 .. _IPython: http://ipython.scipy.org/
