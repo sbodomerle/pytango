@@ -5,7 +5,6 @@ Section: science
 Priority: extra
 Build-Depends: debhelper (>= 8),
                graphviz,
-               ipython,
                libboost-python-dev,
                liblog4tango4-dev,
                libtango7-dev,
@@ -24,13 +23,26 @@ Section: python
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          ${python:Depends},
-         ${sphinxdoc:Depends},
          ipython
 Provides: ${python:Provides}
+Description: API for the TANGO control system (documentation)
+ TANGO is an object oriented distributed control system using CORBA,
+ mainly developed by the Controls Section of the ALBA Synchrotron.
+ PyTango provides bindings for its client- and server-side C++ APIs.
+ With PyTango, you can write TANGO device servers and TANGO applications
+ (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
+
+Package: python-pytango-doc
+Architecture: all
+Section: python
+Depends: ${misc:Depends},
+         ${sphinxdoc:Depends}
 Description: API for the TANGO control system
  TANGO is an object oriented distributed control system using CORBA,
  mainly developed by the Controls Section of the ALBA Synchrotron.
  PyTango provides bindings for its client- and server-side C++ APIs.
  With PyTango, you can write TANGO device servers and TANGO applications
  (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
+ .
+ This package contains the documentation for the python-pytango library.
 

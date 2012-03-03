@@ -8,11 +8,9 @@ override_dh_clean:
 	dh_clean
 
 override_dh_auto_install:
-	dh_auto_install -- --install-html=$(CURDIR)/debian/python-pytango/usr/share/doc/python-pytango/html
+	dh_auto_install -- --install-html=$(CURDIR)/debian/python-pytango-doc/usr/share/doc/python-pytango-doc/html
 	dh_numpy
 
-override_dh_auto_build:
-	dh_auto_build -- --without-spock
 
 %:
 	dh $@ --with python2 $(WITH_SPHINXDOC)
