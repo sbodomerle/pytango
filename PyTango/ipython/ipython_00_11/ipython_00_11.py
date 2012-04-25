@@ -201,9 +201,6 @@ def __get_device_subscriptions(dev_name):
     if data is not None:
         return data[4]
 
-def __switchdb_completer(ip, evt):
-    return __get_store(ip, "database_list").keys()
-
 __monitor_completer = __AttributeProxy_completer
 
 #-------------------------------------------------------------------------------
@@ -523,17 +520,11 @@ def __exc_handler(ip, etype, value, tb, tb_offset=None):
 def __get_default_tango_host():
     global _DFT_TANGO_HOST
     if _DFT_TANGO_HOST is None:
-        _DFT_TANGO_HOST = os.environ.get("TANGO_HOST")
-        if _DFT_TANGO_HOST is None:
-            # ok, it must have been defined in the tangorc way. Since the
-            # method Tango::Connection::get_env_var is protected we do a hack to
-            # get the tango_host: Create a temporary Database object. It is not
-            #very nice but is done only once in the lifetime of the application 
-            try:
-                db = PyTango.Database()
-                _DFT_TANGO_HOST = "%s:%s" % (db.get_db_host(), db.get_db_port())
-            except:
-                pass
+        try:
+            db = PyTango.Database()
+            _DFT_TANGO_HOST = "%s:%s" % (db.get_db_host(), db.get_db_port())
+        except:
+            pass
     return _DFT_TANGO_HOST
 
 def __get_db(host_port=None):
@@ -673,33 +664,6 @@ def __build_color_scheme(ip, name):
         ret["TBThreaded"] = TBThreadedColors, TBThreadedTangoColors
     return ret
 
-def __set_store(ip, key=None, value=None):
-    if key is not None:
-        tango_store = ip.user_ns.get(_TANGO_STORE)
-        tango_store[key] = value
-    __store(ip, _TANGO_STORE)
-
-def __get_store(ip, key, nvalue=None):
-    tango_store = ip.user_ns.get(_TANGO_STORE)
-    if tango_store is None:
-        ip.user_ns[_TANGO_STORE] = tango_store = {}
-    v = tango_store.get(key)
-    if v is None and nvalue is not None:
-        tango_store[key] = nvalue
-        v = nvalue
-    return v
-
-def __store(ip, var):
-    # this executes the magic command store which prints a lot of info. So, first
-    # we hide the standard output
-    
-    stdout = sys.stdout
-    try:
-        sys.stdout = StringIO.StringIO()
-        ip.magic("store %s" % var)
-    finally:
-        sys.stdout = stdout
-        
 #-------------------------------------------------------------------------------
 # Initialization methods
 #-------------------------------------------------------------------------------
@@ -820,20 +784,16 @@ def init_db(ip, parameter_s=''):
     db._db_cache = db_cache
 
     # Add this DB to the list of known DBs (for possible use in magic commands)
-    valid_dbs = __get_store(ip, "database_list", {})
     if db.get_db_port_num() == 10000:
         db_name = db.get_db_host()
     else:
         db_name = "%s:%s" % (db.get_db_host(), db.get_db_port())
-    valid_dbs[db_name] = None
-    __set_store(ip)
-    
     return db
 
 def init_magic(ip):
     __expose_magic(ip, "refreshdb", magic_refreshdb)
     __expose_magic(ip, "reloaddb", magic_refreshdb)
-    __expose_magic(ip, "switchdb", magic_switchdb, __switchdb_completer)
+    __expose_magic(ip, "switchdb", magic_switchdb)
     __expose_magic(ip, "lsdev", magic_lsdev)
     __expose_magic(ip, "lsdevclass", magic_lsdevclass)
     __expose_magic(ip, "lsserv", magic_lsserv)
@@ -879,11 +839,6 @@ def init_ipython(ip=None, store=True, pytango=True, colors=True, console=True,
     
     global _tango_init
     if _tango_init is True: return
-    
-    # 0.11 doesn't have store magic command so we ignore any store atempts
-    if 'store' not in ip.lsmagic():
-        global __store
-        __store = lambda a, b : None
     
     if pytango:
         init_pytango(ip)

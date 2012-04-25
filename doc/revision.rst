@@ -63,7 +63,7 @@ History of modifications:
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 | 12/12/11 | `8.12 <http://www.tango-controls.org/static/PyTango/v722/doc/html/index.html>`_  | Update to PyTango 7.2.2                             | T\. Coutinho          |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
-| --/--/12 | `8.13 <http://www.tango-controls.org/static/PyTango/v723/doc/html/index.html>`_  | Update to PyTango 7.2.3                             | T\. Coutinho          |
+| 24/04/12 | `8.13 <http://www.tango-controls.org/static/PyTango/v723/doc/html/index.html>`_  | Update to PyTango 7.2.3                             | T\. Coutinho          |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 
 .. _version-history:
@@ -79,9 +79,13 @@ Version history
 |            |         - `3495607: DeviceClass.device_name_factory is missing <https://sourceforge.net/tracker/?func=detail&aid=3495607&group_id=57612&atid=484772>`_                       |
 |            | Bug fixes:                                                                                                                                                                   |
 |            |     - from sourceforge:                                                                                                                                                      |
+|            |         - `3103588: documentation of PyTango.Attribute.Group <https://sourceforge.net/tracker/?func=detail&aid=3103588&group_id=57612&atid=484769>`_                         |
 |            |         - `3458336: Problem with pytango 7.2.2 <https://sourceforge.net/tracker/?func=detail&aid=3458336&group_id=57612&atid=484769>`_                                       |
 |            |         - `3463377: PyTango memory leak in read encoded attribute <https://sourceforge.net/tracker/?func=detail&aid=3463377&group_id=57612&atid=484769>`_                    |
 |            |         - `3487930: [pytango] wrong python dependency <https://sourceforge.net/tracker/?func=detail&aid=3487930&group_id=57612&atid=484769>`_                                |
+|            |         - `3511509: Attribute.set_value_date_quality for encoded does not work <https://sourceforge.net/tracker/?func=detail&aid=3511509&group_id=57612&atid=484769>`_       |
+|            |         - `3514457: [pytango]  TANGO_HOST multi-host support <https://sourceforge.net/tracker/?func=detail&aid=3514457&group_id=57612&atid=484769>`_                         |
+|            |         - `3520739: command_history(...) in  PyTango <https://sourceforge.net/tracker/?func=detail&aid=3520739&group_id=57612&atid=484769>`_                                 |
 +------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 7.2.2      | Features:                                                                                                                                                                    |
 |            |     - from sourceforge:                                                                                                                                                      |
