@@ -34,7 +34,7 @@ Description: API for the TANGO control system (documentation)
 
 Package: python-pytango-doc
 Architecture: all
-Section: python
+Section: doc
 Depends: ${misc:Depends},
          ${sphinxdoc:Depends}
 Description: API for the TANGO control system

@@ -1,8 +1,10 @@
-pytango (7.2.3~rc1-1) unstable; urgency=low
+pytango (7.2.3-1) unstable; urgency=low
 
-  * Imported Upstream version 7.2.3~rc1
+  * Imported Upstream version 7.2.3
+  * debian/control
+    - add the python-pytango-doc package
 
- -- Picca Frédéric-Emmanuel <picca@debian.org>  Fri, 02 Mar 2012 20:50:02 +0100
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Fri, 25 Apr 2012 20:50:02 +0100
 
 pytango (7.2.2-3) unstable; urgency=low
 
