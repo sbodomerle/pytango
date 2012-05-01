@@ -1,8 +1,5 @@
 #!/usr/bin/make -f
 
-# for backport on stable without bpo
-WITH_SPHINXDOC = $(shell if [ -x /usr/bin/dh_sphinxdoc ]; then echo "--with sphinxdoc"; fi)
-
 override_dh_clean:
 	rm -rf build/sphinx
 	dh_clean
@@ -11,6 +8,12 @@ override_dh_auto_install:
 	dh_auto_install -- --install-html=$(CURDIR)/debian/python-pytango-doc/usr/share/doc/python-pytango-doc/html
 	dh_numpy
 
+override_dh_installdocs:
+	dh_installdocs
+ifneq (,$(filter python-pytango-doc, $(shell dh_listpackages)))
+	# add the - for backport where dh_sphinxdoc is not available
+	-dh_sphinxdoc -ppython-pytango-doc
+endif
 
 %:
-	dh $@ --with python2 $(WITH_SPHINXDOC)
+	dh $@ --with python2

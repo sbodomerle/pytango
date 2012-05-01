@@ -4,13 +4,13 @@ Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
 Section: science
 Priority: extra
 Build-Depends: debhelper (>= 8),
-               graphviz,
                libboost-python-dev,
                liblog4tango4-dev,
                libtango7-dev,
                python-all-dev (>= 2.6.6-3~),
-               python-numpy (>= 1:1.4.1-4~),
-               python-sphinx
+               python-numpy (>= 1:1.4.1-4~)
+Build-Depends-Indep: graphviz,
+		     python-sphinx
 Standards-Version: 3.9.3
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
