@@ -123,6 +123,24 @@ void insert_scalar<Tango::DEV_BOOLEAN>(boost::python::object &o, CORBA::Any &any
     any <<= any_value;
 }
 
+template<>
+void insert_scalar<Tango::DEV_ENCODED>(boost::python::object &o, CORBA::Any &any)
+{
+    bopy::object p0 = o[0];
+    bopy::object p1 = o[1];
+
+    const char* encoded_format = bopy::extract<const char *> (p0.ptr());
+    const char* encoded_data = bopy::extract<const char *> (p1.ptr());
+    
+    CORBA::ULong nb = bopy::len(p1);
+    Tango::DevVarCharArray arr(nb, nb, (CORBA::Octet*)encoded_data, false);
+    Tango::DevEncoded *data = new Tango::DevEncoded;
+    data->encoded_format = CORBA::string_dup(encoded_format);
+    data->encoded_data = arr;
+
+    any <<= data;
+}
+
 template<long tangoArrayTypeConst>
 void insert_array(boost::python::object &o, CORBA::Any &any)
 {   
@@ -164,6 +182,21 @@ template<>
 void extract_scalar<Tango::DEV_VOID>(const CORBA::Any &any, boost::python::object &o)
 {}
 
+template<>
+void extract_scalar<Tango::DEV_ENCODED>(const CORBA::Any &any, boost::python::object &o)
+{
+    Tango::DevEncoded* data;
+
+    if ((any >>= data) == false)
+        throw_bad_type(Tango::CmdArgTypeName[Tango::DEV_ENCODED]);
+    
+    bopy::str encoded_format(data[0].encoded_format);
+    bopy::str encoded_data((const char*)data[0].encoded_data.get_buffer(),
+                           data[0].encoded_data.length());
+    
+    o = boost::python::make_tuple(encoded_format, encoded_data);
+}
+
 #ifndef DISABLE_PYTANGO_NUMPY
 /// This callback is run to delete Tango::DevVarXArray* objects.
 /// It is called by python. The array was associated with an attribute
@@ -172,14 +205,24 @@ void extract_scalar<Tango::DEV_VOID>(const CORBA::Any &any, boost::python::objec
 /// @param type_ The type of the array objects. We need it to convert ptr_
 ///              to the proper type before deleting it.
 ///              ex: Tango::DEVVAR_SHORTARRAY.
-static void dev_var_x_array_deleter__(void * ptr_, void *type_)
-{
-    long type = reinterpret_cast<long>(type_);
-
-    TANGO_DO_ON_ATTRIBUTE_DATA_TYPE(type,
-        delete static_cast<TANGO_const2type(tangoTypeConst)*>(ptr_);
-    );
-}
+#    ifdef PYCAPSULE_OLD
+         template<long type>
+         static void dev_var_x_array_deleter__(void * ptr_)
+         {
+             TANGO_DO_ON_ATTRIBUTE_DATA_TYPE_ID(type,
+                 delete static_cast<TANGO_const2type(tangoTypeConst)*>(ptr_);
+             );
+         }
+#    else
+         template<long type>
+         static void dev_var_x_array_deleter__(PyObject* obj)
+         {
+             void * ptr_ = PyCapsule_GetPointer(obj, NULL);
+             TANGO_DO_ON_ATTRIBUTE_DATA_TYPE_ID(type,
+                 delete static_cast<TANGO_const2type(tangoTypeConst)*>(ptr_);
+             );
+         }
+#endif
 #endif
 
 template<long tangoArrayTypeConst>
@@ -206,10 +249,10 @@ void extract_array(const CORBA::Any &any, boost::python::object &py_result)
       // PyCObject is intended for that kind of things. It's seen as a
       // black box object from python. We assign him a function to be called
       // when it is deleted -> the function deletes de data.
-      PyObject* guard = PyCObject_FromVoidPtrAndDesc(
+      PyObject* guard = PyCapsule_New(
               static_cast<void*>(copy_ptr),
-              reinterpret_cast<void*>(tangoArrayTypeConst),
-              dev_var_x_array_deleter__);
+              NULL,
+              dev_var_x_array_deleter__<tangoArrayTypeConst>);
       if (!guard ) {
           delete copy_ptr;
           throw_error_already_set();
@@ -232,7 +275,7 @@ CORBA::Any *PyCmd::execute(Tango::DeviceImpl *dev, const CORBA::Any &param_any)
         // So, the result is that param_py = param_any.
         // It is done with some template magic.
         boost::python::object param_py;
-        TANGO_DO_ON_DEVICE_DATA_TYPE(in_type, 
+        TANGO_DO_ON_DEVICE_DATA_TYPE_ID(in_type,
             extract_scalar<tangoTypeConst>(param_any, param_py);
         , 
             extract_array<tangoTypeConst>(param_any, param_py);
@@ -252,10 +295,10 @@ CORBA::Any *PyCmd::execute(Tango::DeviceImpl *dev, const CORBA::Any &param_any)
         
         CORBA::Any *ret_any;
         allocate_any(ret_any);
-        std::auto_ptr<CORBA::Any> ret_any_guard(ret_any);
+        unique_pointer<CORBA::Any> ret_any_guard(ret_any);
 
         // It does: ret_any = ret_py_obj
-        TANGO_DO_ON_DEVICE_DATA_TYPE(out_type, 
+        TANGO_DO_ON_DEVICE_DATA_TYPE_ID(out_type,
             insert_scalar<tangoTypeConst>(ret_py_obj, *ret_any);
         ,
             insert_array<tangoTypeConst>(ret_py_obj, *ret_any);

@@ -27,25 +27,31 @@ This is an internal PyTango module.
 
 from __future__ import with_statement
 
-__all__ = []
+__all__ = ["device_proxy_init"]
 
 __docformat__ = "restructuredtext"
 
-import operator
-import types
 import threading
 
-from _PyTango import StdStringVector
-from _PyTango import DbData, DbDatum
-from _PyTango import AttributeInfo, AttributeInfoEx
-from _PyTango import AttributeInfoList, AttributeInfoListEx
-from _PyTango import DeviceProxy
-from _PyTango import __CallBackAutoDie, __CallBackPushEvent, EventType
-from _PyTango import DevFailed, Except
-from _PyTango import ExtractAs
-from PyTango.utils import seq_2_StdStringVector, StdStringVector_2_seq
-from PyTango.utils import seq_2_DbData, DbData_2_dict
-from utils import document_method as __document_method
+from ._PyTango import StdStringVector, DbData, DbDatum, AttributeInfo, \
+    AttributeInfoEx, AttributeInfoList, AttributeInfoListEx, DeviceProxy, \
+    __CallBackAutoDie, __CallBackPushEvent, EventType, DevFailed, Except, \
+    ExtractAs
+from .utils import is_pure_str, is_non_str_seq, is_integer, \
+    seq_2_StdStringVector, StdStringVector_2_seq, seq_2_DbData, DbData_2_dict
+from .utils import document_method as __document_method
+import collections
+import numbers
+
+class __TangoInfo(object):
+    """Helper class for when DeviceProxy.info() is not available"""
+    
+    def __init__(self):
+        self.dev_class = self.dev_type = 'Device'
+        self.doc_url = 'http://www.esrf.fr/computing/cs/tango/tango_doc/ds_doc/'
+        self.server_host = 'Unknown'
+        self.server_id = 'Unknown'
+        self.server_version = 1
 
 #-------------------------------------------------------------------------------
 # Pythonic API: transform tango commands into methods and tango attributes into
@@ -74,7 +80,7 @@ def __DeviceProxy__getattr(self, name):
     # ticket http://ipython.scipy.org/ipython/ipython/ticket/229 someday
     # and the ugly trait_names could be removed.
     if name[:2] == "__" or name == 'trait_names':
-        raise AttributeError, name
+        raise AttributeError(name)
     
     name_l = name.lower()
     cmd_info = None
@@ -107,7 +113,7 @@ def __DeviceProxy__getattr(self, name):
             find_attr = False
     
     if not find_attr or name_l not in self.__attr_cache:
-        raise AttributeError, name
+        raise AttributeError(name)
     
     return self.read_attribute(name).value
 
@@ -130,7 +136,7 @@ def __DeviceProxy__getAttributeNames(self):
     try:
         lst = [cmd.cmd_name for cmd in self.command_list_query()]
         lst += self.get_attribute_list()
-        lst += map(str.lower, lst)
+        lst += list(map(str.lower, lst))
         lst.sort()
         return lst
     except Exception:
@@ -185,7 +191,7 @@ def __DeviceProxy__read_attributes_asynch(self, attr_names, cb=None, extract_as=
         return self.__read_attributes_asynch(attr_names)
 
     cb2 = __CallBackAutoDie()
-    if callable(cb):
+    if isinstance(cb, collections.Callable):
         cb2.attr_read = cb
     else:
         cb2.attr_read = cb.attr_read
@@ -247,7 +253,7 @@ def __DeviceProxy__write_attributes_asynch(self, attr_values, cb=None):
         return self.__write_attributes_asynch(attr_values)
 
     cb2 = __CallBackAutoDie()
-    if callable(cb):
+    if isinstance(cb, collections.Callable):
         cb2.attr_write = cb
     else:
         cb2.attr_write = cb.attr_write
@@ -300,7 +306,7 @@ def __DeviceProxy__get_property(self, propname, value=None):
                      DevFailed from database device
     """
 
-    if type(propname) in types.StringTypes or isinstance(propname, StdStringVector):
+    if is_pure_str(propname) or isinstance(propname, StdStringVector):
         new_value = value
         if new_value is None:
             new_value = DbData()
@@ -311,12 +317,12 @@ def __DeviceProxy__get_property(self, propname, value=None):
         new_value.append(propname)
         self._get_property(new_value)
         return DbData_2_dict(new_value)
-    elif operator.isSequenceType(propname):
+    elif isinstance(propname, collections.Sequence):
         if isinstance(propname, DbData):
             self._get_property(propname)
             return DbData_2_dict(propname)
 
-        if type(propname[0]) in types.StringTypes:
+        if is_pure_str(propname[0]):
             new_propname = StdStringVector()
             for i in propname: new_propname.append(i)
             new_value = value
@@ -363,16 +369,16 @@ def __DeviceProxy__put_property(self, value):
         new_value = DbData()
         new_value.append(value)
         value = new_value
-    elif operator.isSequenceType(value) and not type(value) in types.StringTypes:
+    elif is_non_str_seq(value):
         new_value = seq_2_DbData(value)
-    elif operator.isMappingType(value):
+    elif isinstance(value, collections.Mapping):
         new_value = DbData()
-        for k, v in value.iteritems():
+        for k, v in value.items():
             if isinstance(v, DbDatum):
                 new_value.append(v)
                 continue
             db_datum = DbDatum(k)
-            if operator.isSequenceType(v) and not type(v) in types.StringTypes:
+            if is_non_str_seq(v):
                 seq_2_StdStringVector(v, db_datum.value_string)
             else:
                 db_datum.value_string.append(str(v))
@@ -415,21 +421,21 @@ def __DeviceProxy__delete_property(self, value):
                     DevFailed from device (DB_SQLError)
     """
     if isinstance(value, DbData) or isinstance(value, StdStringVector) or \
-       type(value) in types.StringTypes:
+       is_pure_str(value):
         new_value = value
     elif isinstance(value, DbDatum):
         new_value = DbData()
         new_value.append(value)
-    elif operator.isSequenceType(value):
+    elif isinstance(value, collections.Sequence):
         new_value = DbData()
         for e in value:
             if isinstance(e, DbDatum):
                 new_value.append(e)
             else:
                 new_value.append(DbDatum(str(e)))
-    elif operator.isMappingType(value):
+    elif isinstance(value, collections.Mapping):
         new_value = DbData()
-        for k, v in value.iteritems():
+        for k, v in value.items():
             if isinstance(v, DbDatum):
                 new_value.append(v)
             else:
@@ -474,7 +480,7 @@ def __DeviceProxy__get_property_list(self, filter, array=None):
     if isinstance(array, StdStringVector):
         self._get_property_list(filter, array)
         return array
-    elif operator.isSequenceType(array):
+    elif isinstance(array, collections.Sequence):
         new_array = StdStringVector()
         self._get_property_list(filter, new_array)
         StdStringVector_2_seq(new_array, array)
@@ -513,9 +519,9 @@ def __DeviceProxy__get_attribute_config(self, value):
 
         Deprecated: use get_attribute_config_ex instead
     """
-    if isinstance(value, StdStringVector) or type(value) in types.StringTypes:
+    if isinstance(value, StdStringVector) or is_pure_str(value):
         return self._get_attribute_config(value)
-    elif operator.isSequenceType(value):
+    elif isinstance(value, collections.Sequence):
         v = seq_2_StdStringVector(value)
         return self._get_attribute_config(v)
 
@@ -551,11 +557,11 @@ def __DeviceProxy__get_attribute_config_ex(self, value):
     """
     if isinstance(value, StdStringVector):
         return self._get_attribute_config_ex(value)
-    elif type(value) in types.StringTypes:
+    elif is_pure_str(value):
         v = StdStringVector()
         v.append(value)
         return self._get_attribute_config_ex(v)
-    elif operator.isSequenceType(value):
+    elif isinstance(value, collections.Sequence):
         v = seq_2_StdStringVector(value)
         return self._get_attribute_config_ex(v)
 
@@ -619,7 +625,7 @@ def __DeviceProxy__set_attribute_config(self, value):
         v = value
     elif isinstance(value, AttributeInfoListEx):
         v = value
-    elif operator.isSequenceType(value):
+    elif isinstance(value, collections.Sequence):
         if not len(value): return
         if isinstance(value[0], AttributeInfoEx):
             v = AttributeInfoListEx()
@@ -718,13 +724,13 @@ def __DeviceProxy__subscribe_event ( self, attr_name, event_type, cb_or_queuesiz
             other subscribe_event() version.
     """
     
-    if callable(cb_or_queuesize):
+    if isinstance(cb_or_queuesize, collections.Callable):
         cb = __CallBackPushEvent()
         cb.push_event = cb_or_queuesize
-    elif hasattr(cb_or_queuesize, "push_event") and callable(cb_or_queuesize.push_event):
+    elif hasattr(cb_or_queuesize, "push_event") and isinstance(cb_or_queuesize.push_event, collections.Callable):
         cb = __CallBackPushEvent()
         cb.push_event = cb_or_queuesize.push_event
-    elif operator.isNumberType(cb_or_queuesize):
+    elif is_integer(cb_or_queuesize):
         cb = cb_or_queuesize # queuesize
     else:
         raise TypeError("Parameter cb_or_queuesize should be a number, a" + \
@@ -770,7 +776,7 @@ def __DeviceProxy__unsubscribe_event(self, event_id):
 def __DeviceProxy__unsubscribe_event_all(self):
     with self.__get_event_map_lock():
         se = self.__get_event_map()
-        event_ids = se.keys()
+        event_ids = list(se.keys())
         se.clear()
     for event_id in event_ids:
         self.__unsubscribe_event(event_id)
@@ -826,25 +832,34 @@ def __DeviceProxy__get_events(self, event_id, callback=None, extract_as=ExtractA
         else:
             assert (False)
             raise ValueError("Unknown event_type: " + str(event_type))
-    elif callable(callback):
+    elif isinstance(callback, collections.Callable):
         cb = __CallBackPushEvent()
         cb.push_event = callback
         return self.__get_callback_events(event_id, cb, extract_as)
-    elif hasattr(callback, 'push_event') and callable(callback.push_event):
+    elif hasattr(callback, 'push_event') and isinstance(callback.push_event, collections.Callable):
         cb = __CallBackPushEvent()
         cb.push_event = callback.push_event
         return self.__get_callback_events(event_id, cb, extract_as)
     else:
         raise TypeError("Parameter 'callback' should be None, a callable object or an object with a 'push_event' method.")
 
-def __DeviceProxy__str(self):
-    if not hasattr(self, '_dev_class'):
+def __DeviceProxy___get_info_(self):
+    """Protected method that gets device info once and stores it in cache"""
+    if not hasattr(self, '_dev_info'):
         try:
-            self.__dict__["_dev_class"] = self.info().dev_class
+            self.__dict__["_dev_info"] = self.info()
         except:
-            return "DeviceProxy(%s)" % self.dev_name()
-    return "%s(%s)" % (self._dev_class, self.dev_name())
-    
+            return __TangoInfo()
+    return self._dev_info
+
+def __DeviceProxy__str(self):
+    info = self._get_info_()
+    return "%s(%s)" % (info.dev_class, self.dev_name())
+
+def __DeviceProxy__str(self):
+    info = self._get_info_()
+    return "%s(%s)" % (info.dev_class, self.dev_name())
+
 def __init_DeviceProxy():
     DeviceProxy.__getattr__ = __DeviceProxy__getattr
     DeviceProxy.__setattr__ = __DeviceProxy__setattr
@@ -882,7 +897,10 @@ def __init_DeviceProxy():
     DeviceProxy.get_events = __DeviceProxy__get_events
     DeviceProxy.__str__ = __DeviceProxy__str
     DeviceProxy.__repr__ = __DeviceProxy__str
+    
+    DeviceProxy._get_info_ = __DeviceProxy___get_info_
 
+    
 def __doc_DeviceProxy():
     def document_method(method_name, desc, append=True):
         return __document_method(DeviceProxy, method_name, desc, append)
@@ -911,12 +929,12 @@ def __doc_DeviceProxy():
         Return     : (DeviceInfo) object
         Example    :
                 dev_info = dev.info()
-                print dev_info.dev_class
-                print dev_info.server_id
-                print dev_info.server_host
-                print dev_info.server_version
-                print dev_info.doc_url
-                print dev_info.dev_type
+                print(dev_info.dev_class)
+                print(dev_info.server_id)
+                print(dev_info.server_host)
+                print(dev_info.server_version)
+                print(dev_info.doc_url)
+                print(dev_info.dev_type)
 
             All DeviceInfo fields are strings except for the server_version
             which is an integer"
@@ -1007,7 +1025,7 @@ def __doc_DeviceProxy():
                      command and from which client computer the command
                      was executed
         Example :
-                print black_box(4)
+                print(black_box(4))
     """ )
 
 #-------------------------------------
@@ -1025,13 +1043,13 @@ def __doc_DeviceProxy():
         Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device
         Example :
                 com_info = dev.command_query(""DevString"")
-                print com_info.cmd_name
-                print com_info.cmd_tag
-                print com_info.in_type
-                print com_info.out_type
-                print com_info.in_type_desc
-                print com_info.out_type_desc
-                print com_info.disp_level
+                print(com_info.cmd_name)
+                print(com_info.cmd_tag)
+                print(com_info.in_type)
+                print(com_info.out_type)
+                print(com_info.in_type_desc)
+                print(com_info.out_type_desc)
+                print(com_info.disp_level)
                 
         See CommandInfo documentation string form more detail
     """ )
@@ -1054,10 +1072,10 @@ def __doc_DeviceProxy():
         Return     : (DbDevImportInfo)
         Example :
                 dev_import = dev.import_info()
-                print dev_import.name
-                print dev_import.exported
-                print dev_ior.ior
-                print dev_version.version
+                print(dev_import.name)
+                print(dev_import.exported)
+                print(dev_ior.ior)
+                print(dev_version.version)
 
         All DbDevImportInfo fields are strings except for exported which
         is an integer"
@@ -1151,6 +1169,14 @@ def __doc_DeviceProxy():
         value was. Since 7.1.4, it returns a **(format<str>, data<buffer>)**
         unless *extract_as* is String, in which case it returns 
         **(format<str>, data<str>)**.
+
+    .. versionchanged:: 8.0.0
+        For DevEncoded attributes, now returns a DeviceAttribute.value
+        as a tuple **(format<str>, data<bytes>)** unless *extract_as* is String,
+        in which case it returns **(format<str>, data<str>)**. Carefull, if
+        using python >= 3 data<str> is decoded using default python 
+        *utf-8* encoding. This means that PyTango assumes tango DS was written
+        encapsulating string into *utf-8* which is the default python enconding.
     """ )
 
     document_method("read_attributes", """
@@ -1775,7 +1801,7 @@ def __doc_DeviceProxy():
         New in PyTango 7.0.0
     """ )
 
-def init(doc=True):
+def device_proxy_init(doc=True):
     __init_DeviceProxy()
     if doc:
         __doc_DeviceProxy()

@@ -25,6 +25,7 @@ import os
 import sys
 import platform
 import imp
+import io
 
 from distutils.core import setup, Extension
 from distutils.cmd import Command
@@ -39,14 +40,13 @@ try:
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda : False
     from sphinx.setup_command import BuildDoc
-except Exception,e:
-    print e
+except:
     sphinx = None
 
 try:
     import IPython
     _IPY_ROOT = os.path.dirname(os.path.abspath(IPython.__file__))
-    _IPY_VER = map(int, IPython.__version__.split(".")[:2])
+    _IPY_VER = list(map(int, IPython.__version__.split(".")[:2]))
     if _IPY_VER > [0,10]:
         import IPython.utils.path
         get_ipython_dir = IPython.utils.path.get_ipython_dir
@@ -59,7 +59,7 @@ except:
 
 try:
     import numpy
-except Exception, e:
+except:
     numpy = None
 
 
@@ -81,9 +81,20 @@ def uniquify(seq):
     [ no_dups.append(i) for i in seq if not no_dups.count(i) ]
     return no_dups
 
+def get_c_numpy():
+    NUMPY_ROOT = os.environ.get('NUMPY_ROOT')
+    if NUMPY_ROOT is not None:
+        d = os.path.join(NUMPY_ROOT, 'include','numpy')
+        if os.path.isdir(d):
+            return d
+    if numpy is None:
+        return None
+    d = os.path.join(numpy.__path__[0], 'core', 'include')
+    if os.path.isdir(d):
+        return d
+
 def has_c_numpy():
-    NUMPY_ROOT = os.environ.get('NUMPY_ROOT', '/usr')
-    return os.path.isdir(os.path.join(NUMPY_ROOT, 'include','numpy'))
+    return get_c_numpy() is not None
 
 def has_numpy(with_src=True):
     ret = numpy is not None
@@ -91,19 +102,41 @@ def has_numpy(with_src=True):
         ret &= has_c_numpy()
     return ret
 
+def get_script_files():
+    scripts_dir = abspath('scripts')
+    scripts = []
+    items = os.listdir(scripts_dir)
+    for item in items:
+        # avoid hidden files
+        if item.startswith("."):
+            continue
+        abs_item = os.path.join(scripts_dir, item)
+        # avoid non files
+        if not os.path.isfile(abs_item):
+            continue
+        # avoid files that have any extension
+        if len(os.path.splitext(abs_item)[1]) > 0:
+            continue
+        # avoid compiled version of script
+        if item.endswith('c') and item[:-1] in items:
+            continue
+        # avoid any core dump... of course there isn't any :-) but just in case
+        if item.startswith('core'):
+            continue
+        scripts.append('scripts/' + item)
+    return scripts
+
 class build(dftbuild):
     
     user_options = dftbuild.user_options + \
-        [('with-pytango3', None, "distribute PyTango3 module"),
-         ('without-ipython', None, "Tango IPython extension"),
+        [('without-ipython', None, "Tango IPython extension"),
          ('strip-lib', None, "strips the shared library of debugging symbols (Unix like systems only)"),
          ('no-doc', None, "do not build documentation") ]
     
-    boolean_options = dftbuild.boolean_options + ['with-pytango3', 'without-ipython', 'strip-lib', 'no-doc']
+    boolean_options = dftbuild.boolean_options + ['without-ipython', 'strip-lib', 'no-doc']
     
     def initialize_options (self):
         dftbuild.initialize_options(self)
-        self.with_pytango3 = None
         self.without_ipython = None
         self.strip_lib = None
         self.no_doc = None
@@ -114,10 +147,8 @@ class build(dftbuild):
     def run(self):
         if numpy is None:
             self.warn('NOT using numpy: it is not available')
-        elif not has_c_numpy():
+        elif get_c_numpy() is None:
             self.warn("NOT using numpy: numpy available but C source is not")
-        if self.with_pytango3:
-            self.distribution.packages.append('PyTango3')
         
         if IPython and not self.without_ipython:
             if _IPY_VER > [0,10]:
@@ -151,9 +182,9 @@ class build(dftbuild):
             return False
         if sphinx is None:
             return False
-        v = map(int, sphinx.__version__.split("."))
+        v = list(map(int, sphinx.__version__.split(".")))
         if v <= [0,6,5]:
-            print "Documentation will not be generated: sphinx version (%s) too low. Needs 0.6.6" % sphinx.__version__
+            print("Documentation will not be generated: sphinx version (%s) too low. Needs 0.6.6" % sphinx.__version__)
             return False 
         setup_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.isdir(os.path.join(setup_dir, 'doc'))
@@ -164,12 +195,27 @@ class build(dftbuild):
 class build_ext(dftbuild_ext): 
     
     def build_extensions(self):
+        self.use_cpp_0x = False
         if isinstance(self.compiler, UnixCCompiler):
             compiler_pars = self.compiler.compiler_so
             while '-Wstrict-prototypes' in compiler_pars:
                 del compiler_pars[compiler_pars.index('-Wstrict-prototypes')]
             #self.compiler.compiler_so = " ".join(compiler_pars)
+            
+            # mimic tango check to activate C++0x extension
+            import subprocess
+            compiler = self.compiler.compiler
+            pipe = subprocess.Popen(compiler + ["-dumpversion"], stdout=subprocess.PIPE).stdout
+            gcc_ver = pipe.readlines()[0].decode().strip().split(".")
+            gcc_ver = list(map(int, gcc_ver))
+            if gcc_ver >= [4,3,3]:
+                self.use_cpp_0x = True
         dftbuild_ext.build_extensions(self)
+
+    def build_extension(self, ext):
+        if self.use_cpp_0x:
+            ext.extra_compile_args += ['-std=c++0x']
+        dftbuild_ext.build_extension(self, ext)
 
 if sphinx:
     class build_doc(BuildDoc):
@@ -234,12 +280,12 @@ class install(dftinstall):
 
 
 def main():
-    BOOST_ROOT = OMNI_ROOT = TANGO_ROOT = NUMPY_ROOT = '/usr'
+    BOOST_ROOT = OMNI_ROOT = TANGO_ROOT = '/usr'
 
     TANGO_ROOT = os.environ.get('TANGO_ROOT', TANGO_ROOT)
     OMNI_ROOT  = os.environ.get('OMNI_ROOT', OMNI_ROOT)
     BOOST_ROOT = os.environ.get('BOOST_ROOT', BOOST_ROOT)
-    NUMPY_ROOT = os.environ.get('NUMPY_ROOT', NUMPY_ROOT)
+    numpy_c_include = get_c_numpy()
     
     Release = get_release_info()
 
@@ -252,7 +298,6 @@ def main():
         'PyTango.ipython',
         'PyTango.ipython.ipython_00_10',
         'PyTango.ipython.ipython_00_11',
-        'PyTango.ipython.ipython_00_12',
     ]
 
     py_modules = []
@@ -269,7 +314,9 @@ def main():
     package_data = {
         'PyTango' : [],
     }
-
+    
+    scripts = get_script_files()
+    
     data_files = []
 
     classifiers = [
@@ -307,10 +354,9 @@ def main():
     if os.path.isdir(_tango_root_inc):
         include_dirs.append(_tango_root_inc)
 
-    include_dirs.extend([
-        os.path.join(OMNI_ROOT, 'include'),
-        os.path.join(NUMPY_ROOT, 'include'),
-    ])
+    include_dirs.append(os.path.join(OMNI_ROOT, 'include'))
+    if numpy_c_include is not None:
+        include_dirs.append(numpy_c_include)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # library directories
@@ -319,6 +365,7 @@ def main():
     libraries = [
         'tango',
         'log4tango',
+        'zmq',
     ]
 
     extra_compile_args = []
@@ -402,10 +449,7 @@ def main():
         # to link against boost_python-py25/-py26 etc...
         pyver = "py" + "".join(map(str, platform.python_version_tuple()[:2]))
         dist = platform.dist()[0].lower()
-        if dist in ['debian']:
-            libraries.append('boost_python-' + pyver)
-        else:
-            libraries.append('boost_python')
+        libraries.append('boost_python-' + pyver)
 
         library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
 
@@ -435,6 +479,7 @@ def main():
     client_dir = src_dir
     server_dir = os.path.join(src_dir, 'server')
     _clientfiles = [ os.path.join(client_dir,fname) for fname in os.listdir(client_dir) if fname.endswith('.cpp') ]
+    _clientfiles.remove(os.path.join(client_dir,"group_element.cpp"))
     _clientfiles.sort()
     _serverfiles = [ os.path.join(server_dir,fname) for fname in os.listdir(server_dir) if fname.endswith('.cpp') ]
     _serverfiles.sort()
@@ -472,11 +517,12 @@ def main():
         platforms        = Release.platform,
         license          = Release.license,
         packages         = packages,
-        package_dir      = { 'PyTango' : 'PyTango', 'PyTango3' : 'PyTango3' },
+        package_dir      = { 'PyTango' : 'PyTango' },
         py_modules       = py_modules,
         classifiers      = classifiers,
         package_data     = package_data,
         data_files       = data_files,
+        scripts          = scripts,
         provides         = provides,
         keywords         = Release.keywords,
         requires         = requires,
