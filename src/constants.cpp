@@ -43,17 +43,6 @@ void export_constants()
     consts_scope.attr("NUMPY_SUPPORT") = true;
 #endif
 
-    str py_TgLibVers = TgLibVers;
-    boost::python::list pylist_TgLibVers = py_TgLibVers.split(".");
-    long_ major = long_(pylist_TgLibVers[0]);
-    long_ minor = long_(pylist_TgLibVers[1]);
-    long_ patch = long_(pylist_TgLibVers[2]);
-    object h = "0x%02d%02d%02d00" % boost::python::make_tuple(major, minor, patch);
-    PyObject *ptr = PyInt_FromString(PyString_AsString(h.ptr()), NULL, 0);
-    TANGO_VERSION_HEX = PyInt_AsLong(ptr);
-    Py_DECREF(ptr);
-    consts_scope.attr("TANGO_VERSION_HEX") = TANGO_VERSION_HEX;
-
     //
     // From tango_const.h
     //
@@ -61,6 +50,9 @@ void export_constants()
     //
     // Some general interest define
     //
+    consts_scope.attr("TANGO_VERSION_MAJOR") = TANGO_VERSION_MAJOR;
+    consts_scope.attr("TANGO_VERSION_MINOR") = TANGO_VERSION_MINOR;
+    consts_scope.attr("TANGO_VERSION_PATCH") = TANGO_VERSION_PATCH;
     
     consts_scope.attr("TgLibVers") = TgLibVers;
     consts_scope.attr("DevVersion") = DevVersion;
@@ -73,7 +65,12 @@ void export_constants()
     consts_scope.attr("DefaultDocUrl") = DefaultDocUrl;
     consts_scope.attr("EnvVariable") = EnvVariable;
     consts_scope.attr("DbObjName") = DbObjName;
-    consts_scope.attr("DescNotSet") = DescNotSet;
+    
+    // Changed in tango 8 from DescNotSet to NotSet. We keep the old constant
+    // to try to maintain backward compatibility
+    consts_scope.attr("DescNotSet") = NotSet;
+    consts_scope.attr("NotSet") = NotSet;
+    
     consts_scope.attr("ResNotDefined") = ResNotDefined;
     consts_scope.attr("MessBoxTitle") = MessBoxTitle;
     consts_scope.attr("StatusNotSet") = StatusNotSet;
@@ -195,4 +192,13 @@ void export_constants()
     consts_scope.attr("NotANumber") = NotANumber;
     consts_scope.attr("MemNotUsed") = MemNotUsed;
     consts_scope.attr("MemAttrPropName") = MemAttrPropName;
+ 
+#ifdef TANGO_LONG64
+    consts_scope.attr("TANGO_LONG32") = false;
+    consts_scope.attr("TANGO_LONG64") = true;
+#else
+    consts_scope.attr("TANGO_LONG32") = true;
+    consts_scope.attr("TANGO_LONG64") = false;
+#endif    
+
 }

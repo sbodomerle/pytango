@@ -25,23 +25,29 @@
 
 """An IPython profile designed to provide a user friendly interface to Tango"""
 
+from __future__ import print_function
+
 __all__ = ["load_config", "load_ipython_extension", "unload_ipython_extension"]
 
 import sys
 import os
 import re
-import StringIO
+import io
+import operator
 import textwrap
 
-from IPython.core import ipapi
 from IPython.core.error import UsageError
 from IPython.utils.ipstruct import Struct
 from IPython.core.page import page
+from IPython.core.interactiveshell import InteractiveShell
+from IPython.config.application import Application
+from IPython.frontend.terminal.ipapp import launch_new_instance
 
 import PyTango
 import PyTango.utils
 
-_TG_EXCEPTIONS = PyTango.DevFailed, PyTango.CommunicationFailed, \
+_TG_EXCEPTIONS = PyTango.DevFailed, PyTango.ConnectionFailed, \
+    PyTango.CommunicationFailed, \
     PyTango.NamedDevFailed, PyTango.NamedDevFailedList, \
     PyTango.WrongNameSyntax, PyTango.NonDbDevice, PyTango.WrongData, \
     PyTango.NonSupportedFeature, PyTango.AsynCall, \
@@ -54,6 +60,37 @@ _TANGO_STORE = "__tango_store"
 _TANGO_ERR = "__tango_error"
 _PYTHON_ERR = "__python_error"
 _tango_init = False
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# IPython utilities
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+def get_pylab_mode():
+    return get_app().pylab
+
+def get_color_mode():
+    return get_config().InteractiveShell.colors
+
+def get_app():
+    #return TerminalIPythonApp.instance()
+    return Application.instance()
+
+def get_shell():
+    """Get the global InteractiveShell instance."""
+    return get_app().shell
+
+def get_ipapi():
+    """Get the global InteractiveShell instance."""
+    return InteractiveShell.instance()
+
+def get_config():
+    return get_app().config
+
+def get_editor():
+    return get_ipapi().editor
+
+def get_user_ns():
+    return get_shell().user_ns
 
 class DeviceClassCompleter(object):
     """Completer class that returns the list of devices of some class when
@@ -172,7 +209,7 @@ def __AttributeProxy_completer(ip, evt):
 def __get_device_proxy(dev_name):
     db = __get_db()
     if db is None: return
-    cache = db._db_cacheIPyh
+    cache = db._db_cache
     from_alias = cache.aliases.get(dev_name)
     
     if from_alias is not None:
@@ -207,10 +244,10 @@ __monitor_completer = __AttributeProxy_completer
 # Magic commands
 #-------------------------------------------------------------------------------
 
-def magic_refreshdb(self, parameter_s=''):
-    init_db(ipapi.get(), parameter_s)
+def refreshdb(self, parameter_s=''):
+    init_db(parameter_s)
 
-def magic_switchdb(self, parameter_s=''):
+def switchdb(self, parameter_s=''):
     """Switches the active tango Database.
     
     Usage: switchdb <host>[(:| )<port>]
@@ -225,9 +262,9 @@ def magic_switchdb(self, parameter_s=''):
     if parameter_s == '':
         raise UsageError("%switchdb: Must specify a tango database name. "\
                          "See '%switchdb?'")
-    return init_db(ipapi.get(), parameter_s)
+    return init_db(parameter_s)
 
-def magic_lsdev(self, parameter_s=''):
+def lsdev(self, parameter_s=''):
     """Lists all known tango devices.
     
     Usage: lsdev [<device name filter(regular expression)]
@@ -243,22 +280,25 @@ def magic_lsdev(self, parameter_s=''):
     
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database. Device list is empty"
+        print("You are not connected to any Tango Database. Device list is empty")
         return
     data = db._db_cache.devices
 
-    s = StringIO.StringIO()
-    cols = 40, 25, 25, 20
-    l = "%{0}s %{1}s %{2}s %{3}s".format(*cols)
-    print >>s, l % ("Device", "Alias", "Server", "Class")
-    print >>s, l % (cols[0]*"-", cols[1]*"-", cols[2]*"-", cols[3]*"-")
+    s = io.BytesIO()
+    lengths = 40, 25, 25, 20
+    title = "Device", "Alias", "Server", "Class"
+    templ = "{0:{l[0]}} {1:{l[1]}} {2:{l[2]}} {3:{l[3]}}"
+    msg = templ.format(*title, l=lengths)
+    print(msg, file=s)
+    print(*map(operator.mul, lengths, len(lengths)*"-"), file=s)
     for d, v in data.items():
-        if reg_exp and not reg_exp.match(d): continue
-        print >>s, l % (d, v[0], v[1], v[2])
+        if reg_exp and not reg_exp.match(d):
+            continue
+        print(templ.format(d, v[0], v[1], v[2], l=lengths), file=s)
     s.seek(0)
     page(s.read())
 
-def magic_lsdevclass(self, parameter_s=''):
+def lsdevclass(self, parameter_s=''):
     """Lists all known tango device classes.
     
     Usage: lsdevclass [<class name filter(regular expression)]
@@ -274,16 +314,16 @@ def magic_lsdevclass(self, parameter_s=''):
     
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database. Device class list is empty"
+        print("You are not connected to any Tango Database. Device class list is empty")
         return
     data = db._db_cache.klasses
 
-    s = StringIO.StringIO()
+    s = io.BytesIO()
     data = [ "%-030s" % klass for klass in data.keys() if not reg_exp or reg_exp.match(klass) ]
     s = textwrap.fill(" ".join(data), 80)
     page(s)
 
-def magic_lsserv(self, parameter_s=''):
+def lsserv(self, parameter_s=''):
     """Lists all known tango servers.
     
     Usage: lsserv [<class name filter(regular expression)]
@@ -299,35 +339,33 @@ def magic_lsserv(self, parameter_s=''):
     
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database. Device class list is empty"
+        print("You are not connected to any Tango Database. Device class list is empty")
         return
     data = db._db_cache.servers
 
-    s = StringIO.StringIO()
+    s = io.BytesIO()
     data = [ "%-030s" % server for server in data.keys() if not reg_exp or reg_exp.match(server) ]
     s = textwrap.fill(" ".join(data), 80)
     page(s)
 
-def magic_tango_error(self, parameter_s=''):
+def tango_error(self, parameter_s=''):
     """Displays detailed information about the last tango error"""
-    
     global _TANGO_ERR
-    err_info = self.user_ns.get(_TANGO_ERR)
+    err_info = get_user_ns().get(_TANGO_ERR)
     if err_info is None:
-        print "No tango error reported so far."
+        print("No tango error reported so far.")
         return
-    print "Last tango error:"
-    print err_info[1]
+    print("Last tango error:")
+    print(err_info[1])
 
-def magic_python_error(self, parameter_s=''):
+def python_error(self, parameter_s=''):
     """Displays detailed information about the last python error"""
-    
     global _PYTHON_ERR
-    err_info = self.user_ns.get(_PYTHON_ERR)
+    err_info = get_user_ns().get(_PYTHON_ERR)
     if err_info is None:
-        print "No error reported so far."
+        print("No error reported so far.")
         return
-    ip = ipapi.get()
+    ip = get_ipapi()
     etype, evalue, etb = err_info[:3]
     ip.InteractiveTB(etype=etype, evalue=evalue, etb=etb, tb_offset=None)
 
@@ -335,18 +373,18 @@ _EVT_LOG = None
 def __get_event_log():
     global _EVT_LOG
     if _EVT_LOG is None:
-        qthreads = ipapi.get().options.q4thread
-        if qthreads:
-            import ipy_qt
-            model = ipy_qt.EventLoggerTableModel(capacity=10000)
-            _EVT_LOG = ipy_qt.EventLogger(model=model)
-            _EVT_LOG.setWindowTitle("ITango - Event Logger Table")
-        else:
-            import ipy_cli
-            _EVT_LOG = ipy_cli.EventLogger(capacity=10000)
+#        qthreads = get_config().q4thread
+#        if qthreads:
+#            import ipy_qt
+#            model = ipy_qt.EventLoggerTableModel(capacity=10000)
+#            _EVT_LOG = ipy_qt.EventLogger(model=model)
+#            _EVT_LOG.setWindowTitle("ITango - Event Logger Table")
+#        else:
+        import PyTango.ipython.eventlogger
+        _EVT_LOG = PyTango.ipython.eventlogger.EventLogger(capacity=10000, pager=page)
     return _EVT_LOG
 
-def magic_mon(self, parameter_s=''):
+def mon(self, parameter_s=''):
     """Monitor a given attribute.
     
     %mon -a <attribute name>           - activates monitoring of given attribute
@@ -358,12 +396,15 @@ def magic_mon(self, parameter_s=''):
     
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
+    
+    # make sure parameter_s is a str and not a unicode
+    parameter_s = str(parameter_s)
     opts, args = self.parse_options(parameter_s,'adril', mode='list')
     if len(args) > 3:
         raise UsageError("%mon: too many arguments")
-    if opts.has_key('d'):
+    if 'd' in opts:
         try:
             todel = args[0]
         except IndexError:
@@ -376,11 +417,11 @@ def magic_mon(self, parameter_s=''):
                 del subscriptions[attr.lower()]
                 d = __get_device_proxy(dev)
                 d.unsubscribe_event(id)
-                print "Stopped monitoring '%s'" % todel
+                print("Stopped monitoring '%s'" % todel)
             except KeyError:
                 raise UsageError("%%mon -d: Not monitoring '%s'" % todel)
                     
-    elif opts.has_key('a'):
+    elif 'a' in opts:
         try:
             toadd = args[0]
         except IndexError:
@@ -395,14 +436,14 @@ def magic_mon(self, parameter_s=''):
         model = w.model()
         id = d.subscribe_event(attr, PyTango.EventType.CHANGE_EVENT, model, [])
         subscriptions[attr.lower()] = id
-        print "'%s' is now being monitored. Type 'mon' to see all events" % toadd
-    elif opts.has_key('r'):
+        print("'%s' is now being monitored. Type 'mon' to see all events" % toadd)
+    elif 'r' in opts:
         for d, v in db._db_cache.devices.items():
             d, subs = v[3], v[4]
             for id in subs.values():
                 d.unsubscribe_event(id)
             v[4] = {}
-    elif opts.has_key('i'):
+    elif 'i' in opts:
         try:
             evtid = int(args[0])
         except IndexError:
@@ -413,12 +454,12 @@ def magic_mon(self, parameter_s=''):
             w = __get_event_log()
             e = w.getEvents()[evtid]
             if e.err:
-                print str(PyTango.DevFailed(*e.errors))
+                print(str(PyTango.DevFailed(*e.errors)))
             else:
-                print str(e)
+                print(str(e))
         except IndexError:
             raise UsageError("%mon -i: must provide a valid event ID")
-    elif opts.has_key('l'):
+    elif 'l' in opts:
         try:
             dexpr = args[0]
             aexpr = args[1]
@@ -447,7 +488,7 @@ def get_device_map():
            DeviceProxy to this device, create your own)"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.devices
 
@@ -456,7 +497,7 @@ def get_server_map():
     and value is a sequence of device names that belong to the server"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.servers
 
@@ -465,7 +506,7 @@ def get_class_map():
     sequence of device names that belong to the tango class"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.klasses
 
@@ -474,7 +515,7 @@ def get_alias_map():
     is a the tango device name"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.aliases
 
@@ -483,7 +524,7 @@ def get_device_list():
     database"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.device_list
 
@@ -492,7 +533,7 @@ def get_alias_list():
     database"""
     db = __get_db()
     if db is None:
-        print "You are not connected to any Tango Database."
+        print("You are not connected to any Tango Database.")
         return
     return db._db_cache.alias_list    
     
@@ -502,20 +543,21 @@ def get_alias_list():
 
 def __exc_handler(ip, etype, value, tb, tb_offset=None):
     global _TG_EXCEPTIONS
+    user_ns = get_user_ns()
     if etype in _TG_EXCEPTIONS:
         global _TANGO_ERR
-        ip.user_ns[_TANGO_ERR] = etype, value, tb, tb_offset
+        user_ns[_TANGO_ERR] = etype, value, tb, tb_offset
         if len(value.args):
             v = value[0]
-            print "%s: %s" % (v.reason ,v.desc)
+            print("%s: %s" % (v.reason ,v.desc))
         else:
-            print "Empty DevFailed"
-        print "(For more detailed information type: tango_error)"
+            print("Empty DevFailed")
+        print("(For more detailed information type: tango_error)")
     else:
         global _PYTHON_ERR
-        ip.user_ns[_PYTHON_ERR] = etype, value, tb, tb_offset
-        print etype.__name__ + ": " + str(value)
-        print "(For more detailed information type: python_error)"
+        user_ns[_PYTHON_ERR] = etype, value, tb, tb_offset
+        print(etype.__name__ + ": " + str(value))
+        print("(For more detailed information type: python_error)")
 
 def __get_default_tango_host():
     global _DFT_TANGO_HOST
@@ -536,9 +578,11 @@ def __get_db(host_port=None):
                           and return it
     """
     
-    ip = ipapi.get()
+    ip = get_ipapi()
+    user_ns = get_user_ns()
+
     global _DB_SYMB
-    db = ip.user_ns.get(_DB_SYMB)
+    db = user_ns.get(_DB_SYMB)
     
     if host_port is None:
         if db is None:
@@ -565,22 +609,22 @@ def __get_db(host_port=None):
         try:
             db = PyTango.Database(*host_port.split(":"))
             
-            ip.user_ns["DB_NAME"] = host_port
-        except Exception, e:
+            user_ns["DB_NAME"] = host_port
+        except Exception as e:
             if db:
-                print "\nCould not access Database %s:" % host_port
-                print str(e)
+                print("\nCould not access Database %s:" % host_port)
+                print(str(e))
                 old_host_port = "%s:%s" % (db.get_db_host(), db.get_db_port())
-                print "Maintaining connection to Database", old_host_port
-                ip.user_ns["DB_NAME"] = old_host_port
+                print("Maintaining connection to Database", old_host_port)
+                user_ns["DB_NAME"] = old_host_port
             else:
-                print "\nCould not access any Database. Make sure:"
-                print "\t- .tangorc, /etc/tangorc or TANGO_HOST environment is defined."
-                print "\t- the Database DS is running"
-                ip.user_ns["DB_NAME"] = "OFFLINE"
+                print("\nCould not access any Database. Make sure:")
+                print("\t- .tangorc, /etc/tangorc or TANGO_HOST environment is defined.")
+                print("\t- the Database DS is running")
+                user_ns["DB_NAME"] = "OFFLINE"
                 
         # register the 'db' in the user namespace
-        ip.user_ns.update({ _DB_SYMB : db })
+        user_ns.update({ _DB_SYMB : db })
         
     return db
 
@@ -598,16 +642,16 @@ def __completer_wrapper(f):
     def wrapper(ip, evt):
         try:
             return f(ip, evt)
-        except Exception, e:
-            print
-            print "An unexpected exception ocorred during ITango command completer."
-            print "Please send a bug report to the PyTango team with the following information:"
-            print 80*"-"
-            print "Completer:",__get_obj_name(f)
-            print 80*"-"
+        except Exception as e:
+            print()
+            print("An unexpected exception ocorred during ITango command completer.")
+            print("Please send a bug report to the PyTango team with the following information:")
+            print(80*"-")
+            print("Completer:",__get_obj_name(f))
+            print(80*"-")
             import traceback
             traceback.print_exc()
-            print 80*"-"
+            print(80*"-")
             raise e
     return wrapper
 
@@ -621,7 +665,7 @@ def __expose_magic(ip, name, fn, completer_func=None):
     ip.set_hook('complete_command', completer_func, re_key = ".*" + name)
 
 def __unexpose_magic(ip, name):
-    delattr(ip, 'magic_' + name)
+    delattr(ip, name)
 
 def __build_color_scheme(ip, name):
     import IPython.Prompts
@@ -687,16 +731,18 @@ def init_pytango(ip):
     
     ip.set_custom_exc((Exception,), __exc_handler)
 
-def init_db(ip, parameter_s=''):
+def init_db(parameter_s=''):
+    ip = get_ipapi()
+    user_ns = get_user_ns()
     global _DB_SYMB
-    old_db = ip.user_ns.get(_DB_SYMB)
+    old_db = user_ns.get(_DB_SYMB)
     
     db = __get_db(parameter_s)
     
     if old_db is not None and hasattr(old_db, "_db_cache"):
         old_junk = old_db._db_cache["junk"].keys()
         for e in old_junk:
-            del ip.user_ns[e]
+            del user_ns[e]
     else:
         old_junk = ()
         
@@ -748,14 +794,14 @@ def init_db(ip, parameter_s=''):
     for klass, devices in klass_dict.items():
         if klass in excluded_klasses:
             continue
-        exists = ip.user_ns.has_key(klass)
+        exists = klass in user_ns
         if not exists or klass in old_junk:
             c = DeviceClassCompleter(klass, devices)
             ip.set_hook('complete_command', c, re_key = ".*" + klass + "[^\w\.]+")
             exposed_klasses[klass] = PyTango.DeviceProxy
     
     # expose classes no user namespace
-    ip.user_ns.update(exposed_klasses)
+    user_ns.update(exposed_klasses)
     
     # Initialize attribute information
     query = "SELECT name, alias FROM attribute_alias order by alias"
@@ -791,34 +837,46 @@ def init_db(ip, parameter_s=''):
     return db
 
 def init_magic(ip):
-    __expose_magic(ip, "refreshdb", magic_refreshdb)
-    __expose_magic(ip, "reloaddb", magic_refreshdb)
-    __expose_magic(ip, "switchdb", magic_switchdb)
-    __expose_magic(ip, "lsdev", magic_lsdev)
-    __expose_magic(ip, "lsdevclass", magic_lsdevclass)
-    __expose_magic(ip, "lsserv", magic_lsserv)
-    __expose_magic(ip, "tango_error", magic_tango_error)
-    __expose_magic(ip, "python_error", magic_python_error)
-    __expose_magic(ip, "mon", magic_mon, __monitor_completer)
-    #__expose_magic(ip, "umon", magic_umon, __monitor_completer)
+
+    import IPython.core.magic
+
+    new_style_magics = hasattr(IPython.core.magic, 'Magics') and hasattr(IPython.core.magic, 'magics_class')
+
+    if new_style_magics:
+        @IPython.core.magic.magics_class
+        class Tango(IPython.core.magic.Magics):
+            
+            refreshdb = IPython.core.magic.line_magic(refreshdb)
+            switchdb = IPython.core.magic.line_magic(switchdb)
+            lsdev = IPython.core.magic.line_magic(lsdev)
+            lsdevclass = IPython.core.magic.line_magic(lsdevclass)
+            lsserv = IPython.core.magic.line_magic(lsserv)
+            tango_error = IPython.core.magic.line_magic(tango_error)
+            python_error = IPython.core.magic.line_magic(python_error)
+            mon = IPython.core.magic.line_magic(mon)
+
+        ip.register_magics(Tango)
+        ip.set_hook('complete_command', __monitor_completer, re_key = ".*" + "mon")
+    else:
+        __expose_magic(ip, "refreshdb", refreshdb)
+        __expose_magic(ip, "switchdb", switchdb)
+        __expose_magic(ip, "lsdev", lsdev)
+        __expose_magic(ip, "lsdevclass", lsdevclass)
+        __expose_magic(ip, "lsserv", lsserv)
+        __expose_magic(ip, "tango_error", tango_error)
+        __expose_magic(ip, "python_error", python_error)
+        __expose_magic(ip, "mon", mon, __monitor_completer)
     
-    ip.user_ns.update({"get_device_map"   : get_device_map,
+    get_user_ns().update({"get_device_map"   : get_device_map,
                    "get_server_map"  : get_server_map,
                    "get_class_map"   : get_class_map,
                    "get_alias_map"   : get_alias_map,
                    "get_device_list" : get_device_list,
                    "get_alias_list"  : get_alias_list})
-    
-    #__expose_magic(ip, "get_device_map", get_device_map)
-    #__expose_magic(ip, "get_server_map", get_server_map)
-    #__expose_magic(ip, "get_class_map", get_class_map)
-    #__expose_magic(ip, "get_alias_map", get_alias_map)
-    #__expose_magic(ip, "get_device_list", get_device_list)
-    #__expose_magic(ip, "get_alias_list", get_alias_list)
 
 def complete(text):
     """a super complete!!!!"""
-    self = ipapi.get().IP
+    self = get_ipapi().IP
     complete = self.Completer.complete
     state = 0
     comps = set()
@@ -831,19 +889,262 @@ def complete(text):
     outcomps = sorted(comps)
     return outcomps
 
+__DIRNAME = os.path.dirname(os.path.abspath(__file__))
+__RES_DIR = os.path.join(__DIRNAME, os.path.pardir, 'resource')
+
+class __TangoInfo(object):
+    """Helper class for when DeviceProxy.info() is not available"""
+    
+    def __init__(self, dev):
+        try:
+            db = dev.get_device_db()
+            klass = db.get_class_for_device(dev.dev_name())
+            self.dev_class = self.dev_type = klass
+        except:
+            self.dev_class = self.dev_type = 'Device'
+        self.doc_url = 'http://www.esrf.eu/computing/cs/tango/tango_doc/ds_doc/index.html'
+        self.server_host = 'Unknown'
+        self.server_id = 'Unknown'
+        self.server_version = 1
+
+def __get_device_icon(dev_proxy, klass="Device"):
+    icon_prop = "__icon"
+    db = dev_proxy.get_device_db()
+    try:
+        icon_filename = dev_proxy.get_property(icon_prop)[icon_prop]
+        if icon_filename:
+            icon_filename = icon_filename[0]
+        else:
+            icon_filename = db.get_class_property(klass, icon_prop)[icon_prop]
+            if icon_filename:
+                icon_filename = icon_filename[0]
+            else:            
+                icon_filename = klass.lower() + os.path.extsep + "png"
+    except:
+        icon_filename = klass.lower() + os.path.extsep + "png"
+    
+    if os.path.isabs(icon_filename):
+        icon = icon_filename
+    else:
+        icon = os.path.join(__RES_DIR, icon_filename)
+    if not os.path.isfile(icon):
+        icon = os.path.join(__RES_DIR, "device.png")
+    return icon
+
+__DEV_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td width="140" rowspan="7" valign="middle" align="center"><img src="{icon}" height="128"/></td>
+    <td width="140">Name:</td><td><b>{name}</b></td></tr>
+<tr><td width="140">Alias:</td><td>{alias}</td></tr>
+<tr><td width="140">Database:</td><td>{database}</td></tr>
+<tr><td width="140">Type:</td><td>{dev_class}</td></tr>
+<tr><td width="140">Server:</td><td>{server_id}</td></tr>
+<tr><td width="140">Server host:</td><td>{server_host}</td></tr>
+<tr><td width="140">Documentation:</td><td><a target="_blank" href="{doc_url}">{doc_url}</a></td></tr>
+</table>"""
+
+def display_deviceproxy_html(dev_proxy):
+    """displayhook function for PyTango.DeviceProxy, rendered as HTML"""
+    try:
+        info = dev_proxy.info()
+    except:
+        info = __TangoInfo(dev_proxy)
+    name = dev_proxy.dev_name()
+    fmt = dict(dev_class=info.dev_class, server_id=info.server_id,
+               server_host=info.server_host, name=name)
+    
+    try:
+        fmt["alias"] = dev_proxy.alias()
+    except:
+        fmt["alias"] = "-----"
+
+    db = dev_proxy.get_device_db()
+    try:
+        fmt["database"] = db.get_db_host() + ":" + db.get_db_port()
+    except:
+        try:
+            fmt["database"] = db.get_file_name()
+        except:
+            fmt["database"]  = "Unknown"
+
+    doc_url = info.doc_url.split("\n")[0]
+    try:
+        fmt["doc_url"] = doc_url[doc_url.index("http"):]
+    except ValueError:
+        fmt["doc_url"] = doc_url
+
+    fmt['icon'] = __get_device_icon(dev_proxy, info.dev_class)
+
+    return __DEV_HTML_TEMPLATE.format(**fmt)
+
+__DB_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td width="140" rowspan="2" valign="middle" align="center"><img src="{icon}" height="128"/></td>
+    <td><b>{name}</b></td></tr>
+<tr><td>{info}</td></tr>
+</table>"""
+
+def display_database_html(db):
+    """displayhook function for PyTango.Database, rendered as HTML"""
+    fmt = dict()
+
+    try:
+        fmt["name"] = db.get_db_host() + ":" + db.get_db_port()
+    except:
+        try:
+            fmt["name"] = db.get_file_name()
+        except:
+            fmt["name"]  = "Unknown"
+
+    try:
+        fmt["info"] = db.get_info().replace("\n", "<BR/>")
+    except:
+        fmt["info"] = "Unknown"
+    
+    fmt['icon'] = os.path.join(__RES_DIR, "database.png")
+
+    return __DB_HTML_TEMPLATE.format(**fmt)
+
+__DEV_ATTR_RW_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td colspan="2" bgcolor="{bgcolor}">{name} ({type}, {data_format}, {quality}) at {time}</td></tr>
+<tr><td bgcolor="#EEEEEE" width="140">value{r_dim}:</td>
+    <td bgcolor="#EEEEEE">{value}</td></tr>
+<tr><td bgcolor="#EEEEEE" width="140">w_value{w_dim}:</td>
+    <td bgcolor="#EEEEEE">{w_value}</td></tr>
+</table>"""
+
+__DEV_ATTR_RO_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td colspan="2" bgcolor="{bgcolor}">{name} ({type}, {data_format}, {quality}) at {time}</td></tr>
+<tr><td bgcolor="#EEEEEE" width="140">value{r_dim}:</td>
+    <td bgcolor="#EEEEEE">{value}</td></tr>
+</table>"""
+
+__DEV_ATTR_ERR_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td bgcolor="#FF0000">{name} ({type}, {data_format}, {quality}) at {time}</td></tr>
+<tr><td bgcolor="#EEEEEE">{error}</td></tr>
+</table>"""
+
+QUALITY_TO_HEXCOLOR_STR = {
+    PyTango.AttrQuality.ATTR_VALID : ("#00FF00", "#000000"),
+    PyTango.AttrQuality.ATTR_INVALID : ("#808080", "#FFFFFF"),    
+    PyTango.AttrQuality.ATTR_ALARM : ("#FF8C00", "#FFFFFF"),    
+    PyTango.AttrQuality.ATTR_WARNING : ("#FF8C00", "#FFFFFF"),    
+    PyTango.AttrQuality.ATTR_CHANGING : ("#80A0FF", "#000000"),
+    None : ("#808080", "#000000"), 
+}
+
+def display_deviceattribute_html(da):
+    """displayhook function for PyTango.DeviceAttribute, rendered as HTML"""
+    fmt = dict(name=da.name, type=da.type, data_format=da.data_format)
+    template = None
+    if da.has_failed:
+        fmt['error'] = "\n".join(map(str, da.get_err_stack())).replace("\n", "<br/>")
+        
+        template = __DEV_ATTR_ERR_HTML_TEMPLATE
+    else:
+        rd, wd = da.r_dimension, da.w_dimension
+        if wd.dim_x == 0 and wd.dim_y == 0 and da.w_value is None:
+            template = __DEV_ATTR_RO_HTML_TEMPLATE
+        else:
+            template = __DEV_ATTR_RW_HTML_TEMPLATE
+            fmt['w_value'] = str(da.w_value)
+            if da.data_format == PyTango.AttrDataFormat.SCALAR:
+                fmt['w_dim'] = ""
+            else:
+                fmt['w_dim'] = "<br/>(%d, %d)" % (wd.dim_x, wd.dim_y)
+        fmt['bgcolor'], fmt['fgcolor'] = QUALITY_TO_HEXCOLOR_STR[da.quality]
+        fmt['quality'] = str(da.quality)
+        if da.data_format == PyTango.AttrDataFormat.SCALAR:
+            fmt['r_dim'] = ""
+        else:
+            fmt['r_dim'] = "<br/>(%d, %d)" % (rd.dim_x, rd.dim_y)
+        fmt['value'] = str(da.value)
+        fmt['time'] = str(da.time.todatetime())
+    return template.format(**fmt)
+
+__GROUP_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td width="100" bgcolor="#EEEEEE">Name:</td><td bgcolor="#EEEEEE">{name}</td></tr>
+<tr><td width="100" bgcolor="#EEEEEE">Size:</td><td bgcolor="#EEEEEE">{size}</td></tr>
+<tr><td width="100" bgcolor="#EEEEEE">Devices:</td><td bgcolor="#EEEEEE">{devices}</td></tr>
+</table>"""
+
+def display_group_html(group):
+    devices = group.get_device_list()
+    devices = ", ".join(devices)
+    fmt=dict(name=group.get_name(), size=group.get_size(), devices=devices) 
+    return __GROUP_HTML_TEMPLATE.format(**fmt)
+
+__GROUP_REPLY_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td bgcolor="#EEEEEE">{name}</td></tr>
+<tr><td>{data}</td></tr>    
+"""
+
+__GROUP_REPLY_ERR_HTML_TEMPLATE = """\
+<table border="0" cellpadding="2" width="100%">
+<tr><td bgcolor="#FF0000">{name}</td></tr>
+<tr><td bgcolor="#EEEEEE">{error}</td></tr>
+</table>"""
+    
+def display_groupreply_html(gr):
+    fmt = dict(name="%s/%s" % (gr.dev_name(), gr.obj_name()))
+    template = None
+    if gr.has_failed():
+        fmt['error'] = "\n".join(map(str, gr.get_err_stack())).replace("\n", "<br/>")
+        template = __GROUP_REPLY_ERR_HTML_TEMPLATE
+    else:
+        template = __GROUP_REPLY_HTML_TEMPLATE
+        data = gr.get_data()
+        if isinstance(data, PyTango.DeviceAttribute):
+            data = display_deviceattribute_html(data)
+        fmt["data"] = data
+        
+    ret = template.format(**fmt)
+    return ret
+
+def init_display(ip):
+    html_formatter = ip.display_formatter.formatters["text/html"]
+    html_formatter.for_type(PyTango.DeviceProxy, display_deviceproxy_html)
+    html_formatter.for_type(PyTango.Database, display_database_html)
+    html_formatter.for_type(PyTango.DeviceAttribute, display_deviceattribute_html)
+    html_formatter.for_type(PyTango.Group, display_group_html)
+    html_formatter.for_type(PyTango.GroupAttrReply, display_groupreply_html)
+    html_formatter.for_type(PyTango.GroupCmdReply, display_groupreply_html)
+
+from IPython.utils.traitlets import Unicode
+from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+
+class ITangoConsole(RichIPythonWidget):
+    
+    banner = Unicode(config=True)
+
+    def _banner_default(self):
+        config = get_config()
+        return config.ITangoConsole.banner
+
+import IPython.frontend.qt.console.qtconsoleapp
+IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+IPythonQtConsoleApp.widget_factory = ITangoConsole      
+
 def init_ipython(ip=None, store=True, pytango=True, colors=True, console=True,
                  magic=True):
-    
+
     if ip is None:
-        ip = ipapi.get()
+        ip = get_ipapi()
     
     global _tango_init
     if _tango_init is True: return
+
+    init_display(ip)
     
     if pytango:
         init_pytango(ip)
     
-    init_db(ip)
+    init_db()
 
     if magic:
         init_magic(ip)
@@ -861,10 +1162,13 @@ def load_config(config):
     d.update(IPython.utils.coloransi.TermColors.__dict__)
 
     so = Struct(
-        tango_banner="""%(Blue)shint: Try typing: mydev = Device("%(LightBlue)s<tab>%(Normal)s""")
+        tango_banner="""%(Blue)shint: Try typing: mydev = Device("%(LightBlue)s<tab>%(Normal)s\n""")
 
     so = config.get("tango_options", so)
 
+    import PyTango.ipython
+    ipy_ver = PyTango.ipython.get_ipython_version_list()
+    
     # ------------------------------------
     # Application
     # ------------------------------------
@@ -876,8 +1180,19 @@ def load_config(config):
     # ------------------------------------
     i_shell = config.InteractiveShell
     i_shell.colors = 'Linux'
-    i_shell.prompt_in1 = 'ITango <$DB_NAME> [\\#]: '
-    i_shell.prompt_out = 'Result [\\#]: '
+
+    if ipy_ver >= [0, 12]:
+        # ------------------------------------
+        # PromptManager (ipython >= 0.12)
+        # ------------------------------------
+        prompt = config.PromptManager
+        prompt.in_template = 'ITango [\\#]: '
+        prompt.out_template = 'Result [\\#]: '
+    else:
+        # (Deprecated in ipython >= 0.12 use PromptManager.in_template)
+        i_shell.prompt_in1 = 'ITango [\\#]: '
+        # (Deprecated in ipython >= 0.12 use PromptManager.out_template)
+        i_shell.prompt_out = 'Result [\\#]: '
     
     # ------------------------------------
     # InteractiveShellApp
@@ -901,7 +1216,7 @@ def load_config(config):
     #kernel_app = config.IPKernelApp
     ipython_widget = config.IPythonWidget
     ipython_widget.in_prompt  = 'ITango [<span class="in-prompt-number">%i</span>]: '
-    ipython_widget.out_prompt = '   Out [<span class="out-prompt-number">%i</span>]: '
+    ipython_widget.out_prompt = 'Result [<span class="out-prompt-number">%i</span>]: '
     
     #zmq_i_shell = config.ZMQInteractiveShell
     
@@ -922,9 +1237,17 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     banner = banner.format(**d)
     tango_banner = so.tango_banner % d
     tango_banner = tango_banner.format(**d)
+    all_banner = "\n".join((banner, tango_banner))
+
     term_i_shell.banner1 = banner
     term_i_shell.banner2 = tango_banner
 
+    # ------------------------------------
+    # FrontendWidget
+    # ------------------------------------
+    frontend_widget = config.ITangoConsole
+    frontend_widget.banner = all_banner
+    
 def load_ipython_extension(ipython):
     # The ``ipython`` argument is the currently active
     # :class:`InteractiveShell` instance that can be used in any way.
@@ -936,3 +1259,19 @@ def unload_ipython_extension(ipython):
     # If you want your extension to be unloadable, put that logic here.
     #print "Unloading PyTango IPython extension"
     pass
+
+def run():
+
+    argv = sys.argv
+
+    try:
+        for i, arg in enumerate(argv[:1]):
+            if arg.startswith('--profile='):
+                break
+        else:
+            argv.append("--profile=tango")
+    except:
+        pass    
+        
+    launch_new_instance()
+    

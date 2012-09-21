@@ -25,7 +25,7 @@
 
 import sys
 import os
-import StringIO
+import io
 
 import IPython.genutils
 import PyTango
@@ -44,33 +44,39 @@ PyTango.ipython.init_ipython(ip)
 
 """
 
+def is_installed(ipydir=None):
+    install_dir = ipydir or IPython.genutils.get_ipython_dir()
+    f_name = os.path.join(install_dir, 'ipy_profile_tango.py')
+    return os.path.isfile(f_name)
+    
+
 def install(ipydir=None,verbose=True):
     install_dir = ipydir or IPython.genutils.get_ipython_dir()
     f_name = os.path.join(install_dir, 'ipy_profile_tango.py')
     if verbose:
         out = sys.stdout
     else:
-        out = StringIO.StringIO()
+        out = io.StringIO()
     if ipydir is None and os.path.isfile(f_name):
-        print "Warning: The file '%s' already exists." % f_name
+        print("Warning: The file '%s' already exists." % f_name)
         r = ''
         while r.lower() not in ('y', 'n'):
-            r = raw_input("Do you wish to override it [Y/n]?")
+            r = input("Do you wish to override it [Y/n]?")
             r = r or 'y'
         if r.lower() == 'n':
             return
     profile = __PROFILE.format(pytangover=PyTango.Release.version, ipyver=IPython.Release.version)
     
-    out.write("Installing tango extension to ipython... ")
+    out.write(u"Installing tango extension to ipython... ")
     out.flush()
     try:
-        f = file(f_name, "w")
+        f = open(f_name, "w")
         f.write(profile)
         f.close()
-        out.write("[DONE]\n\n")
-    except Exception, e:
-        out.write("[FAILED]\n\n")
-        raise e
+        out.write(u"[DONE]\n\n")
+    except:
+        out.write(u"[FAILED]\n\n")
+        raise
     
     ipy_user_config = os.path.join(IPython.genutils.get_ipython_dir(), 'ipy_user_conf.py')
     out.write("""\

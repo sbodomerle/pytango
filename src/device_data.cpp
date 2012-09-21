@@ -50,6 +50,21 @@ namespace PyDeviceData {
             self << val;
         }
         template <>
+        void insert_scalar<Tango::DEV_ENCODED>(Tango::DeviceData &self, object py_value)
+        {
+            object p0 = py_value[0];
+            object p1 = py_value[1];
+            const char* encoded_format = extract<const char *> (p0.ptr());
+            const char* encoded_data = extract<const char *> (p1.ptr());
+            
+            CORBA::ULong nb = boost::python::len(p1);
+            Tango::DevVarCharArray arr(nb, nb, (CORBA::Octet*)encoded_data, false);
+            Tango::DevEncoded val;
+            val.encoded_format = CORBA::string_dup(encoded_format);
+            val.encoded_data = arr;
+            self << val;
+        }
+        template <>
         void insert_scalar<Tango::DEV_VOID>(Tango::DeviceData &self, object py_value)
         {
             raise_(PyExc_TypeError, "Trying to insert a value in a DEV_VOID DeviceData!");
@@ -62,7 +77,7 @@ namespace PyDeviceData {
     /// @{
         template <long tangoArrayTypeConst>
         void insert_array(Tango::DeviceData &self, object py_value)
-        {            
+        {
             typedef typename TANGO_const2type(tangoArrayTypeConst) TangoArrayType;
 
             // self << val; -->> This ends up doing:
@@ -131,7 +146,6 @@ namespace PyDeviceData {
                     return to_py_numpy<tangoArrayTypeConst>(tmp_ptr, py_self);
 #                 endif
                 case PyTango::ExtractAsList:
-                case PyTango::ExtractAsPyTango3:
                     return to_py_list(tmp_ptr);
                 case PyTango::ExtractAsTuple:
                     return to_py_tuple(tmp_ptr);
@@ -148,7 +162,7 @@ namespace PyDeviceData {
     {
         Tango::DeviceData &self = boost::python::extract<Tango::DeviceData &>(py_self);
         
-        TANGO_DO_ON_DEVICE_DATA_TYPE(self.get_type(),
+        TANGO_DO_ON_DEVICE_DATA_TYPE_ID(self.get_type(),
             return extract_scalar<tangoTypeConst>(self);
         ,
             return extract_array<tangoTypeConst>(self, py_self, extract_as);
@@ -158,7 +172,7 @@ namespace PyDeviceData {
 
     void insert(Tango::DeviceData &self, long data_type, object py_value)
     {
-        TANGO_DO_ON_DEVICE_DATA_TYPE(data_type,
+        TANGO_DO_ON_DEVICE_DATA_TYPE_ID(data_type,
             insert_scalar<tangoTypeConst>(self, py_value);
         , 
             insert_array<tangoTypeConst>(self, py_value);

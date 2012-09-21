@@ -35,7 +35,7 @@
 #include <tango.h>
 
 using namespace boost::python;
-
+ 
 void export_version();
 void export_enums();
 void export_constants();
@@ -65,6 +65,13 @@ void export_device_impl();
 void export_group();
 void export_log4tango();
 
+void init_numpy()
+{
+#   ifndef DISABLE_PYTANGO_NUMPY
+        import_array1();
+#   endif
+}
+
 BOOST_PYTHON_MODULE(_PyTango)
 {
 
@@ -83,9 +90,7 @@ BOOST_PYTHON_MODULE(_PyTango)
 
     PyEval_InitThreads();
 
-#   ifndef DISABLE_PYTANGO_NUMPY
-        import_array();
-#   endif
+    init_numpy();
 
     export_callback(); /// @todo not sure were to put it...
 

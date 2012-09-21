@@ -25,27 +25,27 @@
 This is an internal PyTango module.
 """
 
+from __future__ import print_function
+
 __all__ = [ "ChangeEventProp", "PeriodicEventProp", "ArchiveEventProp",
             "AttributeAlarm", "EventProperties",
-            "AttributeConfig", "AttributeConfig_2", "AttributeConfig_3"]
+            "AttributeConfig", "AttributeConfig_2", "AttributeConfig_3",
+            "MultiAttrProp",
+            "device_server_init"]
 
 __docformat__ = "restructuredtext"
 
 import copy
 
-import _PyTango
-from _PyTango import DeviceImpl, Device_3Impl, Device_4Impl
-from _PyTango import Attribute, WAttribute, MultiAttribute, MultiClassAttribute
-from _PyTango import Attr
-from _PyTango import Logger
-from _PyTango import AttrWriteType, AttrDataFormat, DispLevel
-from _PyTango import UserDefaultAttrProp
+from ._PyTango import DevFailed, DeviceImpl, Device_3Impl, Device_4Impl, \
+    Attribute, WAttribute, MultiAttribute, MultiClassAttribute, \
+    Attr, Logger, AttrWriteType, AttrDataFormat, DispLevel, UserDefaultAttrProp
 
-from utils import document_method as __document_method
-from utils import copy_doc
-from attr_data import AttrData
+from .utils import document_method as __document_method
+from .utils import copy_doc
+from .attr_data import AttrData
 
-import log4tango
+from .log4tango import TangoStream
 
 class AttributeAlarm(object):
     """This class represents the python interface for the Tango IDL object
@@ -95,6 +95,32 @@ class EventProperties(object):
         self.ch_event = ChangeEventProp()
         self.per_event = PeriodicEventProp()
         self.arch_event = ArchiveEventProp()
+
+class MultiAttrProp(object):
+    """This class represents the python interface for the Tango IDL object
+    MultiAttrProp."""
+    
+    def __init__(self):
+        self.label = ''
+        self.description = ''
+        self.unit = ''
+        self.standard_unit = ''
+        self.display_unit = ''
+        self.format = ''
+        self.min_value = ''
+        self.max_value = ''
+        self.min_alarm = ''
+        self.max_alarm = ''
+        self.min_warning = ''
+        self.max_warning = ''
+        self.delta_t = ''
+        self.delta_val = ''
+        self.event_period = ''
+        self.archive_period = ''
+        self.rel_change = ''
+        self.abs_change = ''
+        self.archive_rel_change = ''
+        self.archive_abs_change = ''
 
 def _init_attr_config(attr_cfg):
     """Helper function to initialize attribute config objects"""
@@ -162,9 +188,12 @@ def __Attribute__get_properties(self, attr_cfg = None):
             New in PyTango 7.1.4
     """
 
-    if attr_cfg is None:
-        attr_cfg = AttributeConfig()
-    return self._get_properties(attr_cfg)
+    if isinstance(attr_cfg,MultiAttrProp):
+        return self._get_properties_multi_attr_prop(attr_cfg)
+    else:
+        if attr_cfg is None:
+            attr_cfg = AttributeConfig()
+        return self._get_properties(attr_cfg)
 
 def __Attribute__get_properties_2(self, attr_cfg = None):
     """get_properties_2(self, attr_cfg = None) -> AttributeConfig_2
@@ -208,7 +237,7 @@ def __Attribute__get_properties_3(self, attr_cfg = None):
         attr_cfg = AttributeConfig_3()
     return self._get_properties_3(attr_cfg)
 
-def __Attribute__set_properties(self, attr_cfg, dev):
+def __Attribute__set_properties(self, attr_cfg, dev = None):
     """set_properties(self, attr_cfg, dev) -> None
 
                 Set attribute properties.
@@ -223,10 +252,14 @@ def __Attribute__set_properties(self, attr_cfg, dev):
 
             New in PyTango 7.1.4
     """
-    if isinstance(attr_cfg, AttributeConfig_3):
-        self._set_properties_3(attr_cfg, dev)
+    
+    if isinstance(attr_cfg,MultiAttrProp):
+        return self._set_properties_multi_attr_prop(attr_cfg)
     else:
-        self._set_properties(attr_cfg, dev)
+        if isinstance(attr_cfg, AttributeConfig_3):
+            self._set_properties_3(attr_cfg, dev)
+        else:
+            self._set_properties(attr_cfg, dev)
 
 
 def __DeviceImpl__get_device_class(self):
@@ -261,13 +294,14 @@ def __DeviceImpl__get_device_properties(self, ds_class = None):
         self.device_property_list = copy.deepcopy(ds_class.device_property_list)
         class_prop = ds_class.class_property_list
         pu.get_device_properties(self, class_prop, self.device_property_list)
-        for prop_name in class_prop.keys():
+        for prop_name in class_prop:
             setattr(self, prop_name, pu.get_property_values(prop_name, class_prop))
-        for prop_name in self.device_property_list.keys():
+        for prop_name in self.device_property_list:
             setattr(self, prop_name, self.prop_util.get_property_values(prop_name, self.device_property_list))
-    except _PyTango.DevFailed, e:
-        print "----> ", e
-        raise e
+    except DevFailed as df:
+        print(80*"-")
+        print(df)
+        raise df
 
 def __DeviceImpl__add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None):
     """add_attribute(self, attr, r_meth=None, w_meth=None, is_allo_meth=None) -> Attr
@@ -392,7 +426,7 @@ def __DeviceImpl__debug_stream(self, *msg):
 
             Since PyTango 7.1.3, the same can be achieved with::
             
-                print >>self.log_debug, msg
+                print(msg, file=self.log_debug)
             
         Parameters :
             - msg : (str) the message to be sent to the debug stream
@@ -408,7 +442,7 @@ def __DeviceImpl__info_stream(self, *msg):
 
             Since PyTango 7.1.3, the same can be achieved with::
             
-                print >>self.log_info, msg
+                print(msg, file=self.log_info)
 
         Parameters :
             - msg : (str) the message to be sent to the info stream
@@ -424,7 +458,7 @@ def __DeviceImpl__warn_stream(self, *msg):
 
             Since PyTango 7.1.3, the same can be achieved with::
             
-                print >>self.log_warn, msg
+                print(msg, file=self.log_warn)
 
         Parameters :
             - msg : (str) the message to be sent to the warn stream
@@ -440,7 +474,7 @@ def __DeviceImpl__error_stream(self, *msg):
 
             Since PyTango 7.1.3, the same can be achieved with::
             
-                print >>self.log_error, msg
+                print(msg, file=self.log_error)
 
         Parameters :
             - msg : (str) the message to be sent to the error stream
@@ -456,7 +490,7 @@ def __DeviceImpl__fatal_stream(self, *msg):
 
             Since PyTango 7.1.3, the same can be achieved with::
             
-                print >>self.log_fatal, msg
+                print(msg, file=self.log_fatal)
 
         Parameters :
             - msg : (str) the message to be sent to the fatal stream
@@ -467,31 +501,31 @@ def __DeviceImpl__fatal_stream(self, *msg):
 @property
 def __DeviceImpl__debug(self):
     if not hasattr(self, "_debug_s"):
-        self._debug_s = log4tango.TangoStream(self.debug_stream)
+        self._debug_s = TangoStream(self.debug_stream)
     return self._debug_s
 
 @property
 def __DeviceImpl__info(self):
     if not hasattr(self, "_info_s"):
-        self._info_s = log4tango.TangoStream(self.info_stream)
+        self._info_s = TangoStream(self.info_stream)
     return self._info_s
 
 @property
 def __DeviceImpl__warn(self):
     if not hasattr(self, "_warn_s"):
-        self._warn_s = log4tango.TangoStream(self.warn_stream)
+        self._warn_s = TangoStream(self.warn_stream)
     return self._warn_s
 
 @property
 def __DeviceImpl__error(self):
     if not hasattr(self, "_error_s"):
-        self._error_s = log4tango.TangoStream(self.error_stream)
+        self._error_s = TangoStream(self.error_stream)
     return self._error_s
 
 @property
 def __DeviceImpl__fatal(self):
     if not hasattr(self, "_fatal_s"):
-        self._fatal_s = log4tango.TangoStream(self.fatal_stream)
+        self._fatal_s = TangoStream(self.fatal_stream)
     return self._fatal_s
 
 def __DeviceImpl__str(self):
@@ -2409,66 +2443,150 @@ def __doc_UserDefaultAttrProp():
     """ )
     
     document_method("set_abs_change", """
-    set_abs_change(self, def_abs_change) -> None
+    set_abs_change(self, def_abs_change) -> None <= DEPRECATED
 
             Set default change event abs_change property. 
 
         Parameters :  
             - def_abs_change : (str) the user default change event abs_change property 
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_event_abs_change instead.
+    """ )
+
+    document_method("set_event_abs_change", """
+    set_event_abs_change(self, def_abs_change) -> None
+
+            Set default change event abs_change property. 
+
+        Parameters :  
+            - def_abs_change : (str) the user default change event abs_change property 
+        Return     : None
+        
+        New in PyTango 8.0
     """ )
     
     document_method("set_rel_change", """
-    set_rel_change(self, def_rel_change) -> None
+    set_rel_change(self, def_rel_change) -> None <= DEPRECATED
 
             Set default change event rel_change property. 
 
         Parameters :  
             - def_rel_change : (str) the user default change event rel_change property 
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_event_rel_change instead.
+    """ )
+
+    document_method("set_event_rel_change", """
+    set_event_rel_change(self, def_rel_change) -> None
+
+            Set default change event rel_change property. 
+
+        Parameters :  
+            - def_rel_change : (str) the user default change event rel_change property 
+        Return     : None
+        
+        New in PyTango 8.0
     """ )
     
     document_method("set_period", """ 
-    set_period(self, def_period) -> None
+    set_period(self, def_period) -> None <= DEPRECATED
 
             Set default periodic event period property. 
 
         Parameters :  
             - def_period : (str) the user default periodic event period property 
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_event_period instead.
     """ )
 
+    document_method("set_event_period", """ 
+    set_event_period(self, def_period) -> None
+
+            Set default periodic event period property. 
+
+        Parameters :  
+            - def_period : (str) the user default periodic event period property 
+        Return     : None
+        
+        New in PyTango 8.0
+    """ )
+    
     document_method("set_archive_abs_change", """
-    set_archive_abs_change(self, def_archive_abs_change) -> None
+    set_archive_abs_change(self, def_archive_abs_change) -> None <= DEPRECATED
 
             Set default archive event abs_change property. 
 
         Parameters :  
             - def_archive_abs_change : (str) the user default archive event abs_change property 
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_archive_event_abs_change instead.
     """ )
 
+    document_method("set_archive_event_abs_change", """
+    set_archive_event_abs_change(self, def_archive_abs_change) -> None
+
+            Set default archive event abs_change property. 
+
+        Parameters :  
+            - def_archive_abs_change : (str) the user default archive event abs_change property 
+        Return     : None
+        
+        New in PyTango 8.0
+    """ )
+    
     document_method("set_archive_rel_change", """
-    set_archive_rel_change(self, def_archive_rel_change) -> None
+    set_archive_rel_change(self, def_archive_rel_change) -> None <= DEPRECATED
 
             Set default archive event rel_change property. 
 
         Parameters :  
             - def_archive_rel_change : (str) the user default archive event rel_change property 
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_archive_event_rel_change instead.
+    """ )
+
+    document_method("set_archive_event_rel_change", """
+    set_archive_event_rel_change(self, def_archive_rel_change) -> None
+
+            Set default archive event rel_change property. 
+
+        Parameters :  
+            - def_archive_rel_change : (str) the user default archive event rel_change property 
+        Return     : None
+        
+        New in PyTango 8.0
     """ )
     
     document_method("set_archive_period", """
-    set_archive_period(self, def_archive_period) -> None
+    set_archive_period(self, def_archive_period) -> None <= DEPRECATED
 
             Set default archive event period property. 
 
         Parameters :  
             - def_archive_period : (str) t
         Return     : None
+        
+        Deprecated since PyTango 8.0. Please use set_archive_event_period instead.
+    """ )
+
+    document_method("set_archive_event_period", """
+    set_archive_event_period(self, def_archive_period) -> None
+
+            Set default archive event period property. 
+
+        Parameters :  
+            - def_archive_period : (str) t
+        Return     : None
+        
+        New in PyTango 8.0
     """ )
     
-def init(doc=True):
+def device_server_init(doc=True):
     __init_DeviceImpl()
     __init_Attribute()
     __init_Attr()
