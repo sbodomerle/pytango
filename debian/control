@@ -3,19 +3,22 @@ Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.
 Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
 Section: science
 Priority: extra
-Build-Depends: debhelper (>= 8),
+Build-Depends: debhelper (>= 9),
                libboost-python-dev,
                liblog4tango4-dev,
                libtango8-dev,
-               python-all-dev (>= 2.6.6-3~),
-               python-numpy (>= 1:1.4.1-4~)
+               python-all-dev,
+               python-numpy,
+               python3-all-dev,
+               python3-numpy
 Build-Depends-Indep: graphviz,
-		     python-sphinx
+                     python-sphinx
 Standards-Version: 3.9.3
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
 Homepage: http://www.tango-controls.org/static/PyTango/latest/doc/html/
 X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.2
 
 Package: python-pytango
 Architecture: any
@@ -25,12 +28,31 @@ Depends: ${shlibs:Depends},
          ${python:Depends},
          ipython
 Provides: ${python:Provides}
-Description: API for the TANGO control system (documentation)
+Description: API for the TANGO control system (Python 2)
  TANGO is an object oriented distributed control system using CORBA,
  mainly developed by the Controls Section of the ALBA Synchrotron.
  PyTango provides bindings for its client- and server-side C++ APIs.
  With PyTango, you can write TANGO device servers and TANGO applications
  (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
+ .
+ This is the Python 2 version of the package.
+
+Package: python3-pytango
+Architecture: any
+Section: python
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         ${python3:Depends},
+         ipython3
+Provides: ${python3:Provides}
+Description: API for the TANGO control system (Python 3)
+ TANGO is an object oriented distributed control system using CORBA,
+ mainly developed by the Controls Section of the ALBA Synchrotron.
+ PyTango provides bindings for its client- and server-side C++ APIs.
+ With PyTango, you can write TANGO device servers and TANGO applications
+ (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
+ .
+ This is the Python 3 version of the package.
 
 Package: python-pytango-doc
 Architecture: all

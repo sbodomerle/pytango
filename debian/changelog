@@ -1,6 +1,8 @@
-pytango (8.0.0-1) UNRELEASED; urgency=low
+pytango (8.0.0-1) experimental; urgency=low
 
   * Imported Upstream version 8.0.0
+  * debian/control
+    - add python3-pytango binary package
 
  -- Picca Frédéric-Emmanuel <picca@debian.org>  Fri, 21 Sep 2012 21:48:10 +0200
 
