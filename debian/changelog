@@ -1,6 +1,6 @@
-pytango (8.0.1-1) experimental; urgency=low
+pytango (8.0.2-1) experimental; urgency=low
 
-  * Imported Upstream version 8.0.1
+  * Imported Upstream version 8.0.2
   * debian/control
     - add python3-pytango binary package
 
