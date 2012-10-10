@@ -215,6 +215,7 @@ class build_ext(dftbuild_ext):
     def build_extension(self, ext):
         if self.use_cpp_0x:
             ext.extra_compile_args += ['-std=c++0x']
+            ext.define_macros += [ ('PYTANGO_HAS_UNIQUE_PTR', '1') ]
         dftbuild_ext.build_extension(self, ext)
 
 if sphinx:
@@ -479,7 +480,6 @@ def main():
     client_dir = src_dir
     server_dir = os.path.join(src_dir, 'server')
     _clientfiles = [ os.path.join(client_dir,fname) for fname in os.listdir(client_dir) if fname.endswith('.cpp') ]
-    _clientfiles.remove(os.path.join(client_dir,"group_element.cpp"))
     _clientfiles.sort()
     _serverfiles = [ os.path.join(server_dir,fname) for fname in os.listdir(server_dir) if fname.endswith('.cpp') ]
     _serverfiles.sort()
