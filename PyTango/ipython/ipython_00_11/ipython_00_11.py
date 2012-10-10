@@ -125,29 +125,29 @@ class DeviceClassCompleter(object):
 def __DeviceProxy_completer(ip, evt):
     db = __get_db()
     if db is None: return
-    ret = db._db_cache.devices.keys()
+    ret = list(db._db_cache.devices.keys())
     ret.extend(db._db_cache.aliases.keys())
     return ret
 
 def __DeviceClass_completer(ip, evt):
     db = __get_db()
     if db is None: return
-    return db._db_cache.klasses.keys()
+    return list(db._db_cache.klasses.keys())
 
 def __DeviceAlias_completer(ip, evt):
     db = __get_db()
     if db is None: return
-    return db._db_cache.aliases.keys()
+    return list(db._db_cache.aliases.keys())
 
 def __AttributeAlias_completer(ip, evt):
     db = __get_db()
     if db is None: return
-    return db._db_cache.attr_aliases.keys()
+    return list(db._db_cache.attr_aliases.keys())
 
 def __PureDeviceProxy_completer(ip, evt):
     db = __get_db()
     if db is None: return
-    return db._db_cache.devices.keys()
+    return list(db._db_cache.devices.keys())
 
 def __AttributeProxy_completer(ip, evt):
     db = __get_db()
@@ -164,7 +164,7 @@ def __AttributeProxy_completer(ip, evt):
     dev_name = None
     if n == 0:
         # means it can be an attr alias, a device name has alias or as full device name
-        ret = cache.get("attr_aliases").keys()
+        ret = list(cache.get("attr_aliases").keys())
         ret.extend([ d+"/" for d in devs ])
         ret.extend([ d+"/" for d in dev_aliases ])
         # device alias found!
@@ -1115,21 +1115,27 @@ def init_display(ip):
     html_formatter.for_type(PyTango.GroupAttrReply, display_groupreply_html)
     html_formatter.for_type(PyTango.GroupCmdReply, display_groupreply_html)
 
-from IPython.utils.traitlets import Unicode
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+# overwrite the original IPython Qt widget with our own so we can put a
+# customized banner. IPython may have been installed without Qt support so we
+# protect this code agaist an import error
+try:
+    from IPython.utils.traitlets import Unicode
+    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
-class ITangoConsole(RichIPythonWidget):
+    class ITangoConsole(RichIPythonWidget):
+        
+        banner = Unicode(config=True)
+
+        def _banner_default(self):
+            config = get_config()
+            return config.ITangoConsole.banner
+
+    import IPython.frontend.qt.console.qtconsoleapp
+    IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+    IPythonQtConsoleApp.widget_factory = ITangoConsole      
+except ImportError:
+    pass
     
-    banner = Unicode(config=True)
-
-    def _banner_default(self):
-        config = get_config()
-        return config.ITangoConsole.banner
-
-import IPython.frontend.qt.console.qtconsoleapp
-IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
-IPythonQtConsoleApp.widget_factory = ITangoConsole      
-
 def init_ipython(ip=None, store=True, pytango=True, colors=True, console=True,
                  magic=True):
 
