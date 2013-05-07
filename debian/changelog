@@ -1,3 +1,11 @@
+pytango (8.0.2-1) unstable; urgency=low
+
+  * debian/patches
+    + 0001-feature-forwarded-fix-FTBFS-with-sphinx-beta-version.patch
+      (Closes: #706471)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 07 May 2013 09:28:11 +0200
+
 pytango (8.0.2-1~exp1) experimental; urgency=low
 
   * Imported Upstream version 8.0.2
