@@ -6,10 +6,6 @@ PYTHON3=$(shell py3versions -vr)
 %:
 	dh $@ --with python2,python3
 
-override_dh_clean:
-	rm -rf build/sphinx
-	dh_clean
-
 build-python%:
 	python$* setup.py build
 
@@ -38,3 +34,8 @@ ifneq (,$(filter python-pytango-doc, $(shell dh_listpackages)))
 	# add the - for backport where dh_sphinxdoc is not available
 	-dh_sphinxdoc -ppython-pytango-doc
 endif
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build
+	rm -rf *.egg-info
