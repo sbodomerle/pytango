@@ -69,6 +69,8 @@ History of modifications:
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 | 10/10/12 | `8.15 <http://www.tango-controls.org/static/PyTango/v802/doc/html/index.html>`_  | Update to PyTango 8.0.2                             | T\. Coutinho          |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| 20/05/13 | `8.16 <http://www.tango-controls.org/static/PyTango/v803/doc/html/index.html>`_  | Update to PyTango 8.0.3                             | T\. Coutinho          |
++----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 
 .. _version-history:
 
@@ -78,6 +80,19 @@ Version history
 +------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | version    | Changes                                                                                                                                                                      |
 +============+==============================================================================================================================================================================+
+| 8.0.3      | Features:                                                                                                                                                                    |
+|            |     - from sourceforge:                                                                                                                                                      |
+|            |         - `88: Implement Util::server_set_event_loop method in python <https://sourceforge.net/p/tango-cs/feature-requests/88>`_                                             |
+|            | Bug fixes:                                                                                                                                                                   |
+|            |     - from sourceforge:                                                                                                                                                      |
+|            |         - `3576353: [pytango] segfault on 'RestartServer' <https://sourceforge.net/tracker/?func=detail&aid=3576353&group_id=57612&atid=484769>`_                            |
+|            |         - `3579062: [pytango] Attribute missing methods <https://sourceforge.net/tracker/?func=detail&aid=3579062&group_id=57612&atid=484769>`_                              |
+|            |         - `3586337: [pytango] Some DeviceClass methods are not python safe <https://sourceforge.net/tracker/?func=detail&aid=3586337&group_id=57612&atid=484769>`_           |
+|            |         - `3598514: DeviceProxy.__setattr__ break python's descriptors <https://sourceforge.net/tracker/?func=detail&aid=3598514&group_id=57612&atid=484769>`_               |
+|            |         - `3607779: [pytango] IPython 0.10 error <https://sourceforge.net/tracker/?func=detail&aid=3607779&group_id=57612&atid=484769>`_                                     |
+|            |         - `598: Import DLL by PyTango failed on windows <https://sourceforge.net/p/tango-cs/bugs/598/>`_                                                                     |
+|            |         - `605: [pytango] use distutils.version module <https://sourceforge.net/p/tango-cs/bugs/605/>`_                                                                      |
++------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 8.0.2      | Bug fixes:                                                                                                                                                                   |
 |            |     - from sourceforge:                                                                                                                                                      |
 |            |         - `3570970: [pytango] problem during the python3 building <https://sourceforge.net/tracker/?func=detail&aid=3570970&group_id=57612&atid=484769>`_                    |
@@ -85,6 +100,8 @@ Version history
 |            |         - `3570972: [pytango] warning/error when building 8.0.0 <https://sourceforge.net/tracker/?func=detail&aid=3570972&group_id=57612&atid=484769>`_                      |
 |            |         - `3570975: [pytango] problem during use of python3 version <https://sourceforge.net/tracker/?func=detail&aid=3570975&group_id=57612&atid=484769>`_                  |
 |            |         - `3574099: [pytango] compile error with gcc < 4.5 <https://sourceforge.net/tracker/?func=detail&aid=3574099&group_id=57612&atid=484769>`_                           |
++------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 8.0.1      | *SKIPPED*                                                                                                                                                                    |
 +------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 8.0.0      | Features:                                                                                                                                                                    |
 |            |     - Implemented tango C++ 8.0 API                                                                                                                                          |
