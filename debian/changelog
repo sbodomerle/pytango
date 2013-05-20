@@ -1,3 +1,14 @@
+pytango (8.0.3-1) unstable; urgency=low
+
+  * Imported Upstream version 8.0.3
+  * debian/rules
+    - updated the clean target to build twice.
+  * debian/patches
+    - 0001-feature-forwarded-fix-FTBFS-with-sphinx-beta-version.patch (deleted)
+      this patch was applyed by the upstream
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Mon, 20 May 2013 22:05:20 +0200
+
 pytango (8.0.2-1) unstable; urgency=low
 
   * debian/patches
