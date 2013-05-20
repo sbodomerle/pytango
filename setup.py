@@ -26,6 +26,7 @@ import sys
 import platform
 import imp
 import io
+import struct
 
 from distutils.core import setup, Extension
 from distutils.cmd import Command
@@ -33,6 +34,7 @@ from distutils.command.build import build as dftbuild
 from distutils.command.build_ext import build_ext as dftbuild_ext
 from distutils.command.install import install as dftinstall
 from distutils.unixccompiler import UnixCCompiler
+from distutils.version import StrictVersion as V
 import distutils.sysconfig
 
 try:
@@ -46,8 +48,7 @@ except:
 try:
     import IPython
     _IPY_ROOT = os.path.dirname(os.path.abspath(IPython.__file__))
-    _IPY_VER = list(map(int, IPython.__version__.split(".")[:2]))
-    if _IPY_VER > [0,10]:
+    if V(IPython.__version__) > V('0.10'):
         import IPython.utils.path
         get_ipython_dir = IPython.utils.path.get_ipython_dir
     else:
@@ -71,7 +72,7 @@ def abspath(*path):
 
 def get_release_info():
     name = "release"
-    release_dir = abspath('PyTango')
+    release_dir = abspath('src', 'boost', 'python')
     data = imp.find_module(name, [release_dir])
     release = imp.load_module(name, *data)
     return release.Release
@@ -84,7 +85,7 @@ def uniquify(seq):
 def get_c_numpy():
     NUMPY_ROOT = os.environ.get('NUMPY_ROOT')
     if NUMPY_ROOT is not None:
-        d = os.path.join(NUMPY_ROOT, 'include','numpy')
+        d = os.path.join(NUMPY_ROOT, 'include')
         if os.path.isdir(d):
             return d
     if numpy is None:
@@ -103,6 +104,9 @@ def has_numpy(with_src=True):
     return ret
 
 def get_script_files():
+    
+    FILTER_OUT = (), # "winpostinstall.py",
+    
     scripts_dir = abspath('scripts')
     scripts = []
     items = os.listdir(scripts_dir)
@@ -114,14 +118,12 @@ def get_script_files():
         # avoid non files
         if not os.path.isfile(abs_item):
             continue
-        # avoid files that have any extension
-        if len(os.path.splitext(abs_item)[1]) > 0:
-            continue
-        # avoid compiled version of script
         if item.endswith('c') and item[:-1] in items:
             continue
         # avoid any core dump... of course there isn't any :-) but just in case
         if item.startswith('core'):
+            continue
+        if item in FILTER_OUT:
             continue
         scripts.append('scripts/' + item)
     return scripts
@@ -151,7 +153,7 @@ class build(dftbuild):
             self.warn("NOT using numpy: numpy available but C source is not")
         
         if IPython and not self.without_ipython:
-            if _IPY_VER > [0,10]:
+            if V(IPython.__version__) > V('0.10'):
                 self.distribution.py_modules.append('IPython.config.profile.tango.ipython_config')
             else:
                 self.distribution.py_modules.append('IPython.Extensions.ipy_profile_tango')
@@ -182,8 +184,7 @@ class build(dftbuild):
             return False
         if sphinx is None:
             return False
-        v = list(map(int, sphinx.__version__.split(".")))
-        if v <= [0,6,5]:
+        if V(sphinx.__version__) <= V("0.6.5"):
             print("Documentation will not be generated: sphinx version (%s) too low. Needs 0.6.6" % sphinx.__version__)
             return False 
         setup_dir = os.path.dirname(os.path.abspath(__file__))
@@ -206,9 +207,8 @@ class build_ext(dftbuild_ext):
             import subprocess
             compiler = self.compiler.compiler
             pipe = subprocess.Popen(compiler + ["-dumpversion"], stdout=subprocess.PIPE).stdout
-            gcc_ver = pipe.readlines()[0].decode().strip().split(".")
-            gcc_ver = list(map(int, gcc_ver))
-            if gcc_ver >= [4,3,3]:
+            gcc_ver = pipe.readlines()[0].decode().strip()
+            if V(gcc_ver) >= V("4.3.3"):
                 self.use_cpp_0x = True
         dftbuild_ext.build_extensions(self)
 
@@ -281,11 +281,13 @@ class install(dftinstall):
 
 
 def main():
-    BOOST_ROOT = OMNI_ROOT = TANGO_ROOT = '/usr'
+    ZMQ_ROOT = LOG4TANGO_ROOT = BOOST_ROOT = OMNI_ROOT = TANGO_ROOT = '/usr'
 
     TANGO_ROOT = os.environ.get('TANGO_ROOT', TANGO_ROOT)
     OMNI_ROOT  = os.environ.get('OMNI_ROOT', OMNI_ROOT)
     BOOST_ROOT = os.environ.get('BOOST_ROOT', BOOST_ROOT)
+    LOG4TANGO_ROOT = os.environ.get('LOG4TANGO_ROOT', LOG4TANGO_ROOT)
+    ZMQ_ROOT = os.environ.get('ZMQ_ROOT', ZMQ_ROOT)
     numpy_c_include = get_c_numpy()
     
     Release = get_release_info()
@@ -330,7 +332,9 @@ def main():
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Unix',
+        'Programming Language :: C',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries',
     ]
@@ -339,7 +343,7 @@ def main():
     # include directories
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    include_dirs = [ os.path.abspath('src') ]
+    include_dirs = [ abspath('src', 'boost', 'cpp') ]
 
     _tango_root_inc = os.path.join(TANGO_ROOT, 'include')
     include_dirs.append(_tango_root_inc)
@@ -358,6 +362,7 @@ def main():
     include_dirs.append(os.path.join(OMNI_ROOT, 'include'))
     if numpy_c_include is not None:
         include_dirs.append(numpy_c_include)
+    include_dirs.append(os.path.join(LOG4TANGO_ROOT, 'include'))
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # library directories
@@ -378,10 +383,23 @@ def main():
     if not has_numpy():
         macros.append( ('DISABLE_PYTANGO_NUMPY', None) )
 
-    library_dirs = [
-        os.path.join(TANGO_ROOT, 'lib'),
-        os.path.join(BOOST_ROOT, 'lib'),
-    ]
+    library_dirs = []
+    for f in (TANGO_ROOT,BOOST_ROOT,LOG4TANGO_ROOT,ZMQ_ROOT):
+        is64 = 8 * struct.calcsize("P") == 64
+        d = os.path.join(f,'lib')
+        if is64:
+            d = os.path.join(f,'lib64')
+            try: 
+                if not os.stat(d): raise Exception('%s_doesnt_exist'%d)
+            except: d = os.path.join(f,'lib')
+        library_dirs.append(d)
+            
+#    library_dirs = [
+#        os.path.join(TANGO_ROOT, 'lib'),
+#        os.path.join(BOOST_ROOT, 'lib'),
+#        #os.path.join(LOG4TANGO_ROOT, 'lib'),
+#        os.path.join(ZMQ_ROOT, 'lib'),
+#    ]                                
 
     if os.name == 'nt':
         include_dirs += [ BOOST_ROOT ]
@@ -445,14 +463,28 @@ def main():
             'omnithread',
             'COS4',
         ]
+        
+        boost_library_name = 'boost_python'
+        
+        if 'linux' in sys.platform:
+            dist_name = platform.linux_distribution()[0].lower()
+            debian_based = 'debian' in dist_name or 'ubuntu' in dist_name
+            if debian_based:
+                # when building with multiple version of python on debian we need
+                # to link against boost_python-py25/-py26 etc...
+                pyver = "-py" + "".join(map(str, platform.python_version_tuple()[:2]))
+                boost_library_name += pyver
+        libraries.append(boost_library_name)
 
-        # when building with multiple version of python on debian we need
-        # to link against boost_python-py25/-py26 etc...
-        pyver = "py" + "".join(map(str, platform.python_version_tuple()[:2]))
-        dist = platform.dist()[0].lower()
-        libraries.append('boost_python-' + pyver)
-
-        library_dirs += [ os.path.join(OMNI_ROOT, 'lib') ]
+        is64 = 8 * struct.calcsize("P") == 64
+        omni_lib = os.path.join(OMNI_ROOT, 'lib')
+        if is64:
+            omni_lib = os.path.join(OMNI_ROOT, 'lib64')
+            try: 
+                if not os.stat(d): raise Exception('%s_doesnt_exist'%d)
+            except:
+                omni_lib = os.path.join(OMNI_ROOT, 'lib')
+        library_dirs += [ omni_lib ]
 
 
         # Note for PyTango developers:
@@ -476,7 +508,7 @@ def main():
 
     include_dirs = uniquify(include_dirs)
     library_dirs = uniquify(library_dirs)
-    src_dir = abspath('src')
+    src_dir = abspath('src', 'boost', 'cpp')
     client_dir = src_dir
     server_dir = os.path.join(src_dir, 'server')
     _clientfiles = [ os.path.join(client_dir,fname) for fname in os.listdir(client_dir) if fname.endswith('.cpp') ]
@@ -517,7 +549,7 @@ def main():
         platforms        = Release.platform,
         license          = Release.license,
         packages         = packages,
-        package_dir      = { 'PyTango' : 'PyTango' },
+        package_dir      = { 'PyTango' : os.path.join('src', 'boost', 'python') },
         py_modules       = py_modules,
         classifiers      = classifiers,
         package_data     = package_data,
