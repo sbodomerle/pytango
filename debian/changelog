@@ -1,6 +1,8 @@
 pytango (8.0.3-1) unstable; urgency=low
 
   * Imported Upstream version 8.0.3
+  * Bump Standards-Version 3.9.4 (nothing to do)
+  * Switch to debhelper level 9
   * debian/rules
     - updated the clean target to build twice.
   * debian/patches
