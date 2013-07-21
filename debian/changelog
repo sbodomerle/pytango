@@ -1,3 +1,10 @@
+pytango (8.0.3-2) unstable; urgency=low
+
+  * debian/patch
+    + 0001-fix-from-upstream-FTBFS-s390.patch (Closes: #711761)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 21 Jul 2013 08:48:11 +0200
+
 pytango (8.0.3-1) unstable; urgency=low
 
   * Imported Upstream version 8.0.3
