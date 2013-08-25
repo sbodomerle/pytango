@@ -1,3 +1,10 @@
+pytango (8.0.3-3) unstable; urgency=low
+
+  * debian/control
+    - Build-Depends: remove log4tango4 which is not a direct build dependency.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 25 Aug 2013 09:17:58 +0200
+
 pytango (8.0.3-2) unstable; urgency=low
 
   * debian/patch
