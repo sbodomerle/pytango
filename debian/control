@@ -5,7 +5,6 @@ Section: science
 Priority: extra
 Build-Depends: debhelper (>= 9),
                libboost-python-dev,
-               liblog4tango4-dev,
                libtango8-dev,
                python-all-dev,
                python-numpy,
