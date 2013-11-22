@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #pragma once
 
@@ -103,6 +91,7 @@ struct from_py<tangoTypeConst> \
         { \
             cpy_type cpy_value = FN(o); \
             if(PyErr_Occurred()) { \
+	        PyErr_Clear(); \
                 PyErr_SetString(PyExc_TypeError, "Expecting a numeric type, it is not."); \
                 boost::python::throw_error_already_set();  \
             } \
@@ -135,18 +124,20 @@ struct from_py<tangoTypeConst> \
         { \
             cpy_type cpy_value = FN(o); \
             if(PyErr_Occurred()) { \
+	        PyErr_Clear(); \
                 if(PyArray_CheckScalar(o) && \
                 ( PyArray_DescrFromScalar(o) \
                     == PyArray_DescrFromType(TANGO_const2numpy(tangoTypeConst)))) \
                 { \
                     PyArray_ScalarAsCtype(o, reinterpret_cast<void*>(&tg)); \
                     return; \
-                } else \
+                } else { \
                     PyErr_SetString(PyExc_TypeError, "Expecting a numeric type," \
                         " but it is not. If you use a numpy type instead of" \
                         " python core types, then it must exactly match (ex:" \
                         " numpy.int32 for PyTango.DevLong)"); \
                     boost::python::throw_error_already_set();  \
+		} \
             } \
             if (TangoScalarTypeLimits::is_integer) { \
                 if (cpy_value > (cpy_type)TangoScalarTypeLimits::max()) { \
@@ -163,6 +154,20 @@ struct from_py<tangoTypeConst> \
     };
 #endif // !DISABLE_PYTANGO_NUMPY
 
+
+/* Allow for downcast */
+
+inline unsigned PY_LONG_LONG PyLong_AsUnsignedLongLong_2(PyObject *pylong)
+{
+  unsigned PY_LONG_LONG result = PyLong_AsUnsignedLongLong(pylong);
+  if(PyErr_Occurred())
+  {
+    PyErr_Clear();
+    result = PyLong_AsUnsignedLong(pylong);
+  }
+  return result;
+}
+
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_BOOLEAN, long, PyLong_AsLong)
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_UCHAR, unsigned long, PyLong_AsUnsignedLong)
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_SHORT, long, PyLong_AsLong)
@@ -172,7 +177,7 @@ DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_ULONG, unsigned long, PyLong_AsUnsignedL
 DEFINE_FAST_TANGO_FROMPY(Tango::DEV_STATE, PyLong_AsLong)
 
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_LONG64, Tango::DevLong64, PyLong_AsLongLong)
-DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_ULONG64, Tango::DevULong64, PyLong_AsUnsignedLongLong)
+DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_ULONG64, Tango::DevULong64, PyLong_AsUnsignedLongLong_2)
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_FLOAT, double, PyFloat_AsDouble)
 DEFINE_FAST_TANGO_FROMPY_NUM(Tango::DEV_DOUBLE, double, PyFloat_AsDouble)
 
@@ -202,6 +207,7 @@ struct array_element_from_py<Tango::DEVVAR_CHARARRAY>
     {
         long cpy_value = PyLong_AsLong(o);
         if(PyErr_Occurred()) {
+            PyErr_Clear();
             PyErr_SetString(PyExc_TypeError, "Expecting a numeric type,"
                 " but it is not");
             boost::python::throw_error_already_set(); 
@@ -223,6 +229,7 @@ struct array_element_from_py<Tango::DEVVAR_CHARARRAY>
     {
         long cpy_value = PyLong_AsLong(o);
         if(PyErr_Occurred()) {
+	    PyErr_Clear();
             if(PyArray_CheckScalar(o) &&
             ( PyArray_DescrFromScalar(o)
                 == PyArray_DescrFromType(TANGO_const2scalarnumpy(tangoArrayTypeConst))))

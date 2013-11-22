@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #include "precompiled_header.hpp"
 #include "defs.h"
@@ -125,6 +113,38 @@ struct PyDatabase
     //{
     //    return boost::python::str(self.get_file_name());
     //}
+
+    static inline boost::python::str
+    get_device_from_alias(Tango::Database& self, const std::string &input)
+    {
+        std::string output;
+        self.get_device_from_alias(input, output);
+        return boost::python::str(output);
+    }
+    
+    static inline boost::python::str
+    get_alias_from_device(Tango::Database& self, const std::string &input)
+    {
+        std::string output;
+        self.get_alias_from_device(input, output);
+        return boost::python::str(output);
+    }
+    
+    static inline boost::python::str
+    get_attribute_from_alias(Tango::Database& self, const std::string &input)
+    {
+        std::string output;
+        self.get_attribute_from_alias(input, output);
+        return boost::python::str(output);
+    }
+    
+    static inline boost::python::str
+    get_alias_from_attribute(Tango::Database& self, const std::string &input)
+    {
+        std::string output;
+        self.get_alias_from_attribute(input, output);
+        return boost::python::str(output);
+    }
 };
 
 void export_database()
@@ -137,6 +157,8 @@ void export_database()
         &Tango::Database::get_host_list;
     Tango::DbDatum (Tango::Database::*get_services_)(std::string &, std::string &) =
         &Tango::Database::get_services;
+    Tango::DbDatum (Tango::Database::*get_device_service_list_)(std::string &) =
+        &Tango::Database::get_device_service_list;
     void (Tango::Database::*register_service_)(std::string &, std::string &, std::string &) =
         &Tango::Database::register_service;
     void (Tango::Database::*unregister_service_)(std::string &, std::string &) =
@@ -208,6 +230,8 @@ void export_database()
 
     Tango::DbDevImportInfo (Tango::Database::*import_device_)(std::string &) =
         &Tango::Database::import_device;
+    Tango::DbDevFullInfo (Tango::Database::*get_device_info_)(std::string &) =
+        &Tango::Database::get_device_info;
     
     Tango::DbDatum (Tango::Database::*get_attribute_alias_list_)(std::string &) =
         &Tango::Database::get_attribute_alias_list;
@@ -264,6 +288,9 @@ void export_database()
         .def("get_services",
             (Tango::DbDatum (Tango::Database::*) (const std::string &, const std::string &))
             get_services_)
+        .def("get_device_service_list",
+            (Tango::DbDatum (Tango::Database::*) (const std::string &))
+            get_device_service_list_)
         .def("register_service",
             (void (Tango::Database::*) (const std::string &, const std::string &, const std::string &))
             register_service_)
@@ -277,10 +304,14 @@ void export_database()
 
         .def("add_device", &Tango::Database::add_device)
         .def("delete_device", &Tango::Database::delete_device)
-        .def("import_device", (Tango::DbDevImportInfo (Tango::Database::*) (const std::string &))
-        import_device_)
+        .def("import_device", 
+            (Tango::DbDevImportInfo (Tango::Database::*) (const std::string &))
+            import_device_)
         .def("export_device", &Tango::Database::export_device)
         .def("unexport_device", &Tango::Database::unexport_device)
+        .def("get_device_info", 
+            (Tango::DbDevFullInfo (Tango::Database::*) (const std::string &))
+            get_device_info_)
         .def("get_device_name",
             (Tango::DbDatum (Tango::Database::*) (const string &, const string &))
             get_device_name_)
@@ -316,7 +347,7 @@ void export_database()
         .def("delete_device_alias",
             (void (Tango::Database::*) (const std::string &))
             delete_device_alias_)
-
+        
         //
         // server methods
         //
@@ -331,6 +362,8 @@ void export_database()
         .def("unexport_server",
             (void (Tango::Database::*) (const std::string &))
             unexport_server_)
+        .def("rename_server", &Tango::Database::rename_server,
+            ( arg_("self"), arg_("old_ds_name"), arg_("new_ds_name") ))
         .def("get_server_info",
             (Tango::DbServerInfo (Tango::Database::*) (const std::string &))
             get_server_info_)
@@ -453,6 +486,14 @@ void export_database()
         .def("unexport_event",
             (void (Tango::Database::*) (const std::string &))
             &Tango::Database::unexport_event)
+
+// alias methods
+
+        .def("get_device_from_alias", &PyDatabase::get_device_from_alias)
+        .def("get_alias_from_device", &PyDatabase::get_alias_from_device)
+        .def("get_attribute_from_alias", &PyDatabase::get_attribute_from_alias)
+        .def("get_alias_from_attribute", &PyDatabase::get_alias_from_attribute)
+
         ;
 }
 

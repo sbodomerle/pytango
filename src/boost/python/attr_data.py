@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is an internal PyTango module.
@@ -34,8 +22,9 @@ __docformat__ = "restructuredtext"
 
 import inspect
 
-from ._PyTango import Except, CmdArgType, AttrDataFormat, AttrWriteType, \
-    DispLevel, UserDefaultAttrProp, Attr, SpectrumAttr, ImageAttr
+from ._PyTango import Except, CmdArgType, AttrDataFormat, AttrWriteType
+from ._PyTango import DispLevel, UserDefaultAttrProp
+from ._PyTango import Attr, SpectrumAttr, ImageAttr
 from .utils import is_non_str_seq, is_pure_str
 
 
@@ -75,6 +64,10 @@ class AttrData(object):
         name = attr_dict.pop('name', None)
         class_name = attr_dict.pop('class_name', None)
         self = cls(name, class_name)
+        self.build_from_dict(attr_dict)
+        return self
+        
+    def build_from_dict(self, attr_dict):
         self.attr_type = attr_dict.pop('dtype', CmdArgType.DevDouble)
         self.attr_format = attr_dict.pop('dformat', AttrDataFormat.SCALAR)
         self.dim_x = attr_dict.pop('max_dim_x', 1)
@@ -89,7 +82,8 @@ class AttrData(object):
             self.attr_write = attr_dict.pop('access')
         else:
             # access is defined by which methods were defined
-            r_explicit, w_explicit = "fread" in attr_dict, "fwrite" in attr_dict
+            r_explicit = "fread" in attr_dict or "fget" in attr_dict
+            w_explicit = "fwrite" in attr_dict or "fset" in attr_dict
             if r_explicit and w_explicit:
                 self.attr_write = AttrWriteType.READ_WRITE
             elif r_explicit:
@@ -99,13 +93,13 @@ class AttrData(object):
             else:
                 self.attr_write = AttrWriteType.READ
             
-        fread = attr_dict.pop('fread', None)
+        fread = attr_dict.pop('fget', attr_dict.pop('fread', None))
         if fread is not None:
             if is_pure_str(fread):
                 self.read_method_name = fread
             elif inspect.isroutine(fread):
                 self.read_method_name = fread.__name__
-        fwrite = attr_dict.pop('fwrite', None)
+        fwrite = attr_dict.pop('fset', attr_dict.pop('fwrite', None))
         if fwrite is not None:
             if is_pure_str(fwrite):
                 self.write_method_name = fwrite
@@ -124,7 +118,7 @@ class AttrData(object):
             if not self.attr_format == AttrDataFormat.SPECTRUM:
                 self.attr_args.append(self.dim_y)
         if len(attr_dict):
-            self.att_prop = self.__create_user_default_attr_prop(self.attr_name, attr_dict)
+            self.att_prop = self.__create_user_default_attr_prop(attr_dict)
         return self
     
     def _set_name(self, name):
@@ -142,9 +136,14 @@ class AttrData(object):
     def __throw_exception(self, msg, meth="create_attribute()"):
         Except.throw_exception("PyDs_WrongAttributeDefinition", msg, meth)
 
-    def __create_user_default_attr_prop(self, attr_name, extra_info):
+    def __create_user_default_attr_prop(self, extra_info):
         """for internal usage only"""
         p = UserDefaultAttrProp()
+
+        doc = extra_info.pop('doc', None)
+        if 'doc' is not None:
+            extra_info['description'] = doc
+        
         for k, v in extra_info.items():
             k_lower = k.lower()
             method_name = "set_%s" % k_lower.replace(' ','_')
@@ -249,7 +248,7 @@ class AttrData(object):
                 self.dim_y = int(attr_info[4])
             except:
                 throw_ex("Wrong data type in attribute argument for attribute "
-                         "%s in class %s\n5th element in sequence describing "
+                         "%s in class %s\n5th element in sequence desribing "
                          "mandatory dim_y attribute parameter for image "
                          "attribute must be an integer" % (attr_name, name))
         
@@ -276,10 +275,11 @@ class AttrData(object):
                      "attribute %s in class %s\nAttribute information for "
                      "polling period is not an integer" % (attr_name, name))
         
-        self.memorized = extra_info.get("memorized", "false")
-        if self.memorized == "true":
-            self.memorized, self.hw_memorized = True, True
-        elif self.memorized == "true_without_hard_applied":
+        memorized = extra_info.get("memorized", "false").lower()
+        if memorized == "true":
+            self.memorized = True
+            self.hw_memorized = True
+        elif memorized == "true_without_hard_applied":
             self.memorized = True
         else:
             self.memorized = False
@@ -293,7 +293,7 @@ class AttrData(object):
                 
         att_prop = None
         if extra_info:
-            att_prop = self.__create_user_default_attr_prop(attr_name, extra_info)
+            att_prop = self.__create_user_default_attr_prop(extra_info)
         self.att_prop = att_prop
     
     def to_attr(self):

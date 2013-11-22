@@ -1,32 +1,19 @@
 #!/usr/bin/env python
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
-
-################################################################################
+# ------------------------------------------------------------------------------
 # WARNING: This script should only be executed as a Post-Build Event from inside
 #          Microsoft Visual Studio and not from the command line
-################################################################################
+# ------------------------------------------------------------------------------
 
 from __future__ import print_function
 
@@ -53,6 +40,8 @@ def main():
     config_name, plat_name = sys.argv[4:6]
 #    temp_base_dir = osp.abspath(os.environ["TEMP"])
 #    temp_dir = osp.join(temp_base_dir, "PyTango", config_name)
+    if plat_name == 'x64':
+        plat_name = 'win-amd64'
 
     try:
         cmd_line =  '%s %s ' % (executable, setup_name)
@@ -66,15 +55,13 @@ def main():
         cmd_line += 'bdist_msi --skip-build --target-version=%s ' \
                     '--bdist-dir=%s ' \
                     '--dist-dir=%s ' \
-                    '--plat-name=%s ' \
-                    '--install-script=winpostinstall.py ' % (ver, bdist_dir, dist_dir, plat_name)
+                    '--plat-name=%s ' % (ver, bdist_dir, dist_dir, plat_name)
         cmd_line += 'bdist_wininst --skip-build --target-version=%s ' \
                     '--bdist-dir=%s ' \
                     '--dist-dir=%s ' \
                     '--title="PyTango 8" ' \
                     '--bitmap="%s" ' \
-                    '--plat-name=%s ' \
-                    '--install-script=winpostinstall.py ' % (ver, bdist_dir, dist_dir, bitmap, plat_name)
+                    '--plat-name=%s ' % (ver, bdist_dir, dist_dir, bitmap, plat_name)
         os.system(cmd_line)
     except:
         print("Failed:")

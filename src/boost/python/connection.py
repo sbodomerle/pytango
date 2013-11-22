@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is an internal PyTango module.
@@ -36,6 +24,7 @@ from ._PyTango import Connection, DeviceData, __CallBackAutoDie, CmdArgType, \
     DeviceProxy, Database, ExtractAs
 from .utils import document_method as __document_method
 from .utils import document_static_method as __document_static_method
+from .green import green
 
 
 def __CallBackAutoDie__cmd_ended_aux(self, fn):
@@ -79,7 +68,7 @@ def __get_command_inout_param(self, cmd_name, cmd_param=None):
 
 def __Connection__command_inout(self, name, *args, **kwds):
     """
-    command_inout( self, cmd_name, cmd_param=None) -> any
+    command_inout( self, cmd_name, cmd_param=None, green_mode=None, wait=True, timeout=None) -> any
 
             Execute a command on a device.
             
@@ -88,9 +77,26 @@ def __Connection__command_inout(self, name, *args, **kwds):
                 - cmd_param : (any) It should be a value of the type expected by the
                               command or a DeviceData object with this value inserted.
                               It can be ommited if the command should not get any argument.
+                - green_mode : (GreenMode) Defaults to the current DeviceProxy GreenMode.
+                               (see :meth:`~PyTango.DeviceProxy.get_green_mode` and
+                               :meth:`~PyTango.DeviceProxy.set_green_mode`).
+                - wait       : (bool) whether or not to wait for result. If green_mode
+                               is *Synchronous*, this parameter is ignored as it always
+                               waits for the result.
+                               Ignored when green_mode is Synchronous (always waits).
+                - timeout    : (float) The number of seconds to wait for the result.
+                               If None, then there is no limit on the wait time.
+                               Ignored when green_mode is Synchronous or wait is False.
         Return     : The result of the command. The type depends on the command. It may be None.
 
         Throws     : ConnectionFailed, CommunicationFailed, DeviceUnlocked, DevFailed from device 
+                     TimeoutError (green_mode == Futures) If the future didn't finish executing before the given timeout.
+                     Timeout (green_mode == Gevent) If the async result didn't finish executing before the given timeout.
+
+    .. versionadded:: 8.1.0
+        *green_mode* parameter.
+        *wait* parameter.
+        *timeout* parameter.
     """
     r = Connection.command_inout_raw(self, name, *args, **kwds)
     if isinstance(r, DeviceData):
@@ -100,6 +106,7 @@ def __Connection__command_inout(self, name, *args, **kwds):
             return None
     else:
         return r
+__Connection__command_inout.__name__ = "command_inout"
 
 def __Connection__command_inout_raw(self, cmd_name, cmd_param = None):
     """
@@ -198,6 +205,7 @@ def __Connection__command_inout_asynch(self, cmd_name, *args):
             return self.__command_inout_asynch_id(cmd_name, argin, forget)
     else:
         raise TypeError("Wrong number of attributes!")
+__Connection__command_inout_asynch.__name__ = "command_inout_asynch"
 
 def __Connection__command_inout_reply(self, idx, timeout=None):
     """
@@ -244,11 +252,12 @@ def __Connection__command_inout_reply(self, idx, timeout=None):
             return None
     else:
         return r
+__Connection__command_inout_reply.__name__ = "command_inout_reply"
     
 def __init_Connection():
     Connection.defaultCommandExtractAs = ExtractAs.Numpy
     Connection.command_inout_raw = __Connection__command_inout_raw
-    Connection.command_inout = __Connection__command_inout
+    Connection.command_inout = green(__Connection__command_inout)
     Connection.command_inout_asynch = __Connection__command_inout_asynch
     Connection.command_inout_reply = __Connection__command_inout_reply
     
