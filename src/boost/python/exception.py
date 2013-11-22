@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is an internal PyTango module.
@@ -30,7 +18,7 @@ __all__ = ["exception_init"]
 __docformat__ = "restructuredtext"
 
 from .utils import document_static_method as __document_static_method
-from ._PyTango import Except, DevError
+from ._PyTango import Except, DevError, ErrSeverity
 
 def __to_dev_failed(exc_type=None, exc_value=None, traceback=None):
     """to_dev_failed(exc_type, exc_value, traceback) -> PyTango.DevFailed
@@ -57,6 +45,27 @@ def __to_dev_failed(exc_type=None, exc_value=None, traceback=None):
         Except.throw_python_exception(exc_type, exc_value, traceback)
     except Exception as e:
         return e
+
+# -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# DevError pickle
+# -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+
+def __DevError__getinitargs__(self):
+    return ()
+
+def __DevError__getstate__(self):
+    return self.reason, self.desc, self.origin, int(self.severity)
+
+def __DevError__setstate__(self, state):
+    self.reason = state[0]
+    self.desc = state[1]
+    self.origin = state[2]
+    self.severity = ErrSeverity(state[3])
+
+def __init_DevError():
+    DevError.__getinitargs__ = __DevError__getinitargs__
+    DevError.__getstate__ = __DevError__getstate__
+    DevError.__setstate__ = __DevError__setstate__
 
 def __init_Except():
     Except.to_dev_failed = staticmethod(__to_dev_failed)
@@ -162,6 +171,7 @@ def __doc_DevError():
   
 def exception_init(doc=True):
     __init_Except()
+    __init_DevError()
     if doc:
         __doc_Except()
         __doc_DevError()

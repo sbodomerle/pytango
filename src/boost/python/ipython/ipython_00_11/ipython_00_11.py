@@ -1,27 +1,15 @@
 #!/usr/bin/env python
 
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# -----------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# -----------------------------------------------------------------------------
 
 """An IPython profile designed to provide a user friendly interface to Tango"""
 
@@ -1141,10 +1129,10 @@ def load_config(config):
     import PyTango.ipython
     import IPython.utils.coloransi
     
-    d = { "version" : PyTango.ipython.get_pytango_version(),
-          "pyver" : PyTango.ipython.get_python_version(),
-          "ipyver" : PyTango.ipython.get_ipython_version(),
-          "pytangover" : PyTango.ipython.get_pytango_version(), }
+    d = { "version" : str(PyTango.ipython.get_pytango_version()),
+          "pyver" : str(PyTango.ipython.get_python_version()),
+          "ipyver" : str(PyTango.ipython.get_ipython_version()),
+          "pytangover" : str(PyTango.ipython.get_pytango_version()), }
     d.update(IPython.utils.coloransi.TermColors.__dict__)
 
     so = Struct(
@@ -1152,8 +1140,7 @@ def load_config(config):
 
     so = config.get("tango_options", so)
 
-    import PyTango.ipython
-    ipy_ver = PyTango.ipython.get_ipython_version_list()
+    ipy_ver = PyTango.ipython.get_ipython_version()
     
     # ------------------------------------
     # Application
@@ -1167,7 +1154,7 @@ def load_config(config):
     i_shell = config.InteractiveShell
     i_shell.colors = 'Linux'
 
-    if ipy_ver >= [0, 12]:
+    if ipy_ver >= "0.12":
         # ------------------------------------
         # PromptManager (ipython >= 0.12)
         # ------------------------------------

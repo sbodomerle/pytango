@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is the main PyTango package file.
@@ -43,8 +31,8 @@ __all__ = [ 'AccessControlType', 'ApiUtil', 'ArchiveEventInfo',
 'CommunicationFailed', 'Connection', 'ConnectionFailed',
 'ConstDevString', 'DServer', 'DataReadyEventData', 'Database', 'DbData',
 'DbDatum', 'DbDevExportInfo', 'DbDevExportInfos', 'DbDevImportInfo',
-'DbDevImportInfos', 'DbDevInfo', 'DbDevInfos', 'DbHistory',
-'DbHistoryList', 'DbServerInfo', 'DebugIt', 'DevBoolean', 'DevCommandInfo',
+'DbDevImportInfos', 'DbDevFullInfo', 'DbDevInfo', 'DbDevInfos', 'DbHistory',
+'DbHistoryList', 'DbServerInfo', 'DbServerData', 'DebugIt', 'DevBoolean', 'DevCommandInfo',
 'DevDouble', 'DevEncoded', 'DevError', 'DevFailed', 'DevFloat', 'DevInt',
 'DevLong', 'DevLong64', 'DevShort', 'DevSource', 'DevState', 'DevString',
 'DevUChar', 'DevULong', 'DevULong64', 'DevUShort', 'DevVarBooleanArray',
@@ -130,8 +118,8 @@ from ._PyTango import (AccessControlType, ApiUtil, ArchiveEventInfo,
     CmdDoneEvent, CommandInfo, CommandInfoList, CommunicationFailed,
     Connection, ConnectionFailed, ConstDevString, DServer, DataReadyEventData,
     Database, DbData, DbDatum, DbDevExportInfo, DbDevExportInfos,
-    DbDevImportInfo, DbDevImportInfos, DbDevInfo, DbDevInfos, DbHistory,
-    DbHistoryList, DbServerInfo, DevBoolean, DevCommandInfo, DevDouble,
+    DbDevImportInfo, DbDevImportInfos, DbDevFullInfo, DbDevInfo, DbDevInfos, DbHistory,
+    DbHistoryList, DbServerInfo, DbServerData, DevBoolean, DevCommandInfo, DevDouble,
     DevEncoded, DevError, DevFailed, DevFloat, DevInt, DevLong, DevLong64,
     DevShort, DevSource, DevState, DevString, DevUChar, DevULong, DevULong64,
     DevUShort, DevVarBooleanArray, DevVarCharArray, DevVarDoubleArray,
@@ -143,7 +131,7 @@ from ._PyTango import (AccessControlType, ApiUtil, ArchiveEventInfo,
     DeviceImpl, DeviceInfo, DeviceUnlocked, Device_2Impl,
     Device_3Impl, Device_4Impl, DispLevel, EncodedAttribute, ErrSeverity,
     EventData, EventSystemFailed, EventType,
-    Except, ExtractAs, FMT_UNKNOWN, GroupAttrReply, GroupAttrReplyList,
+    Except, ExtractAs, GreenMode, FMT_UNKNOWN, GroupAttrReply, GroupAttrReplyList,
     GroupCmdReply, GroupCmdReplyList, GroupReply, GroupReplyList,
     IMAGE, ImageAttr, KeepAliveCmdCode, Level, LockCmdCode, LockerInfo,
     LockerLanguage, LogLevel, LogTarget, Logger, Logging, MessBoxType,
@@ -156,7 +144,7 @@ from ._PyTango import (AccessControlType, ApiUtil, ArchiveEventInfo,
     StdNamedDevFailedVector, StdStringVector, SubDevDiag, TimeVal,
     UserDefaultAttrProp, WAttribute, WRITE, WrongData, WrongNameSyntax,
     alarm_flags, asyn_req_type, cb_sub_model, constants,
-    raise_asynch_exception)
+    raise_asynch_exception, Interceptors)
 
 ArgType = CmdArgType
 
@@ -176,7 +164,7 @@ from .log4tango import TangoStream, LogIt, DebugIt, InfoIt, WarnIt, \
 from .device_server import ChangeEventProp, PeriodicEventProp, \
     ArchiveEventProp, AttributeAlarm, EventProperties, AttributeConfig, \
     AttributeConfig_2, AttributeConfig_3, MultiAttrProp
-from .attribute_proxy import AttributeProxy
+from .attribute_proxy import AttributeProxy, get_attribute_proxy
 from .group import Group
 from .pyutil import Util
 from .device_class import DeviceClass
@@ -185,7 +173,8 @@ from .globals import get_class, get_classes, get_cpp_class, get_cpp_classes, \
     delete_class_list, class_list, cpp_class_list, constructed_class
 from .utils import is_scalar_type, is_array_type, is_numerical_type, \
     is_int_type, is_float_type, obj_2_str, seqStr_2_obj
-from .utils import server_run
+from .green import set_green_mode, get_green_mode
+from .device_proxy import get_device_proxy
 from .tango_numpy import NumpyType, numpy_type, numpy_spectrum, numpy_image
 
 from .pytango_init import init as __init

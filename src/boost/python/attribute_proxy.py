@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is an internal PyTango module. It completes the binding of
@@ -29,16 +17,77 @@ To access these members use directly :mod:`PyTango` module and NOT
 PyTango.attribute_proxy.
 """
 
-__all__ = [ "AttributeProxy", "attribute_proxy_init"]
+__all__ = [ "AttributeProxy", "attribute_proxy_init", "get_attribute_proxy" ]
             
 __docformat__ = "restructuredtext"
 
-from ._PyTango import StdStringVector, DbData, DbDatum, DeviceProxy
-from ._PyTango import __AttributeProxy as _AttributeProxy
-from .utils import seq_2_StdStringVector, seq_2_DbData, DbData_2_dict, \
-    is_pure_str, is_non_str_seq
 import collections
 
+from ._PyTango import StdStringVector, DbData, DbDatum, DeviceProxy
+from ._PyTango import __AttributeProxy as _AttributeProxy
+from .utils import seq_2_StdStringVector, seq_2_DbData, DbData_2_dict
+from .utils import is_pure_str, is_non_str_seq
+from .green import result, submit, get_green_mode
+
+
+def get_attribute_proxy(*args, **kwargs):
+    """
+    get_attribute_proxy(self, full_attr_name, green_mode=None, wait=True, timeout=True) -> AttributeProxy
+    get_attribute_proxy(self, device_proxy, attr_name, green_mode=None, wait=True, timeout=True) -> AttributeProxy
+
+    Returns a new :class:`~PyTango.AttributeProxy`.
+    There is no difference between using this function and the direct 
+    :class:`~PyTango.AttributeProxy` constructor if you use the default kwargs.
+     
+    The added value of this function becomes evident when you choose a green_mode
+    to be *Futures* or *Gevent*. The AttributeProxy constructor internally makes some
+    network calls which makes it *slow*. By using one of the *green modes* as 
+    green_mode you are allowing other python code to be executed in a cooperative way.
+
+    :param full_attr_name: the full name of the attribute
+    :type full_attr_name: str
+    :param device_proxy: the :class:`~PyTango.DeviceProxy`
+    :type device_proxy: DeviceProxy
+    :param attr_name: attribute name for the given device proxy
+    :type attr_name: str
+    :param green_mode: determines the mode of execution of the device (including
+                      the way it is created). Defaults to the current global
+                      green_mode (check :func:`~PyTango.get_green_mode` and
+                      :func:`~PyTango.set_green_mode`)
+    :type green_mode: :obj:`~PyTango.GreenMode`
+    :param wait: whether or not to wait for result. If green_mode
+                 Ignored when green_mode is Synchronous (always waits).
+    :type wait: bool
+    :param timeout: The number of seconds to wait for the result.
+                    If None, then there is no limit on the wait time.
+                    Ignored when green_mode is Synchronous or wait is False.
+    :type timeout: float
+    :returns:
+        if green_mode is Synchronous or wait is True:
+            :class:`~PyTango.AttributeProxy`
+        else if green_mode is Futures:
+            :class:`concurrent.futures.Future`
+        else if green_mode is Gevent:
+            :class:`gevent.event.AsynchResult`
+    :throws:
+        * a *DevFailed* if green_mode is Synchronous or wait is True 
+          and there is an error creating the attribute.
+        * a *concurrent.futures.TimeoutError* if green_mode is Futures,
+          wait is False, timeout is not None and the time to create the attribute
+          has expired.                            
+        * a *gevent.timeout.Timeout* if green_mode is Gevent, wait is False,
+          timeout is not None and the time to create the attribute has expired.
+    
+    New in PyTango 8.1.0
+    """
+    # we cannot use the green wrapper because it consumes the green_mode and we
+    # want to forward it to the DeviceProxy constructor
+    green_mode = kwargs.get('green_mode', get_green_mode())
+    wait = kwargs.pop('wait', True)
+    timeout = kwargs.pop('timeout', None)
+    
+    d = submit(green_mode, AttributeProxy, *args, **kwargs)
+    return result(d, green_mode, wait=wait, timeout=timeout)
 
 def __AttributeProxy__get_property(self, propname, value=None):
     """
@@ -128,7 +177,7 @@ def __AttributeProxy__put_property(self, value):
         Return     : None
 
         Throws     : ConnectionFailed, CommunicationFailed
-                    DevFailed from device (DB_SQLError)
+                     DevFailed from device (DB_SQLError)
     """
     if isinstance(value, DbData):
         pass
@@ -239,10 +288,12 @@ class AttributeProxy(object):
         python reimplementation of the AttributeProxy found on the C++ API.
     """
     def __init__(self, *args, **kwds):
+        green_mode = kwds.pop('green_mode', get_green_mode())
         self.__attr_proxy = _AttributeProxy(*args, **kwds)
         # get_device_proxy() returns a different python object each time
         # we don't want a different object, so we save the current one.
-        self.__dev_proxy = self.__attr_proxy.get_device_proxy()
+        self.__dev_proxy = dp = self.__attr_proxy.get_device_proxy()
+        dp.set_green_mode(green_mode)
 
     def get_device_proxy(self):
         """

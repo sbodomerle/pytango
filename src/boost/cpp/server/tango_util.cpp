@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #include "precompiled_header.hpp"
 #include "defs.h"
@@ -177,7 +165,7 @@ namespace PyUtil
                                       boost::python::object& py_event_loop)
     {
         PYTANGO_MOD
-        if (py_event_loop.is_none())
+        if (py_event_loop.ptr() == Py_None)
         {
             self.server_set_event_loop(NULL);
             pytango.attr("_server_event_loop") = py_event_loop;
@@ -187,6 +175,32 @@ namespace PyUtil
             pytango.attr("_server_event_loop") = py_event_loop;
             self.server_set_event_loop(event_loop);
         }
+    }
+    
+    void set_use_db(bool use_db)
+    {
+        Tango::Util::_UseDb = use_db;
+    }
+    
+    boost::python::str get_dserver_ior(Tango::Util& self, Tango::DServer* dserver)
+    {
+        const char *ior = self.get_orb()->object_to_string(dserver->_this());
+        boost::python::str ret = ior;
+        delete [] ior;
+        return ret;
+    }
+
+    boost::python::str get_device_ior(Tango::Util& self, Tango::DeviceImpl* device)
+    {
+        const char *ior = self.get_orb()->object_to_string(device->get_d_var());
+        boost::python::str ret = ior;
+        delete [] ior;
+        return ret;
+    }
+    
+    void orb_run(Tango::Util& self)
+    {
+        self.get_orb()->run();
     }
 }
 
@@ -202,6 +216,11 @@ BOOST_PYTHON_FUNCTION_OVERLOADS (server_init_overload, PyUtil::server_init, 1, 2
 
 void export_util()
 {
+    class_<Tango::Interceptors>("Interceptors")
+        .def("create_thread", &Tango::Interceptors::create_thread)
+        .def("delete_thread", &Tango::Interceptors::delete_thread)
+    ;
+    
     class_<Tango::Util, boost::noncopyable>("_Util", no_init)
         .def("init", PyUtil::init,
             return_value_policy<reference_existing_object>())
@@ -259,9 +278,15 @@ void export_util()
         .def("get_device_by_name", &PyUtil::get_device_by_name)
         .def("get_device_list", &PyUtil::get_device_list)
         .def("server_set_event_loop", &PyUtil::server_set_event_loop)
+        .def("set_interceptors", &Tango::Util::set_interceptors)
         .def_readonly("_UseDb", &Tango::Util::_UseDb)
         .def_readonly("_FileDb", &Tango::Util::_FileDb)
         .def("init_python", init_python)
         .staticmethod("init_python")
+        .def("set_use_db", &PyUtil::set_use_db)
+        .staticmethod("set_use_db")
+        .def("get_dserver_ior", &PyUtil::get_dserver_ior)
+        .def("get_device_ior", &PyUtil::get_device_ior)
+        .def("orb_run", &PyUtil::orb_run)
     ;
 }

@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #include "precompiled_header.hpp"
 #include "device_attribute.h"
@@ -624,7 +612,8 @@ namespace PyDeviceAttribute
         if (isImage) {
             for(CORBA::ULong y = 0; y < dim_y; ++y) {
                 object py_sub = py_value[y];
-                if (len(py_sub) != dim_x)
+                CORBA::ULong len_py_sub = static_cast<CORBA::ULong>(boost::python::len(py_sub));
+                if (len_py_sub != dim_x)
                     raise_(PyExc_TypeError, non_valid_image);
                 for(CORBA::ULong x = 0; x < dim_x; ++x) {
                     python_tangocpp<tangoTypeConst>::to_cpp(py_sub[x], buffer[x + y*dim_x]);

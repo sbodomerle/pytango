@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 
 // This header file is just some template functions moved apart from
@@ -239,16 +227,18 @@ namespace PyDeviceAttribute {
             // x and y position it corresponded! Yes, 'iter' has a coordinates
             // field, but it was always [0,0], never updated!!
             npy_intp coordinates[2];
-            Py_ssize_t &x = coordinates[1];
-            Py_ssize_t &y = coordinates[0];
-            for (y=0; y < dim_y; ++y) {
-                for (x=0; x < dim_x; ++x) {
+            npy_intp &x = coordinates[1];
+            npy_intp &y = coordinates[0];
+            npy_intp ndim_x = static_cast<npy_intp>(dim_x);
+            npy_intp ndim_y = static_cast<npy_intp>(dim_y);
+            for (y=0; y < ndim_y; ++y) {
+                for (x=0; x < ndim_x; ++x) {
                     PyArray_ITER_GOTO(iter, coordinates);
 
                     PyObject* dataObj = PyArray_GETITEM(array, iter->dataptr);
                     const object py_data = object( handle<>( dataObj ) );
 
-                    buffer[y*dim_x + x] = extract<TangoScalarType>(py_data);
+                    buffer[y*ndim_x + x] = extract<TangoScalarType>(py_data);
                 }
             }
         } else {

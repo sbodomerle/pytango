@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 %MappedType std::string
 {
@@ -39,8 +27,8 @@ if (sipIsErr == NULL)
 %ConvertFromTypeCode
 return PyString_FromStringAndSize(sipCpp->data(),sipCpp->length());
 %End
-
 };
+
 
 %MappedType std::vector<std::string>
 {
@@ -52,17 +40,17 @@ return PyString_FromStringAndSize(sipCpp->data(),sipCpp->length());
 %ConvertToTypeCode
 if (sipIsErr == NULL)
 {	
-bool aReturnFlag = PyList_Check(sipPy);
-for(int i = 0;aReturnFlag && i < PyList_Size(sipPy);++i)
-	aReturnFlag = PyString_Check(PyList_GET_ITEM(sipPy,i));
-return aReturnFlag;
+    bool aReturnFlag = PyList_Check(sipPy);
+    for(int i = 0;aReturnFlag && i < PyList_Size(sipPy);++i)
+        aReturnFlag = PyString_Check(PyList_GET_ITEM(sipPy,i));
+    return aReturnFlag;
 }
  
 *sipCppPtr = new std::vector<std::string>(PyList_Size(sipPy));
 for(int i = 0;i < PyList_Size(sipPy);++i)
-  (*sipCppPtr)->operator[](i) = PyString_AsString(PyList_GET_ITEM(sipPy,i));
+    (*sipCppPtr)->operator[](i) = PyString_AsString(PyList_GET_ITEM(sipPy,i));
 
-    return sipGetState(sipTransferObj);
+return sipGetState(sipTransferObj);
 %End
 
 %ConvertFromTypeCode
@@ -70,12 +58,12 @@ PyObject* aReturnListPt = PyList_New(sipCpp->size());
 std::vector<std::string>::iterator vIter = sipCpp->begin();
 
 for(int i = 0;vIter != sipCpp->end();++vIter,++i)
-   PyList_SET_ITEM(aReturnListPt,i,PyString_FromStringAndSize(vIter->data(),vIter->length()));
+    PyList_SET_ITEM(aReturnListPt,i,PyString_FromStringAndSize(vIter->data(),vIter->length()));
 
 return aReturnListPt;
 %End
-
 };
+
 
 %MappedType std::vector<int>
 {

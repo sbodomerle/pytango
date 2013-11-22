@@ -1,25 +1,13 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #include "precompiled_header.hpp"
 #include "defs.h"
@@ -595,27 +583,42 @@ namespace PyDeviceImpl
 
     inline void debug(Tango::DeviceImpl &self, const string &msg)
     {
-        self.get_logger()->debug(msg);
+        if (self.get_logger()->is_debug_enabled()) {
+	    self.get_logger()->debug_stream() 
+	      << log4tango::LogInitiator::_begin_log << msg;
+	}
     }
 
     inline void info(Tango::DeviceImpl &self, const string &msg)
     {
-        self.get_logger()->info(msg);
+        if (self.get_logger()->is_info_enabled()) {
+	    self.get_logger()->info_stream() 
+	      << log4tango::LogInitiator::_begin_log << msg;
+	}
     }
 
     inline void warn(Tango::DeviceImpl &self, const string &msg)
     {
-        self.get_logger()->warn(msg);
+        if (self.get_logger()->is_warn_enabled()) {
+	    self.get_logger()->warn_stream() 
+	      << log4tango::LogInitiator::_begin_log << msg;
+	}
     }
 
     inline void error(Tango::DeviceImpl &self, const string &msg)
     {
-        self.get_logger()->error(msg);
+        if (self.get_logger()->is_error_enabled()) {
+	    self.get_logger()->error_stream() 
+	      << log4tango::LogInitiator::_begin_log << msg;
+	}
     }
 
     inline void fatal(Tango::DeviceImpl &self, const string &msg)
     {
-        self.get_logger()->fatal(msg);
+        if (self.get_logger()->is_fatal_enabled()) {
+	    self.get_logger()->fatal_stream() 
+	      << log4tango::LogInitiator::_begin_log << msg;
+	}
     }
     
     PyObject* get_attribute_config(Tango::DeviceImpl &self, object &py_attr_name_seq)

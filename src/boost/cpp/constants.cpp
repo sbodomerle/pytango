@@ -1,28 +1,17 @@
-/*******************************************************************************
+/******************************************************************************
+  This file is part of PyTango (http://www.tinyurl.com/PyTango)
 
-   This file is part of PyTango, a python binding for Tango
+  Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+  Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
 
-   http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-
-   Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-   
-   PyTango is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
-   PyTango is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public License
-   along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-   
-*******************************************************************************/
+  Distributed under the terms of the GNU Lesser General Public License,
+  either version 3 of the License, or (at your option) any later version.
+  See LICENSE.txt for more info.
+******************************************************************************/
 
 #include "precompiled_header.hpp"
 #include <tango.h>
+#include "tango_numpy.h"
 
 using namespace boost::python;
 
@@ -39,9 +28,23 @@ void export_constants()
 
 #ifdef DISABLE_PYTANGO_NUMPY
     consts_scope.attr("NUMPY_SUPPORT") = false;
+    consts_scope.attr("NUMPY_VERSION") = "0.0.0";
 #else
     consts_scope.attr("NUMPY_SUPPORT") = true;
+    consts_scope.attr("NUMPY_VERSION") = PYTANGO_NUMPY_VERSION;
 #endif
+
+    consts_scope.attr("PY_MAJOR_VERSION") = PY_MAJOR_VERSION;
+    consts_scope.attr("PY_MINOR_VERSION") = PY_MINOR_VERSION;
+    consts_scope.attr("PY_MICRO_VERSION") = PY_MICRO_VERSION;
+    consts_scope.attr("PY_VERSION") = PY_VERSION;
+    consts_scope.attr("PY_VERSION_HEX") = PY_VERSION_HEX;
+
+    consts_scope.attr("BOOST_MAJOR_VERSION") = BOOST_VERSION / 100000;
+    consts_scope.attr("BOOST_MINOR_VERSION") = BOOST_VERSION / 100 % 1000;
+    consts_scope.attr("BOOST_PATCH_VERSION") = BOOST_VERSION % 100;
+    // missing BOOST_VERSION => do it in python
+
 
     //
     // From tango_const.h
@@ -53,8 +56,10 @@ void export_constants()
     consts_scope.attr("TANGO_VERSION_MAJOR") = TANGO_VERSION_MAJOR;
     consts_scope.attr("TANGO_VERSION_MINOR") = TANGO_VERSION_MINOR;
     consts_scope.attr("TANGO_VERSION_PATCH") = TANGO_VERSION_PATCH;
-    
+    consts_scope.attr("TANGO_VERSION") = TgLibVers;
+
     consts_scope.attr("TgLibVers") = TgLibVers;
+    consts_scope.attr("TgLibVersNb") = TgLibVersNb;
     consts_scope.attr("DevVersion") = DevVersion;
     consts_scope.attr("DefaultMaxSeq") = DefaultMaxSeq;
     consts_scope.attr("DefaultBlackBoxDepth") = DefaultBlackBoxDepth;
@@ -188,7 +193,15 @@ void export_constants()
     consts_scope.attr("UnitNotSpec") = UnitNotSpec;
     consts_scope.attr("StdUnitNotSpec") = StdUnitNotSpec;
     consts_scope.attr("DispUnitNotSpec") = DispUnitNotSpec;
+#ifdef FormatNotSpec
     consts_scope.attr("FormatNotSpec") = FormatNotSpec;
+#else
+    consts_scope.attr("FormatNotSpec") = FormatNotSpec_FL;
+#endif
+    consts_scope.attr("FormatNotSpec_FL") = FormatNotSpec_FL;
+    consts_scope.attr("FormatNotSpec_INT") = FormatNotSpec_INT;
+    consts_scope.attr("FormatNotSpec_STR") = FormatNotSpec_STR;
+    
     consts_scope.attr("NotANumber") = NotANumber;
     consts_scope.attr("MemNotUsed") = MemNotUsed;
     consts_scope.attr("MemAttrPropName") = MemAttrPropName;
@@ -201,73 +214,73 @@ void export_constants()
     consts_scope.attr("TANGO_LONG64") = false;
 #endif    
 
-    consts_scope.attr("API_AttrConfig") = "API_AttrConfig";
-    consts_scope.attr("API_AttrEventProp") = "API_AttrEventProp";
-    consts_scope.attr("API_AttrIncorrectDataNumber") = "API_AttrIncorrectDataNumber";
-    consts_scope.attr("API_AttrNoAlarm") = "API_AttrNoAlarm";
-    consts_scope.attr("API_AttrNotAllowed") = "API_AttrNotAllowed";
-    consts_scope.attr("API_AttrNotFound") = "API_AttrNotFound";
-    consts_scope.attr("API_AttrNotWritable") = "API_AttrNotWritable";
-    consts_scope.attr("API_AttrOptProp") = "API_AttrOptProp";
-    consts_scope.attr("API_AttrPropValueNotSet") = "API_AttrPropValueNotSet";
-    consts_scope.attr("API_AttrValueNotSet") = "API_AttrValueNotSet";
-    consts_scope.attr("API_AttrWrongDefined") = "API_AttrWrongDefined";
-    consts_scope.attr("API_AttrWrongMemValue") = "API_AttrWrongMemValue";
-    consts_scope.attr("API_BadConfigurationProperty") = "API_BadConfigurationProperty";
-    consts_scope.attr("API_BlackBoxArgument") = "API_BlackBoxArgument";
-    consts_scope.attr("API_BlackBoxEmpty") = "API_BlackBoxEmpty";
-    consts_scope.attr("API_CannotCheckAccessControl") = "API_CannotCheckAccessControl";
-    consts_scope.attr("API_CannotOpenFile") = "API_CannotOpenFile";
-    consts_scope.attr("API_CantActivatePOAManager") = "API_CantActivatePOAManager";
-    consts_scope.attr("API_CantCreateClassPoa") = "API_CantCreateClassPoa";
-    consts_scope.attr("API_CantCreateLockingThread") = "API_CantCreateLockingThread";
-    consts_scope.attr("API_CantFindLockingThread") = "API_CantFindLockingThread";
-    consts_scope.attr("API_CantGetClientIdent") = "API_CantGetClientIdent";
-    consts_scope.attr("API_CantGetDevObjectId") = "API_CantGetDevObjectId";
-    consts_scope.attr("API_CantInstallSignal") = "API_CantInstallSignal";
-    consts_scope.attr("API_CantRetrieveClass") = "API_CantRetrieveClass";
-    consts_scope.attr("API_CantRetrieveClassList") = "API_CantRetrieveClassList";
-    consts_scope.attr("API_CantStoreDeviceClass") = "API_CantStoreDeviceClass";
-    consts_scope.attr("API_ClassNotFound") = "API_ClassNotFound";
-    consts_scope.attr("API_CmdArgumentTypeNotSupported") = "API_CmdArgumentTypeNotSupported";
-    consts_scope.attr("API_CommandNotAllowed") = "API_CommandNotAllowed";
-    consts_scope.attr("API_CommandNotFound") = "API_CommandNotFound";
-    consts_scope.attr("API_CorbaSysException") = "API_CorbaSysException";
-    consts_scope.attr("API_CorruptedDatabase") = "API_CorruptedDatabase";
-    consts_scope.attr("API_DatabaseAccess") = "API_DatabaseAccess";
-    consts_scope.attr("API_DeviceLocked") = "API_DeviceLocked";
-    consts_scope.attr("API_DeviceNotFound") = "API_DeviceNotFound";
-    consts_scope.attr("API_DeviceNotLocked") = "API_DeviceNotLocked";
-    consts_scope.attr("API_DeviceUnlockable") = "API_DeviceUnlockable";
-    consts_scope.attr("API_DeviceUnlocked") = "API_DeviceUnlocked";
-    consts_scope.attr("API_EventSupplierNotConstructed") = "API_EventSupplierNotConstructed";
-    consts_scope.attr("API_IncoherentDbData") = "API_IncoherentDbData";
-    consts_scope.attr("API_IncoherentDevData") = "API_IncoherentDevData";
-    consts_scope.attr("API_IncoherentValues") = "API_IncoherentValues";
-    consts_scope.attr("API_IncompatibleAttrDataType") = "API_IncompatibleAttrDataType";
-    consts_scope.attr("API_IncompatibleCmdArgumentType") = "API_IncompatibleCmdArgumentType";
-    consts_scope.attr("API_InitMethodNotFound") = "API_InitMethodNotFound";
-    consts_scope.attr("API_InitNotPublic") = "API_InitNotPublic";
-    consts_scope.attr("API_InitThrowsException") = "API_InitThrowsException";
-    consts_scope.attr("API_JavaRuntimeSecurityException") = "API_JavaRuntimeSecurityException";
-    consts_scope.attr("API_MemoryAllocation") = "API_MemoryAllocation";
-    consts_scope.attr("API_MethodArgument") = "API_MethodArgument";
-    consts_scope.attr("API_MethodNotFound") = "API_MethodNotFound";
-    consts_scope.attr("API_MissedEvents") = "API_MissedEvents";
-    consts_scope.attr("API_NotSupportedFeature") = "API_NotSupportedFeature";
-    consts_scope.attr("API_NtDebugWindowError") = "API_NtDebugWindowError";
-    consts_scope.attr("API_OverloadingNotSupported") = "API_OverloadingNotSupported";
-    consts_scope.attr("API_PolledDeviceNotInPoolConf") = "API_PolledDeviceNotInPoolConf";
-    consts_scope.attr("API_PolledDeviceNotInPoolMap") = "API_PolledDeviceNotInPoolMap";
-    consts_scope.attr("API_PollingThreadNotFound") = "API_PollingThreadNotFound";
-    consts_scope.attr("API_ReadOnlyMode") = "API_ReadOnlyMode";
-    consts_scope.attr("API_SignalOutOfRange") = "API_SignalOutOfRange";
-    consts_scope.attr("API_SystemCallFailed") = "API_SystemCallFailed";
-    consts_scope.attr("API_WAttrOutsideLimit") = "API_WAttrOutsideLimit";
-    consts_scope.attr("API_WizardConfError") = "API_WizardConfError";
-    consts_scope.attr("API_WrongEventData") = "API_WrongEventData";
-    consts_scope.attr("API_WrongHistoryDataBuffer") = "API_WrongHistoryDataBuffer";
-    consts_scope.attr("API_WrongLockingStatus") = "API_WrongLockingStatus";
-    consts_scope.attr("API_ZmqInitFailed") = "API_ZmqInitFailed";
+    consts_scope.attr("API_AttrConfig") = API_AttrConfig;
+    consts_scope.attr("API_AttrEventProp") = API_AttrEventProp;
+    consts_scope.attr("API_AttrIncorrectDataNumber") = API_AttrIncorrectDataNumber;
+    consts_scope.attr("API_AttrNoAlarm") = API_AttrNoAlarm;
+    consts_scope.attr("API_AttrNotAllowed") = API_AttrNotAllowed;
+    consts_scope.attr("API_AttrNotFound") = API_AttrNotFound;
+    consts_scope.attr("API_AttrNotWritable") = API_AttrNotWritable;
+    consts_scope.attr("API_AttrOptProp") = API_AttrOptProp;
+    consts_scope.attr("API_AttrPropValueNotSet") = API_AttrPropValueNotSet;
+    consts_scope.attr("API_AttrValueNotSet") = API_AttrValueNotSet;
+    consts_scope.attr("API_AttrWrongDefined") = API_AttrWrongDefined;
+    consts_scope.attr("API_AttrWrongMemValue") = API_AttrWrongMemValue;
+    consts_scope.attr("API_BadConfigurationProperty") = API_BadConfigurationProperty;
+    consts_scope.attr("API_BlackBoxArgument") = API_BlackBoxArgument;
+    consts_scope.attr("API_BlackBoxEmpty") = API_BlackBoxEmpty;
+    consts_scope.attr("API_CannotCheckAccessControl") = API_CannotCheckAccessControl;
+    consts_scope.attr("API_CannotOpenFile") = API_CannotOpenFile;
+    consts_scope.attr("API_CantActivatePOAManager") = API_CantActivatePOAManager;
+    consts_scope.attr("API_CantCreateClassPoa") = API_CantCreateClassPoa;
+    consts_scope.attr("API_CantCreateLockingThread") = API_CantCreateLockingThread;
+    consts_scope.attr("API_CantFindLockingThread") = API_CantFindLockingThread;
+    consts_scope.attr("API_CantGetClientIdent") = API_CantGetClientIdent;
+    consts_scope.attr("API_CantGetDevObjectId") = API_CantGetDevObjectId;
+    consts_scope.attr("API_CantInstallSignal") = API_CantInstallSignal;
+    consts_scope.attr("API_CantRetrieveClass") = API_CantRetrieveClass;
+    consts_scope.attr("API_CantRetrieveClassList") = API_CantRetrieveClassList;
+    consts_scope.attr("API_CantStoreDeviceClass") = API_CantStoreDeviceClass;
+    consts_scope.attr("API_ClassNotFound") = API_ClassNotFound;
+    consts_scope.attr("API_CmdArgumentTypeNotSupported") = API_CmdArgumentTypeNotSupported;
+    consts_scope.attr("API_CommandNotAllowed") = API_CommandNotAllowed;
+    consts_scope.attr("API_CommandNotFound") = API_CommandNotFound;
+    consts_scope.attr("API_CorbaSysException") = API_CorbaSysException;
+    consts_scope.attr("API_CorruptedDatabase") = API_CorruptedDatabase;
+    consts_scope.attr("API_DatabaseAccess") = API_DatabaseAccess;
+    consts_scope.attr("API_DeviceLocked") = API_DeviceLocked;
+    consts_scope.attr("API_DeviceNotFound") = API_DeviceNotFound;
+    consts_scope.attr("API_DeviceNotLocked") = API_DeviceNotLocked;
+    consts_scope.attr("API_DeviceUnlockable") = API_DeviceUnlockable;
+    consts_scope.attr("API_DeviceUnlocked") = API_DeviceUnlocked;
+    consts_scope.attr("API_EventSupplierNotConstructed") = API_EventSupplierNotConstructed;
+    consts_scope.attr("API_IncoherentDbData") = API_IncoherentDbData;
+    consts_scope.attr("API_IncoherentDevData") = API_IncoherentDevData;
+    consts_scope.attr("API_IncoherentValues") = API_IncoherentValues;
+    consts_scope.attr("API_IncompatibleAttrDataType") = API_IncompatibleAttrDataType;
+    consts_scope.attr("API_IncompatibleCmdArgumentType") = API_IncompatibleCmdArgumentType;
+    consts_scope.attr("API_InitMethodNotFound") = API_InitMethodNotFound;
+    consts_scope.attr("API_InitNotPublic") = API_InitNotPublic;
+    consts_scope.attr("API_InitThrowsException") = API_InitThrowsException;
+    consts_scope.attr("API_JavaRuntimeSecurityException") = API_JavaRuntimeSecurityException;
+    consts_scope.attr("API_MemoryAllocation") = API_MemoryAllocation;
+    consts_scope.attr("API_MethodArgument") = API_MethodArgument;
+    consts_scope.attr("API_MethodNotFound") = API_MethodNotFound;
+    consts_scope.attr("API_MissedEvents") = API_MissedEvents;
+    consts_scope.attr("API_NotSupportedFeature") = API_NotSupportedFeature;
+    consts_scope.attr("API_NtDebugWindowError") = API_NtDebugWindowError;
+    consts_scope.attr("API_OverloadingNotSupported") = API_OverloadingNotSupported;
+    consts_scope.attr("API_PolledDeviceNotInPoolConf") = API_PolledDeviceNotInPoolConf;
+    consts_scope.attr("API_PolledDeviceNotInPoolMap") = API_PolledDeviceNotInPoolMap;
+    consts_scope.attr("API_PollingThreadNotFound") = API_PollingThreadNotFound;
+    consts_scope.attr("API_ReadOnlyMode") = API_ReadOnlyMode;
+    consts_scope.attr("API_SignalOutOfRange") = API_SignalOutOfRange;
+    consts_scope.attr("API_SystemCallFailed") = API_SystemCallFailed;
+    consts_scope.attr("API_WAttrOutsideLimit") = API_WAttrOutsideLimit;
+    consts_scope.attr("API_WizardConfError") = API_WizardConfError;
+    consts_scope.attr("API_WrongEventData") = API_WrongEventData;
+    consts_scope.attr("API_WrongHistoryDataBuffer") = API_WrongHistoryDataBuffer;
+    consts_scope.attr("API_WrongLockingStatus") = API_WrongLockingStatus;
+    consts_scope.attr("API_ZmqInitFailed") = API_ZmqInitFailed;
 
 }

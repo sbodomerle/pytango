@@ -1,25 +1,13 @@
-################################################################################
-##
-## This file is part of PyTango, a python binding for Tango
-## 
-## http://www.tango-controls.org/static/PyTango/latest/doc/html/index.html
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## PyTango is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## PyTango is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with PyTango.  If not, see <http://www.gnu.org/licenses/>.
-##
-################################################################################
+# ------------------------------------------------------------------------------
+# This file is part of PyTango (http://www.tinyurl.com/PyTango)
+#
+# Copyright 2006-2012 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2013-2014 European Synchrotron Radiation Facility, Grenoble, France
+#
+# Distributed under the terms of the GNU Lesser General Public License,
+# either version 3 of the License, or (at your option) any later version.
+# See LICENSE.txt for more info.
+# ------------------------------------------------------------------------------
 
 """
 This is an internal PyTango module.
@@ -33,7 +21,7 @@ import collections
 
 from ._PyTango import StdStringVector, Database, DbDatum, DbData, \
     DbDevInfo, DbDevInfos, DbDevImportInfo, DbDevExportInfo, DbDevExportInfos, \
-    DbHistory, DbServerInfo
+    DbHistory, DbServerInfo, DbServerData
 
 from .utils import is_pure_str, is_non_str_seq, seq_2_StdStringVector, \
     seq_2_DbDevInfos, seq_2_DbDevExportInfos, seq_2_DbData, DbData_2_dict
@@ -1008,6 +996,18 @@ def __doc_Database():
         New in PyTango 3.0.4
     """ )
 
+    document_method("get_device_service_list", """
+    get_device_service_list(self, dev_name) -> DbDatum
+
+            Query database for the list of services provided by the given device.
+
+        Parameters :
+            - dev_name : (str) device name
+        Return     : DbDatum with the list of services
+
+        New in PyTango 8.1.0
+    """ )
+    
     document_method("register_service", """
     register_service(self, serv_name, inst_name, dev_name) -> None
 
@@ -1078,6 +1078,30 @@ def __doc_Database():
         Parameters :
             - dev_name : (str) device name
         Return     : DbDevImportInfo
+    """ )
+
+    document_method("get_device_info", """
+    get_device_info(self, dev_name) -> DbDevFullInfo
+
+            Query the databse for the full info of the specified device.
+
+            Example :
+                dev_info = db.get_device_info('my/own/device')
+                print(dev_info.name)
+                print(dev_info.class_name)
+                print(dev_info.ds_full_name)
+                print(dev_info.exported)
+                print(dev_info.ior)
+                print(dev_info.version)
+                print(dev_info.pid)
+                print(dev_info.started_date)
+                print(dev_info.stopped_date)
+
+        Parameters :
+            - dev_name : (str) device name
+        Return     : DbDevFullInfo
+        
+        New in PyTango 8.1.0
     """ )
 
     document_method("export_device", """
@@ -1179,6 +1203,9 @@ def __doc_Database():
         Parameters :
             - alias : (str) alias
         Return     : device name
+
+        .. deprecated:: 8.1.0
+            Use :meth:`~PyTango.Database.get_device_from_alias` instead
     """ )
 
     document_method("get_alias", """
@@ -1191,6 +1218,33 @@ def __doc_Database():
         Return     : alias
 
         New in PyTango 3.0.4
+        
+        .. deprecated:: 8.1.0
+            Use :meth:`~PyTango.Database.get_alias_from_device` instead
+    """ )
+
+    document_method("get_device_from_alias", """
+    get_device_from_alias(self, alias) -> str
+
+            Get the device name from an alias.
+
+        Parameters :
+            - alias : (str) alias
+        Return     : device name
+        
+        New in PyTango 8.1.0
+    """ )
+
+    document_method("get_alias_from_device", """
+    get_alias_from_device(self, alias) -> str
+
+            Get the device alias name from its name.
+
+        Parameters :
+            - alias : (str) device name
+        Return     : alias
+
+        New in PyTango 8.1.0
     """ )
 
     document_method("get_device_alias_list", """
@@ -1318,6 +1372,21 @@ def __doc_Database():
         Return     : None
 
         Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
+    """ )
+
+    document_method("rename_server", """
+    rename_server(self, old_ds_name, new_ds_name) -> None
+
+            Rename a device server process.
+
+        Parameters :
+            - old_ds_name : (str) old name
+            - new_ds_name : (str) new name
+        Return     : None
+
+        Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
+        
+        New in PyTango 8.1.0
     """ )
 
     document_method("get_server_info", """
@@ -1874,8 +1943,39 @@ def __doc_Database():
         Return     :  full attribute name
 
         Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
+        
+        .. deprecated:: 8.1.0
+            Use :meth:`~PyTango.Database.get_attribute_from_alias` instead
     """ )
 
+    document_method("get_attribute_from_alias", """
+    get_attribute_from_alias(self, alias) -> str
+
+            Get the full attribute name from an alias.
+
+        Parameters :
+            - alias : (str) attribute alias
+        Return     :  full attribute name
+
+        Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
+        
+        New in PyTango 8.1.0
+    """ )
+
+    document_method("get_alias_from_attribute", """
+    get_alias_from_attribute(self, attr_name) -> str
+
+            Get the attribute alias from the full attribute name.
+
+        Parameters :
+            - attr_name : (str) full attribute name
+        Return     :  attribute alias
+
+        Throws     : ConnectionFailed, CommunicationFailed, DevFailed from device (DB_SQLError)
+        
+        New in PyTango 8.1.0
+    """ )
+    
     document_method("get_attribute_alias_list", """
     get_attribute_alias_list(self, filter) -> DbDatum
 
@@ -2084,6 +2184,57 @@ def __doc_DbServerInfo():
         - mode : (str) mode
         - level : (str) level"""
 
+def __doc_DbServerData():
+    def document_method(method_name, desc, append=True):
+        return __document_method(DbServerData, method_name, desc, append)
+        
+    DbServerData.__doc__ = """\
+    A structure used for moving DS from one tango host to another.
+    Create a new instance by: DbServerData(<server name>, <server instance>)"""
+
+    document_method("get_name", """
+    get_name(self) -> str
+
+            Returns the full server name
+
+        Parameters : None
+        Return     : (str) the full server name
+    """ )
+
+    document_method("put_in_database", """
+    put_in_database(self, tg_host) -> None
+
+            Store all the data related to the device server process in the 
+            database specified by the input arg.
+
+        Parameters :
+            - tg_host : (str) The tango host for the new database
+        Return     : None
+    """ )
+    
+    document_method("already_exist", """
+    already_exist(self, tg_host) -> bool
+
+            Check if any of the device server process device(s) is already
+            defined in the database specified by the tango host given as input arg
+
+        Parameters :
+            - tg_host : (str) The tango host for the new database
+        Return     : (str) True in case any of the device is already known. False otherwise
+    """ )
+
+    document_method("remove", """
+    remove(self) -> None
+    remove(self, tg_host) -> None
+
+            Remove device server process from a database.
+
+        Parameters :
+            - tg_host : (str) The tango host for the new database
+        Return     : None
+    """ )  
+    
+       
 def db_init(doc=True):
     __init_DbDatum()
     if doc:
@@ -2097,4 +2248,5 @@ def db_init(doc=True):
         __doc_DbDevInfo()
         __doc_DbHistory()
         __doc_DbServerInfo()
+        __doc_DbServerData()
 
