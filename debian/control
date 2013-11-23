@@ -6,6 +6,7 @@ Priority: extra
 Build-Depends: debhelper (>= 9),
                libboost-python-dev,
                libtango8-dev,
+               pkg-config,
                python-all-dev,
                python-numpy,
                python3-all-dev,
