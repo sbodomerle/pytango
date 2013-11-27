@@ -2,11 +2,11 @@ Metadata-Version: 1.1
 Name: PyTango
 Version: 8.1.1
 Summary: A python binding for the Tango control system
-Home-page: http://www.tango-controls.org/static/PyTango/
+Home-page: http://www.tinyurl.com/PyTango/
 Author: Tiago Coutinho
 Author-email: coutinho@esrf.fr
 License: LGPL
-Download-URL: http://pypi.python.org/packages/source/P/PyTango
+Download-URL: http://pypi.python.org/pypi/PyTango
 Description: This module implements the Python Tango Device API mapping.
 Keywords: Tango,CORBA,binding
 Platform: Linux

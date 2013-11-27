@@ -50,7 +50,6 @@ try:
 except:
     numpy = None
 
-
 is64 = 8 * struct.calcsize("P") == 64
 
 
@@ -59,7 +58,9 @@ def pkg_config(*packages, **config):
                 "-L": "library_dirs",
                 "-l": "libraries"}
     cmd = ["pkg-config", "--libs", "--cflags-only-I", " ".join(packages)]
-    result = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    result = proc.wait()
+    result = str(proc.communicate()[0].decode("utf-8"))
     for elem in result.split():
         flag, value = elem[:2], elem[2:]
         config_values = config.setdefault(config_map.get(flag), [])
@@ -155,17 +156,16 @@ def add_lib(name, dirs, sys_libs, env_name=None, lib_name=None, inc_suffix=None)
         inc_dir = os.path.join(ENV, 'include')
         if inc_suffix is not None:
             inc_dir = os.path.join(inc_dir, inc_suffix)
+        lib_dirs = [os.path.join(ENV, 'lib')]
         if is64:
-            lib_dir = os.path.join(ENV, 'lib64')
-            if not os.path.isdir(lib_dir):
-                lib_dir = os.path.join(ENV, 'lib')
-        else:
-            lib_dir = os.path.join(ENV, 'lib')
+            lib64_dir = os.path.join(ENV, 'lib64')
+            if os.path.isdir(lib64_dir):
+                lib_dirs.insert(0, lib64_dir)
         
         if lib_name.startswith('lib'):
             lib_name = lib_name[3:]
         dirs['include_dirs'].append(inc_dir)
-        dirs['library_dirs'].append(lib_dir)
+        dirs['library_dirs'].extend(lib_dirs)
         dirs['libraries'].append(lib_name)
 
         
@@ -260,6 +260,7 @@ class build_ext(dftbuild_ext):
             ext.define_macros += [ ('PYTANGO_HAS_UNIQUE_PTR', '1') ]
         dftbuild_ext.build_extension(self, ext)
 
+        
 if sphinx:
     class build_doc(BuildDoc):
 
@@ -326,15 +327,17 @@ class install(dftinstall):
 def main():
     macros = []
     
-    directories = dict(include_dirs=[abspath('src', 'boost', 'cpp')],
-                       library_dirs=[],
-                       libraries=[])
+    directories = {
+        'include_dirs': [],
+        'library_dirs': [],
+        'libraries':    ['tango', 'log4tango', 'zmq',
+                         'omniDynamic4', 'COS4', 'omniORB4', 'omnithread'],
+    }
     sys_libs = []
     
     add_lib('omni', directories, sys_libs, lib_name='omniORB4')
     add_lib('zmq', directories, sys_libs, lib_name='libzmq')
     add_lib('tango', directories, sys_libs, inc_suffix='tango')
-    add_lib('log4tango', directories, sys_libs)
 
     # special boost-python configuration
 
@@ -352,14 +355,14 @@ def main():
                 boost_library_name += pyver
     else:
         inc_dir = os.path.join(BOOST_ROOT, 'include')
-        lib_dir = os.path.join(BOOST_ROOT, 'lib')
+        lib_dirs = [os.path.join(BOOST_ROOT, 'lib')]
         if is64:
-            lib_dir = os.path.join(BOOST_ROOT, 'lib64')
-            if not os.path.isdir(lib_dir):
-                lib_dir = os.path.join(BOOST_ROOT, 'lib')                
+            lib64_dir = os.path.join(BOOST_ROOT, 'lib64')
+            if os.path.isdir(lib64_dir):
+                lib_dirs.insert(0, lib64_dir)
 
         directories['include_dirs'].append(inc_dir)
-        directories['library_dirs'].append(lib_dir)
+        directories['library_dirs'].extend(lib_dirs)
                 
     directories['libraries'].append(boost_library_name)
 
@@ -445,10 +448,6 @@ def main():
         extra_compile_args += ['-g', '-O0']
         extra_link_args += ['-g' , '-O0'] 
 
-    include_dirs = uniquify(directories['include_dirs'])
-    library_dirs = uniquify(directories['library_dirs'])
-    libraries = uniquify(directories['libraries'])
-        
     src_dir = abspath('src', 'boost', 'cpp')
     client_dir = src_dir
     server_dir = os.path.join(src_dir, 'server')
@@ -461,6 +460,10 @@ def main():
                              if fname.endswith('.cpp') ]
     _serverfiles.sort()
     _cppfiles = _clientfiles + _serverfiles
+
+    include_dirs = uniquify(directories['include_dirs'] + [client_dir, server_dir])
+    library_dirs = uniquify(directories['library_dirs'])
+    libraries = uniquify(directories['libraries'])
 
     _pytango = Extension(
         name='_PyTango',
@@ -506,6 +509,8 @@ def main():
         ext_package='PyTango',
         ext_modules=[_pytango],
         cmdclass=cmdclass)
+
+    return dist
 
 if __name__ == "__main__":
     main()
