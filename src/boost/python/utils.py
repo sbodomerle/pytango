@@ -16,15 +16,17 @@ This is an internal PyTango module.
 from __future__ import with_statement
 from __future__ import print_function
 
-__all__ = [ "is_pure_str", "is_seq", "is_non_str_seq", "is_integer",
-            "is_number", "is_scalar_type", "is_array_type", "is_numerical_type",
-            "is_int_type", "is_float_type", "is_bool_type", "is_bin_type",
-            "is_str_type", "obj_2_str", "seqStr_2_obj",
-            "scalar_to_array_type",
-            "document_method", "document_static_method", "document_enum",
-            "CaselessList", "CaselessDict", "EventCallBack", "get_home",
-            "from_version_str_to_hex_str", "from_version_str_to_int",
-            "seq_2_StdStringVector", "StdStringVector_2_seq" ]
+__all__ = [
+    "requires_pytango", "requires_tango",
+    "is_pure_str", "is_seq", "is_non_str_seq", "is_integer",
+    "is_number", "is_scalar_type", "is_array_type", "is_numerical_type",
+    "is_int_type", "is_float_type", "is_bool_type", "is_bin_type",
+    "is_str_type", "obj_2_str", "seqStr_2_obj",
+    "scalar_to_array_type",
+    "document_method", "document_static_method", "document_enum",
+    "CaselessList", "CaselessDict", "EventCallBack", "get_home",
+    "from_version_str_to_hex_str", "from_version_str_to_int",
+    "seq_2_StdStringVector", "StdStringVector_2_seq" ]
 
 __docformat__ = "restructuredtext"
 
@@ -37,7 +39,8 @@ from ._PyTango import StdStringVector, StdDoubleVector, \
     DbData, DbDevInfos, DbDevExportInfos, CmdArgType, AttrDataFormat, \
     EventData, AttrConfEventData, DataReadyEventData, DevFailed, constants, \
     GreenMode
-
+from .constants import AlrmValueNotSpec, StatusNotSet, TgLibVers
+from .release import Release
 
 _scalar_int_types = (CmdArgType.DevShort, CmdArgType.DevUShort,
     CmdArgType.DevInt, CmdArgType.DevLong, CmdArgType.DevULong,
@@ -88,7 +91,120 @@ _scalar_to_array_type = {
     CmdArgType.ConstDevString : CmdArgType.DevVarStringArray,
 }
 
+__NO_STR_VALUE = AlrmValueNotSpec, StatusNotSet
+
 __device_classes = None
+
+bool_ = lambda value_str : value_str.lower() == "true"
+
+
+def __import(name):
+    __import__(name)
+    return sys.modules[name]
+    
+def __requires(package_name, min_version=None, conflicts=(),
+               software_name="Software"):
+    from distutils.version import LooseVersion
+    package_name_l = package_name.lower()
+    if package_name_l == 'pytango':
+        curr_version = LooseVersion(Release.version)
+    elif package_name_l == 'tango':
+        curr_version = LooseVersion(TgLibVers)
+    else:
+        try:
+            package = __import(package_name)
+            curr_version = LooseVersion(package.__version__)
+        except ImportError:
+            msg = "Could not find package {0} required by {1}".format(
+                package_name, software_name)
+            raise Exception(msg)
+        except:
+            msg = "Error importing package {0} required by {1}".format(
+                package_name, software_name)
+            raise Exception(msg)
+        
+    if min_version is not None:
+        min_version = LooseVersion(min_version)
+        if min_version > curr_version:        
+            msg = "{0} requires {1} {2} but {3} installed".format(
+                software_name, package_name, min_version, curr_version)
+            raise Exception(msg)
+
+    conflicts = map(LooseVersion, conflicts)
+    if curr_version in conflicts:
+        msg = "{0} cannot run with {1} {2}".format(
+            software_name, package_name, curr_version)
+        raise Exception(msg)        
+    return True
+
+def requires_pytango(min_version=None, conflicts=(),
+                     software_name="Software"):
+    """
+    Determines if the required PyTango version for the running
+    software is present. If not an exception is thrown.
+    Example usage::
+
+        from PyTango import requires_pytango
+
+        requires_pytango('7.1', conflicts=['8.1.1'], software='MyDS')
+
+    :param min_version:
+        minimum PyTango version [default: None, meaning no minimum
+        required]. If a string is given, it must be in the valid
+        version number format
+        (see: :class:`~distutils.version.LooseVersion`)
+    :type min_version:
+        None, str, :class:`~distutils.version.LooseVersion`
+    :param conflics:
+        a sequence of PyTango versions which conflict with the
+        software using it
+    :type conflics:
+        seq<str|LooseVersion>
+    :param software_name:
+        software name using PyTango. Used in the exception message
+    :type software_name: str
+
+    :raises Exception: if the required PyTango version is not met
+
+    New in PyTango 8.1.4
+    """
+    return __requires("PyTango", min_version=min_version,
+                      conflicts=conflicts, software_name=software_name)
+
+
+def requires_tango(min_version=None, conflicts=(),
+                     software_name="Software"):
+    """
+    Determines if the required Tango version for the running
+    software is present. If not an exception is thrown.
+    Example usage::
+
+        from Tango import requires_tango
+
+        requires_tango('7.1', conflicts=['8.1.1'], software='MyDS')
+
+    :param min_version:
+        minimum Tango version [default: None, meaning no minimum
+        required]. If a string is given, it must be in the valid
+        version number format
+        (see: :class:`~distutils.version.LooseVersion`)
+    :type min_version:
+        None, str, :class:`~distutils.version.LooseVersion`
+    :param conflics:
+        a sequence of Tango versions which conflict with the
+        software using it
+    :type conflics:
+        seq<str|LooseVersion>
+    :param software_name:
+        software name using Tango. Used in the exception message
+    :type software_name: str
+
+    :raises Exception: if the required Tango version is not met
+
+    New in PyTango 8.1.4
+    """
+    return __requires("Tango", min_version=min_version,
+                      conflicts=conflicts, software_name=software_name)    
 
 
 def get_tango_device_classes():
@@ -106,7 +222,12 @@ def get_tango_device_classes():
                 break
     return __device_classes
 
-__str_klasses = str,
+try:
+    __str_klasses = basestring,
+except NameError:
+    __str_klasses = str,
+
+
 __int_klasses = int,
 __number_klasses = numbers.Number,
 __seq_klasses = collections.Sequence, bytearray
@@ -116,7 +237,7 @@ try:
     unicode
     __use_unicode = True
     __str_klasses = tuple(list(__str_klasses) + [unicode])
-except:
+except NameError:
     pass
 
 __use_long = False
@@ -124,7 +245,7 @@ try:
     long
     __use_long = True
     __int_klasses = tuple(list(__int_klasses) + [long])
-except:
+except NameError:
     pass
 
 if constants.NUMPY_SUPPORT:
@@ -140,22 +261,87 @@ __seq_klasses = tuple(__seq_klasses)
 
 
 def is_pure_str(obj):
+    """
+    Tells if the given object is a python string.
+
+    In python 2.x this means any subclass of basestring.
+    In python 3.x this means any subclass of str.
+
+    :param obj: the object to be inspected
+    :type obj: :py:obj:`object`
+
+    :return: True is the given obj is a string or False otherwise
+    :rtype: :py:obj:`bool`
+    """
     return isinstance(obj , __str_klasses)
 
 
 def is_seq(obj):
+    """
+    Tells if the given object is a python sequence.
+
+    It will return True for any collections.Sequence (list, tuple,
+    str, bytes, unicode), bytearray and (if numpy is enabled)
+    numpy.ndarray
+
+    :param obj: the object to be inspected
+    :type obj: :py:obj:`object`
+
+    :return: True is the given obj is a sequence or False otherwise
+    :rtype: :py:obj:`bool`
+    """
     return isinstance(obj, __seq_klasses)
 
 
 def is_non_str_seq(obj):
+    """
+    Tells if the given object is a python sequence (excluding string
+    sequences).
+
+    It will return True for any collections.Sequence (list, tuple (and
+    bytes in python3)), bytearray and (if numpy is enabled)
+    numpy.ndarray
+
+    :param obj: the object to be inspected
+    :type obj: :py:obj:`object`
+
+    :return: True is the given obj is a sequence or False otherwise
+    :rtype: :py:obj:`bool`
+    """    
     return is_seq(obj) and not is_pure_str(obj)
 
 
 def is_integer(obj):
+    """
+    Tells if the given object is a python integer.
+
+    It will return True for any int, long (in python 2) and
+    (if numpy is enabled) numpy.integer
+
+    :param obj: the object to be inspected
+    :type obj: :py:obj:`object`
+
+    :return:
+        True is the given obj is a python integer or False otherwise
+    :rtype: :py:obj:`bool`
+    """
     return isinstance(obj, __int_klasses)
 
 
 def is_number(obj):
+    """
+    Tells if the given object is a python number.
+
+    It will return True for any numbers.Number and (if numpy is
+    enabled) numpy.number
+
+    :param obj: the object to be inspected
+    :type obj: :py:obj:`object`
+
+    :return:
+        True is the given obj is a python number or False otherwise
+    :rtype: :py:obj:`bool`
+    """
     return isinstance(obj, __number_klasses)
 
 
@@ -560,11 +746,52 @@ def _seqStr_2_obj_from_type_format(seq, tg_type, tg_format):
     return _seqStr_2_obj_from_type(tg_type, seq)
 
 
-def scalar_to_array_type(dtype):
-    return _scalar_to_array_type[dtype]
+def scalar_to_array_type(tg_type):
+    """
+    Gives the array tango type corresponding to the given tango
+    scalar type. Example: giving DevLong will return DevVarLongArray.
+    
+    :param tg_type: tango type
+    :type tg_type: :class:`PyTango.CmdArgType`
+
+    :return: the array tango type for the given scalar tango type
+    :rtype: :class:`PyTango.CmdArgType`
+    
+    :raises ValueError: in case the given dtype is not a tango scalar type
+    """
+    try:
+        return _scalar_to_array_type[tg_type]
+    except KeyError:
+        raise ValueError("Invalid tango scalar type: {0}".format(tg_type))
 
 
-def obj_2_str(obj, tg_type):
+def str_2_obj(obj_str, tg_type=None):
+    """Converts a string into an object according to the given tango type
+    
+           :param obj_str: the string to be converted
+           :type obj_str: :py:obj:`str`
+           :param tg_type: tango type
+           :type tg_type: :class:`PyTango.CmdArgType`
+           :return: an object calculated from the given string
+           :rtype: :py:obj:`object`
+    """
+    if tg_type is None:
+        return obj_str
+    f = str
+    if is_scalar_type(tg_type):
+        if is_numerical_type(tg_type):
+            if obj_str in __NO_STR_VALUE:
+                return None
+        if is_int_type(tg_type):
+            f = int
+        elif is_float_type(tg_type):
+            f = float
+        elif is_bool_type(tg_type):
+            f = bool_
+    return f(obj_str)
+
+
+def obj_2_str(obj, tg_type=None):
     """Converts a python object into a string according to the given tango type
     
            :param obj: the object to be converted
@@ -574,6 +801,8 @@ def obj_2_str(obj, tg_type):
            :return: a string representation of the given object
            :rtype: :py:obj:`str`
     """
+    if tg_type is None:
+        return obj
     if tg_type in _scalar_types:
         # scalar cases
         if is_pure_str(obj):
@@ -585,6 +814,7 @@ def obj_2_str(obj, tg_type):
         return str(obj)
     # sequence cases
     return '\n'.join([str(i) for i in obj])
+
 
 def __get_meth_func(klass, method_name):
     meth = getattr(klass, method_name)

@@ -1,13 +1,81 @@
+.. highlight:: python
+   :linenothreshold: 4
+
+.. _itango:
+
+======
+ITango
+======
+
+ITango is a PyTango CLI based on IPython_. It is designed to be used as an
+IPython profile.
+
+ITango is available since PyTango 7.1.2
+
+You can start ITango by typing on the command line::
+
+    $ itango
+
+or the equivalent::
+
+    $ ipython --profile=tango
+
+and you should get something like this:
+
+.. image:: _static/itango00.png
+    :align: center
+    :width: 75%
+
+
+.. _itango-features:
+
+Features
+--------
+
+ITango works like a normal python console, but it gives you in addition a nice
+set of features from IPython_ like:
+
+    - proper (bash-like) command completion
+    - automatic expansion of python variables, functions, types
+    - command history (with up/down arrow keys, %hist command)
+    - help system ( object? syntax, help(object))
+    - persistently store your favorite variables
+    - color modes
+ 
+(for a complete list checkout the `IPython web page <http://ipython.org/>`_)
+
+Plus an additional set o Tango_ specific features:
+
+    - automatic import of Tango objects to the console namespace (:mod:`PyTango`
+      module, :class:`~PyTango.DeviceProxy` (=Device),
+      :class:`~PyTango.Database`, :class:`~PyTango.Group`
+      and :class:`~PyTango.AttributeProxy` (=Attribute))
+    - device name completion
+    - attribute name completion
+    - automatic tango object member completion
+    - list tango devices, classes, servers
+    - customized tango error message
+    - tango error introspection
+    - switch database
+    - refresh database
+    - list tango devices, classes
+    - store favorite tango objects
+    - store favorite tango devices
+    - tango color modes
+
+Check the :ref:`itango-highlights` to see how to put these feature to good use
+:-)
+
 
 .. currentmodule:: PyTango
 
 .. _itango-highlights:
 
 Highlights
-==========
+----------
 
 Tab completion
---------------
+~~~~~~~~~~~~~~
 
 ITango exports many tango specific objects to the console namespace.
 These include:
@@ -40,7 +108,7 @@ These include:
             ITango [4]: Att<tab>
             Attribute       AttributeError  AttributeProxy
             
-    - The tango :class:`PyTango.Database` object to which the itango session is 
+    - The Tango :class:`Database` object to which the itango session is 
       currently connected
       
       .. sourcecode:: itango
@@ -49,7 +117,7 @@ These include:
             Result [1]: Database(homer, 10000)
     
 Device name completion
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 ITango knows the complete list of device names (including alias) for the current
 tango database. This means that when you try to create a new Device, by pressing
@@ -66,7 +134,7 @@ tango database. This means that when you try to create a new Device, by pressing
     ITango [2]: test = Device("sys/tg_test/1")
 
 Attribute name completion
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ITango can inspect the list of attributes in case the device server for the device
 where the attribute resides is running.
@@ -113,7 +181,7 @@ where the attribute resides is running.
     w_value = 0]
 
 Automatic tango object member completion
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you create a new tango object, (ex.: a device), itango is able to find out
 dynamically which are the members of this device (including tango commands 
@@ -153,7 +221,7 @@ and attributes if the device is currently running)
     Result [3]: 56.433
 
 Tango classes as :class:`DeviceProxy`
----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ITango exports all known tango classes as python alias to :class:`DeviceProxy`. 
 This way, if you want to create a device of class which you already know 
@@ -187,7 +255,7 @@ class 'Libera' will show up as possible completions.
     ITango [1]: bpm1 = Libera("BO01/DI/BPM-01")
 
 Customized device representation
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
 When you use ipython >= 0.11 with a Qt console frontend::
 
@@ -197,7 +265,7 @@ typing a variable containing a tango device object followend by :kbd:`Enter`
 will present you with a customized representation of the object instead of the
 usual :func:`repr` :
 
-    .. image:: itango06.png
+    .. image:: _static/itango06.png
 
 You can customize the icon that itango displays for a specific device.
 The first thing to do is to copy the image file into
@@ -225,7 +293,7 @@ the class property value, if defined)::
 
 
 List tango devices, classes, servers
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
 ITango provides a set of magic functions (ipython lingo) that allow you to check
 for the list tango devices, classes and servers which are registered in the 
@@ -272,7 +340,7 @@ current database.
     MacroServer/tcoutinho          Simulator/BL99
 
 Customized tango error message and introspection
-----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ITango intercepts tango exceptions that occur when you do tango operations 
 (ex.: write an attribute with a value outside the allowed limits) and tries to
@@ -303,7 +371,7 @@ the magic command 'tango_error'.
     severity = PyTango._PyTango.ErrSeverity.ERR]]
 
 Switching database
----------------------
+~~~~~~~~~~~~~~~~~~
 
 You can switch database simply by executing the 'switchdb <host> [<port>]' magic
 command.
@@ -339,7 +407,7 @@ command.
     Database(marge, 10005)
 
 Refreshing the database
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 When itango starts up or when the database is switched, a query is made to the
 tango Database device server which provides all necessary data. This
@@ -355,7 +423,7 @@ all tango information from the database.
     ITango [1]: refreshdb
     
 Storing your favorite tango objects for later usage
--------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
     This feature is not available if you have installed IPython 0.11!
@@ -384,7 +452,7 @@ then store these for the next time you startup IPython_ with itango profile.
     DeviceProxy(motor/bl99/1)
 
 Adding itango to your own ipython profile
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Adding itango to the ipython default profile
 ##################################################
@@ -581,10 +649,10 @@ Then start your CLI with::
 
 and you will have something like this
 
-.. image:: itango02.png
+.. image:: _static/itango02.png
 
 Advanced event monitoring
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
     This chapter has a pending update. The contents only apply to

@@ -47,17 +47,20 @@ except:
 
 try:
     import numpy
-except:
+except ImportError:
     numpy = None
 
 is64 = 8 * struct.calcsize("P") == 64
 
 
 def pkg_config(*packages, **config):
-    config_map = {"-I": "include_dirs",
-                "-L": "library_dirs",
-                "-l": "libraries"}
-    cmd = ["pkg-config", "--libs", "--cflags-only-I", " ".join(packages)]
+    config_map = {
+        "-I": "include_dirs",
+        "-L": "library_dirs",
+        "-l": "libraries",
+    }
+    cmd = ["pkg-config", "--cflags-only-I",
+           "--libs-only-L", " ".join(packages)]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     result = proc.wait()
     result = str(proc.communicate()[0].decode("utf-8"))
@@ -67,8 +70,8 @@ def pkg_config(*packages, **config):
         if value not in config_values:
             config_values.append(value)
     return config
-        
-        
+
+
 def abspath(*path):
     """A method to determine absolute path for a given relative path to the
     directory where this setup.py script is located"""
@@ -105,7 +108,7 @@ def get_c_numpy():
         if os.path.isdir(inc):
             return inc
 
-        
+
 def has_c_numpy():
     return get_c_numpy() is not None
 
@@ -119,9 +122,12 @@ def has_numpy(with_src=True):
 
 def get_script_files():
 
-    FILTER_OUT = (),  # "winpostinstall.py",
+    FILTER_OUT = []  # "winpostinstall.py",
 
-    scripts_dir = abspath('scripts')
+    if os.name != "nt":
+        FILTER_OUT.append("pytango_winpostinstall.py")
+
+    scripts_dir = abspath("scripts")
     scripts = []
     items = os.listdir(scripts_dir)
     for item in items:
@@ -154,21 +160,23 @@ def add_lib(name, dirs, sys_libs, env_name=None, lib_name=None, inc_suffix=None)
         return
     else:
         inc_dir = os.path.join(ENV, 'include')
+        dirs['include_dirs'].append(inc_dir)
         if inc_suffix is not None:
             inc_dir = os.path.join(inc_dir, inc_suffix)
+            dirs['include_dirs'].append(inc_dir)
+
         lib_dirs = [os.path.join(ENV, 'lib')]
         if is64:
             lib64_dir = os.path.join(ENV, 'lib64')
             if os.path.isdir(lib64_dir):
                 lib_dirs.insert(0, lib64_dir)
+        dirs['library_dirs'].extend(lib_dirs)
         
         if lib_name.startswith('lib'):
             lib_name = lib_name[3:]
-        dirs['include_dirs'].append(inc_dir)
-        dirs['library_dirs'].extend(lib_dirs)
         dirs['libraries'].append(lib_name)
 
-        
+
 class build(dftbuild):
 
     user_options = dftbuild.user_options + \
@@ -202,7 +210,7 @@ class build(dftbuild):
         dftbuild.run(self)
 
         if self.strip_lib:
-            if os.name == 'posix':
+            if 'posix' in os.name:
                 has_objcopy = os.system("type objcopy") == 0
                 if has_objcopy:
                     d = abspath(self.build_lib, "PyTango")
@@ -260,7 +268,7 @@ class build_ext(dftbuild_ext):
             ext.define_macros += [ ('PYTANGO_HAS_UNIQUE_PTR', '1') ]
         dftbuild_ext.build_extension(self, ext)
 
-        
+
 if sphinx:
     class build_doc(BuildDoc):
 
@@ -323,18 +331,17 @@ class install(dftinstall):
     sub_commands = list(dftinstall.sub_commands)
     sub_commands.append(('install_html', has_html))
 
-    
-def main():
+
+def setup_args():
     macros = []
-    
+
     directories = {
         'include_dirs': [],
         'library_dirs': [],
-        'libraries':    ['tango', 'log4tango', 'zmq',
-                         'omniDynamic4', 'COS4', 'omniORB4', 'omnithread'],
+        'libraries':    ['tango'],
     }
     sys_libs = []
-    
+
     add_lib('omni', directories, sys_libs, lib_name='omniORB4')
     add_lib('zmq', directories, sys_libs, lib_name='libzmq')
     add_lib('tango', directories, sys_libs, inc_suffix='tango')
@@ -363,11 +370,11 @@ def main():
 
         directories['include_dirs'].append(inc_dir)
         directories['library_dirs'].extend(lib_dirs)
-                
+
     directories['libraries'].append(boost_library_name)
 
     # special numpy configuration
-    
+
     numpy_c_include = get_c_numpy()
     if numpy_c_include is not None:
         directories['include_dirs'].append(numpy_c_include)
@@ -379,7 +386,7 @@ def main():
 
     if 'posix' in os.name:
         directories = pkg_config(*sys_libs, **directories)
-    
+
     Release = get_release_info()
 
     author = Release.authors['Coutinho']
@@ -391,7 +398,7 @@ def main():
         'PyTango.ipython',
         'PyTango.ipython.ipython_00_10',
         'PyTango.ipython.ipython_00_11',
-        'PyTango.ipython.ipython_10_00',        
+        'PyTango.ipython.ipython_10_00',
     ]
 
     py_modules = []
@@ -412,6 +419,8 @@ def main():
     scripts = get_script_files()
 
     data_files = []
+    if os.name == 'nt':
+        data_files.append(('scripts', ['doc/_static/itango.ico']))
 
     classifiers = [
         'Development Status :: 5 - Production/Stable',
@@ -429,7 +438,7 @@ def main():
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries',
     ]
-    
+
     # Note for PyTango developers:
     # Compilation time can be greatly reduced by compiling the file
     # src/precompiled_header.hpp as src/precompiled_header.hpp.gch
@@ -446,7 +455,7 @@ def main():
 
     if please_debug:
         extra_compile_args += ['-g', '-O0']
-        extra_link_args += ['-g' , '-O0'] 
+        extra_link_args += ['-g' , '-O0']
 
     src_dir = abspath('src', 'boost', 'cpp')
     client_dir = src_dir
@@ -485,7 +494,7 @@ def main():
     if sphinx:
         cmdclass['build_doc'] = build_doc
 
-    dist = setup(
+    opts = dict(
         name='PyTango',
         version=Release.version,
         description=Release.description,
@@ -510,7 +519,10 @@ def main():
         ext_modules=[_pytango],
         cmdclass=cmdclass)
 
-    return dist
+    return opts
+
+def main():
+    return setup(**setup_args())
 
 if __name__ == "__main__":
     main()

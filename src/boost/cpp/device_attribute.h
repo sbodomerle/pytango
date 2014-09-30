@@ -122,6 +122,12 @@ namespace PyDeviceAttribute {
     template<typename TDeviceAttribute>
     boost::python::object convert_to_python(const unique_pointer<std::vector<TDeviceAttribute> >& dev_attr_vec, Tango::DeviceProxy & dev_proxy, PyTango::ExtractAs extract_as)
     {
+		if (dev_attr_vec->empty())
+		{
+			boost::python::list ls;
+			return ls;
+		}
+
         update_data_format(dev_proxy, &(*dev_attr_vec)[0], dev_attr_vec->size());
 
         // Convert the c++ vector of DeviceAttribute into a pythonic list
@@ -169,10 +175,6 @@ namespace PyDeviceAttribute {
     template<>
     inline void _fill_scalar_attribute<Tango::DEV_ENCODED>(Tango::DeviceAttribute & dev_attr, const boost::python::object & py_value)
     {
-        static const long tangoTypeConst = Tango::DEV_ENCODED;
-        typedef TANGO_const2type(tangoTypeConst) TangoScalarType;
-        typedef TANGO_const2arraytype(tangoTypeConst) TangoArrayType;
-
         /// @todo test it!!
 
         /// @todo Now I am accepting 2 strings: encoded_format, encoded_data. This

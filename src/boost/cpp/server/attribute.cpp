@@ -87,36 +87,6 @@ namespace PyAttribute
     }
 
     /**
-     * ATTENTION: this template specialization is done to close a memory leak
-     *            that exists up to tango 7.1.1 for string read_write attributes
-     *
-     * Tango Attribute set_value wrapper for scalar string attributes
-     * 
-     * @param att attribute reference
-     * @param value new attribute value
-     */
-    /*
-    template<>
-    inline void __set_value_scalar<Tango::DEV_STRING>(Tango::Attribute &att,
-                                                      bopy::object &value)
-    {
-        Tango::DevString *v = new Tango::DevString;
-
-        if (TANGO_VERSION_HEX < 0x07020000 && att.get_writable() != Tango::READ)
-        { // MEMORY LEAK: use the python string directly instead of creating a
-          // string
-            v[0] = PyString_AsString(value.ptr());
-            att.set_value(v, 1, 0);
-        }
-        else
-        { // No memory leak here. Do the standard thing
-            from_py<Tango::DEV_STRING>::convert(value, *v);
-            att.set_value(v, 1, 0, true);
-        }
-    }
-    */
-    
-    /**
      * Tango Attribute set_value wrapper for DevEncoded attributes
      *
      * @param att attribute reference
@@ -143,6 +113,35 @@ namespace PyAttribute
         att.set_value(&val_str_real, (Tango::DevUChar*)val_real, (long)len(data));
     }
 
+    /**
+     * Tango Attribute set_value wrapper for DevEncoded attributes
+     *
+     * @param att attribute reference
+     * @param data_str new attribute data string
+     * @param data new attribute data
+     */
+    inline void __set_value(Tango::Attribute &att,
+                            bopy::str &data_str,
+                            bopy::object &data)
+    {
+        extract<Tango::DevString> val_str(data_str.ptr());
+        if (!val_str.check())
+        {
+            throw_wrong_python_data_type(att.get_name(), "set_value()");
+        }
+
+	PyObject* data_ptr = data.ptr();
+	Py_buffer view;
+	
+	if (PyObject_GetBuffer(data_ptr, &view, PyBUF_FULL_RO) < 0)
+	{
+	    throw_wrong_python_data_type(att.get_name(), "set_value()");
+	}
+
+	Tango::DevString val_str_real = val_str;
+        att.set_value(&val_str_real, (Tango::DevUChar*)view.buf, (long)view.len);	
+	PyBuffer_Release(&view);
+    }
 
     /**
      * Tango Attribute set_value_date_quality wrapper for scalar attributes
@@ -174,39 +173,6 @@ namespace PyAttribute
         from_py<tangoTypeConst>::convert(value, *cpp_val);
         att.set_value_date_quality(cpp_val.release(), tv, quality, 1, 0, true);
     }
-
-
-    /**
-     * ATTENTION: this template specialization is done to close a memory leak
-     *            that exists up to tango 7.1.1 for string read_write attributes
-     *
-     * Tango Attribute set_value_date_quality wrapper for scalar string attributes
-     * 
-     * @param att attribute reference
-     * @param value new attribute value
-     * @param t timestamp
-     * @param quality attribute quality
-     */
-    /*
-    template<>
-    inline void __set_value_date_quality_scalar<Tango::DEV_STRING>(Tango::Attribute &att,
-                                                bopy::object &value,
-                                                double t, Tango::AttrQuality quality)
-    {
-        PYTG_NEW_TIME_FROM_DOUBLE(t, tv);
-        
-        Tango::DevString *v = new Tango::DevString;
-        if (att.get_writable() == Tango::READ)
-        { // No memory leak here. Do the standard thing
-            from_py<Tango::DEV_STRING>::convert(value, *v);
-        }
-        else
-        { // MEMORY LEAK: use the python string directly instead of creating a string
-            v[0] = PyString_AsString(value.ptr());
-        }
-        att.set_value_date_quality(v, tv, quality, 1, 0, true);
-    }
-    */
 
     /**
      * Tango Attribute set_value_date_quality wrapper for DevEncoded attributes
@@ -240,6 +206,42 @@ namespace PyAttribute
                                    (long)len(data), tv, quality);
     }
 
+    /**
+     * Tango Attribute set_value_date_quality wrapper for DevEncoded attributes
+     *
+     * @param att attribute reference
+     * @param data_str new attribute data string
+     * @param data new attribute data
+     * @param t timestamp
+     * @param quality attribute quality
+     */
+    inline void __set_value_date_quality(Tango::Attribute &att,
+                                         bopy::str &data_str,
+                                         bopy::object &data,
+                                         double t, Tango::AttrQuality quality)
+    {
+        extract<Tango::DevString> val_str(data_str.ptr());
+        if (!val_str.check())
+        {
+            throw_wrong_python_data_type(att.get_name(), "set_value1()");
+        }
+
+	PyObject* data_ptr = data.ptr();
+	Py_buffer view;
+	
+	if (PyObject_GetBuffer(data_ptr, &view, PyBUF_FULL_RO) < 0)
+	{
+	    throw_wrong_python_data_type(att.get_name(), "set_value()");
+	}
+
+        PYTG_NEW_TIME_FROM_DOUBLE(t, tv);
+	Tango::DevString val_str_real = val_str;
+        att.set_value(&val_str_real, (Tango::DevUChar*)view.buf, (long)view.len);	
+        att.set_value_date_quality(&val_str_real, (Tango::DevUChar*)view.buf,
+                                   (long)view.len, tv, quality);
+	PyBuffer_Release(&view);
+    }
+
     template<long tangoTypeConst>
     void __set_value_date_quality_array(
             Tango::Attribute& att,
@@ -252,7 +254,6 @@ namespace PyAttribute
             bool isImage)
     {
         typedef typename TANGO_const2type(tangoTypeConst) TangoScalarType;
-        typedef typename TANGO_const2arraytype(tangoTypeConst) TangoArrayType;
 
         if (!PySequence_Check(value.ptr()))
         {
@@ -287,8 +288,6 @@ namespace PyAttribute
             att.set_value(data_buffer, res_dim_x, res_dim_y, release);
         }
     }
-
-
 
     inline void __set_value(const std::string & fname, Tango::Attribute &att, bopy::object &value, long* x, long *y, double t = 0.0, Tango::AttrQuality* quality = 0)
     {
@@ -337,6 +336,14 @@ namespace PyAttribute
             __set_value(att, data_str, data);
     }
 
+    inline void __set_value(const std::string & fname, Tango::Attribute &att, bopy::str &data_str, bopy::object &data, double t = 0.0, Tango::AttrQuality* quality = 0)
+    {
+        if (quality)
+            __set_value_date_quality(att, data_str, data, t, *quality);
+        else
+            __set_value(att, data_str, data);
+    }
+
     inline void set_value(Tango::Attribute &att, bopy::object &value)
     { __set_value("set_value", att, value, 0, 0); }
 
@@ -344,6 +351,9 @@ namespace PyAttribute
     { att.set_value(data); }
 
     inline void set_value(Tango::Attribute &att, bopy::str &data_str, bopy::str &data)
+    { __set_value("set_value", att, data_str, data); }
+
+    inline void set_value(Tango::Attribute &att, bopy::str &data_str, bopy::object &data)
     { __set_value("set_value", att, data_str, data); }
 
     inline void set_value(Tango::Attribute &att, bopy::object &value, long x)
@@ -360,6 +370,13 @@ namespace PyAttribute
     inline void set_value_date_quality(Tango::Attribute &att,
                                        bopy::str &data_str,
                                        bopy::str &data,
+                                       double t,
+                                       Tango::AttrQuality quality)
+    { __set_value("set_value_date_quality", att, data_str, data, t, &quality); }
+
+    inline void set_value_date_quality(Tango::Attribute &att,
+                                       bopy::str &data_str,
+                                       bopy::object &data,
                                        double t,
                                        Tango::AttrQuality quality)
     { __set_value("set_value_date_quality", att, data_str, data, t, &quality); }
@@ -893,6 +910,9 @@ void export_attribute()
             (void (*) (Tango::Attribute &, bopy::object &))
             &PyAttribute::set_value)
         .def("set_value",
+            (void (*) (Tango::Attribute &, bopy::str &, bopy::object &))
+            &PyAttribute::set_value)
+        .def("set_value",
             (void (*) (Tango::Attribute &, bopy::str &, bopy::str &))
             &PyAttribute::set_value)
         .def("set_value",
@@ -909,6 +929,9 @@ void export_attribute()
             &PyAttribute::set_value_date_quality)
         .def("set_value_date_quality",
             (void (*) (Tango::Attribute &, bopy::str &, bopy::str &, double t, Tango::AttrQuality quality))
+            &PyAttribute::set_value_date_quality)
+        .def("set_value_date_quality",
+            (void (*) (Tango::Attribute &, bopy::str &, bopy::object &, double t, Tango::AttrQuality quality))
             &PyAttribute::set_value_date_quality)
         .def("set_value_date_quality",
             (void (*) (Tango::Attribute &, bopy::object &, double t, Tango::AttrQuality quality, long))
