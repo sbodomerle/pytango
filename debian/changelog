@@ -1,3 +1,9 @@
+pytango (8.1.4-1) unstable; urgency=medium
+
+  * Imported Upstream version 8.1.4
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 30 Sep 2014 20:38:16 +0200
+
 pytango (8.1.1-1) unstable; urgency=low
 
   * Imported Upstream version 8.1.1
