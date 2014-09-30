@@ -184,9 +184,11 @@ namespace PyUtil
     
     boost::python::str get_dserver_ior(Tango::Util& self, Tango::DServer* dserver)
     {
-        const char *ior = self.get_orb()->object_to_string(dserver->_this());
-        boost::python::str ret = ior;
-        delete [] ior;
+        Tango::Device_var d = dserver->_this();
+	dserver->set_d_var(Tango::Device::_duplicate(d));
+        const char *dserver_ior = self.get_orb()->object_to_string(d);
+        boost::python::str ret = dserver_ior;
+        delete [] dserver_ior;
         return ret;
     }
 
@@ -200,7 +202,20 @@ namespace PyUtil
     
     void orb_run(Tango::Util& self)
     {
+        AutoPythonAllowThreads guard;
         self.get_orb()->run();
+    }
+
+    boost::python::str get_pid_str(Tango::Util& self)
+    {
+        boost::python::str ret = self.get_pid_str().c_str();
+        return ret;
+    }
+
+    boost::python::str get_version_str(Tango::Util& self)
+    {
+        boost::python::str ret = self.get_version_str().c_str();
+        return ret;
     }
 }
 
@@ -242,12 +257,10 @@ void export_util()
             return_value_policy<copy_non_const_reference>())
         .def("get_host_name", &Tango::Util::get_host_name,
             return_value_policy<copy_non_const_reference>())
-        .def("get_pid_str", &Tango::Util::get_pid_str,
-            return_value_policy<copy_non_const_reference>())
+        .def("get_pid_str", &PyUtil::get_pid_str)
         .def("get_pid", &Tango::Util::get_pid)
         .def("get_tango_lib_release", &Tango::Util::get_tango_lib_release)
-        .def("get_version_str", &Tango::Util::get_version_str,
-            return_value_policy<copy_non_const_reference>())
+        .def("get_version_str", &PyUtil::get_version_str)
         .def("get_server_version", &Tango::Util::get_server_version,
             return_value_policy<copy_non_const_reference>())
         .def("set_server_version", &Tango::Util::set_server_version)
@@ -260,6 +273,7 @@ void export_util()
         .def("server_init", &PyUtil::server_init, server_init_overload())
         .def("server_run", &PyUtil::server_run)
         .def("server_cleanup", &Tango::Util::server_cleanup)
+        .def("shutdown_server", &Tango::Util::shutdown_server)
         .def("trigger_cmd_polling", &Tango::Util::trigger_cmd_polling)
         .def("trigger_attr_polling", &Tango::Util::trigger_attr_polling)
         .def("set_polling_threads_pool_size", &Tango::Util::set_polling_threads_pool_size)

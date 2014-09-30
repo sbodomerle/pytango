@@ -9,18 +9,17 @@ Contents
 
 .. toctree::
     :maxdepth: 2
+    :titlesonly:
 
     start
     quicktour
-    itango/index
+    ITango <itango>
+    green
     API <api>
+    How to <howto>
+    FAQ <faq>
     TEP <tep>
-    faq
     History of changes <revision>
     
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 **Last update:** |today|
 
