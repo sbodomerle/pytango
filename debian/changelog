@@ -1,3 +1,12 @@
+pytango (8.1.6-1) unstable; urgency=medium
+
+  * debian/control
+    - Build-deps: libtango8-dev (>= 8.1.2c+dfsg-7~) (Closes: #797284)
+  * debian/patch
+    - 0001-fix-compilation-with-python3.4.patch
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Thu, 03 Sep 2015 18:23:34 +0100
+
 pytango (8.1.6-1~exp1) experimental; urgency=medium
 
   * Imported Upstream version 8.1.6

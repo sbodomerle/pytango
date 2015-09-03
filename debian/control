@@ -5,7 +5,7 @@ Section: science
 Priority: extra
 Build-Depends: debhelper (>= 9),
                libboost-python-dev,
-               libtango8-dev,
+               libtango8-dev (>= 8.1.2c+dfsg-7~),
                pkg-config,
                python-all-dev,
                python-numpy,
