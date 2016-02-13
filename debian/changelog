@@ -1,3 +1,11 @@
+pytango (8.1.8-1) unstable; urgency=medium
+
+  * Imported Upstream version 8.1.8
+  * debian/patch
+    - 0001-fix-compilation-with-python3.4.patch (deleted, applyed upstream)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 13 Feb 2016 16:19:55 +0100
+
 pytango (8.1.6-1) unstable; urgency=medium
 
   * debian/control
