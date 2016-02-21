@@ -1,0 +1,21 @@
+From: =?utf-8?q?Picca_Fr=C3=A9d=C3=A9ric-Emmanuel?= <picca@debian.org>
+Date: Sun, 21 Feb 2016 14:01:25 +0100
+Subject: Fix syntax error in python 3
+
+---
+ src/boost/python/tango_gevent.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/boost/python/tango_gevent.py b/src/boost/python/tango_gevent.py
+index 8c04e96..b10ff66 100644
+--- a/src/boost/python/tango_gevent.py
++++ b/src/boost/python/tango_gevent.py
+@@ -53,7 +53,7 @@ def get_with_exception(g, block=True, timeout=None):
+     result = g._get(block, timeout)
+     if isinstance(result, ExceptionWrapper):
+         # raise the exception using the caller context
+-        raise result.error_string, None, result.tb
++        raise result.error_string(None, result.tb)
+     else:
+         return result
+ 

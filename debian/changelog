@@ -1,3 +1,10 @@
+pytango (8.1.8-2) unstable; urgency=medium
+
+  * debian/patches
+    - 0001-Fix-syntax-error-in-python-3.patch (Closes: #814824)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 21 Feb 2016 14:03:38 +0100
+
 pytango (8.1.8-1) unstable; urgency=medium
 
   * Imported Upstream version 8.1.8
