@@ -20,9 +20,9 @@ Build-Depends: debhelper (>= 9),
                python3-six
 Build-Depends-Indep: graphviz,
                      python-sphinx
-Standards-Version: 3.9.4
-Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pytango.git
-Vcs-Git: git://anonscm.debian.org/debian-science/packages/pytango.git
+Standards-Version: 3.9.8
+Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pytango.git
+Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/pytango.git
 Homepage: http://www.tango-controls.org/static/PyTango/latest/doc/html/
 X-Python-Version: >= 2.6
 X-Python3-Version: >= 3.2
