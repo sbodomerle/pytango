@@ -83,9 +83,15 @@ Document revisions
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 | 01/10/14 | `8.21 <http://www.tango-controls.org/static/PyTango/v815/doc/html/index.html>`_  | Update to PyTango 8.1.5                             | T\. Coutinho          |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
-| 05/02/15 | `8.22 <http://www.tango-controls.org/static/PyTango/v816/doc/html/index.html>`_  | Update to PyTango 8.1.6                             | T\. Coutinho          |
+| 05/02/15 | `8.22 <http://www.esrf.fr/computing/cs/tango/pytango/v816/index.html>`_          | Update to PyTango 8.1.6                             | T\. Coutinho          |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
-| 02/02/15 | `8.23 <http://www.tango-controls.org/static/PyTango/v817/doc/html/index.html>`_  | Update to PyTango 8.1.8                             | T\. Coutinho          |
+| 03/02/16 | `8.23 <http://www.esrf.fr/computing/cs/tango/pytango/v818/index.html>`_          | Update to PyTango 8.1.8                             | T\. Coutinho          |
++----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| 12/08/16 |  8.24                                                                            | Update to PyTango 8.1.9                             | V\. Michel            |
++----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| 26/02/16 | `9.2 <http://www.esrf.fr/computing/cs/tango/pytango/v920>`_                      | Update to PyTango 9.2.0a                            | T\. Coutinho          |
++----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
+| 15/08/16 | `9.3 <http://pytango.readthedocs.io/en/9.2.0>`_                                  | Update to PyTango 9.2.0                             | V\. Michel            |
 +----------+----------------------------------------------------------------------------------+-----------------------------------------------------+-----------------------+
 
 .. _pytango-version-history:
@@ -96,8 +102,67 @@ Version history
 +----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | version  | Changes                                                                                                                                                               |
 +==========+=======================================================================================================================================================================+
+| 9.2.0    | 9.2.0 release.                                                                                                                                                        |
+|          |                                                                                                                                                                       |
+|          | Features:                                                                                                                                                             |
+|          |                                                                                                                                                                       |
+|          |     - `Issue #37: Add display_level and polling_period as optional arguments to command decorator <https://github.com/tango-cs/pytango/issues/37>`_                   |
+|          |                                                                                                                                                                       |
+|          | Bug fixes:                                                                                                                                                            |
+|          |                                                                                                                                                                       |
+|          |     - Fix cache problem when using `DeviceProxy` through an `AttributeProxy`                                                                                          |
+|          |     - Fix compilation on several platforms                                                                                                                            |
+|          |     - `Issue #19: Defining new members in DeviceProxy has side effects <https://github.com/tango-cs/pytango/issues/19>`_                                              |
+|          |     - Fixed bug in `beacon.add_device`                                                                                                                                |
+|          |     - Fix for `get_device_list` if server_name is '*'                                                                                                                 |
+|          |     - Fix `get_device_attribute_property2` if `prop_attr` is not `None`                                                                                               |
+|          |     - Accept `StdStringVector` in `put_device_property`                                                                                                               |
+|          |     - Map 'int' to DevLong64 and 'uint' to DevULong64                                                                                                                 |
+|          |     - `Issue #22: Fix push_data_ready_event() deadlock <https://github.com/tango-cs/pytango/issues/22>`_                                                              |
+|          |     - `Issue #28: Fix compilation error for constants.cpp <https://github.com/tango-cs/pytango/issues/28>`_                                                           |
+|          |     - `Issue #21: Fix Group.get_device method <https://github.com/tango-cs/pytango/issues/21>`_                                                                       |
+|          |     - `Issue #33: Fix internal server documentation <https://github.com/tango-cs/pytango/issues/33>`_                                                                 |
+|          |                                                                                                                                                                       |
+|          | Changes:                                                                                                                                                              |
+|          |     - Move ITango to another project                                                                                                                                  |
+|          |     - Use `setuptools` instead of `distutils`                                                                                                                         |
+|          |     - Add `six` as a requirement                                                                                                                                      |
+|          |     - Refactor directory structure                                                                                                                                    |
+|          |     - Rename `PyTango` module to `tango` (`import PyTango` still works for backward compatibility)                                                                    |
+|          |     - Add a ReST readme for GitHub and PyPI                                                                                                                           |
+|          |                                                                                                                                                                       |
+|          | ITango changes (moved to another project):                                                                                                                            |
+|          |     - Fix itango event logger for python 3                                                                                                                            |
+|          |     - Avoid deprecation warning with IPython 4.x                                                                                                                      |
+|          |     - Use entry points instead of scripts                                                                                                                             |
+|          |                                                                                                                                                                       |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 9.2.0a   | 9.2 alpha release. Missing:                                                                                                                                           |
+|          |                                                                                                                                                                       |
+|          |     - writtable pipes (client and server)                                                                                                                             |
+|          |     - dynamic commands (server)                                                                                                                                       |
+|          |     - device interface change event (client and server)                                                                                                               |
+|          |     - pipe event (client and server)                                                                                                                                  |
+|          |                                                                                                                                                                       |
+|          | Bug fixes:                                                                                                                                                            |
+|          |                                                                                                                                                                       |
+|          |     - `776:  [pytango][8.1.8] SyntaxError: invalid syntax <https://sourceforge.net/p/tango-cs/bugs/776/>`_                                                            |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 8.1.9    | Features:                                                                                                                                                             |
+|          |                                                                                                                                                                       |
+|          |     - `PR #2: asyncio support for both client and server API <https://github.com/tango-cs/pytango/pull/2>`_                                                           |
+|          |     - `PR #6: Expose AutoTangoMonitor and AutoTangoAllowThreads <https://github.com/tango-cs/pytango/pull/6>`_                                                        |
+|          |                                                                                                                                                                       |
+|          | Bug fixes:                                                                                                                                                            |
+|          |                                                                                                                                                                       |
+|          |     - `PR #31: Get -l flags from pkg-config <https://github.com/tango-cs/pytango/pull/31>`_                                                                           |
+|          |     - `PR #15: Rename itango script to itango3 for python3 <https://github.com/tango-cs/pytango/pull/15>`_                                                            |
+|          |     - `PR #14: Avoid deprecation warning with IPython 4.x <https://github.com/tango-cs/pytango/pull/14>`_                                                             |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 8.1.8    | Features:                                                                                                                                                             |
 |          |                                                                                                                                                                       |
+|          |     - `PR #3: Add a run_server class method to Device <https://github.com/tango-cs/pytango/pull/3>`_                                                                  |
+|          |     - `PR #4: Add device inheritance <https://github.com/tango-cs/pytango/pull/4>`_                                                                                   |
 |          |     - `110:  device property with auto update in database <https://sourceforge.net/p/tango-cs/feature-requests/110>`_                                                 |
 |          |                                                                                                                                                                       |
 |          | Bug fixes:                                                                                                                                                            |
