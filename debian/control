@@ -4,13 +4,20 @@ Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
 Section: science
 Priority: extra
 Build-Depends: debhelper (>= 9),
+               dh-python,
                libboost-python-dev,
-               libtango8-dev (>= 8.1.2c+dfsg-7~),
+               libtango-dev,
                pkg-config,
                python-all-dev,
+               python-concurrent.futures,
+               python-gevent,
                python-numpy,
+               python-setuptools,
+               python-six,
                python3-all-dev,
-               python3-numpy
+               python3-numpy,
+               python3-setuptools,
+               python3-six
 Build-Depends-Indep: graphviz,
                      python-sphinx
 Standards-Version: 3.9.4
