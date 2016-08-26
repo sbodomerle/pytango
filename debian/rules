@@ -15,13 +15,6 @@ override_dh_auto_build: $(PYTHON3:%=build-python%)
 
 install-python%:
 	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb --install-html=$(CURDIR)/debian/python-pytango-doc/usr/share/doc/python-pytango-doc/html
-	# install itango3
-	mv $(CURDIR)/debian/tmp/usr/bin/itango $(CURDIR)/debian/tmp/usr/bin/itango3
-	# install the ipython >= 0.11 profiles
-	install -d $(CURDIR)/debian/tmp/usr/lib/python3/dist-packages/IPython/config/profile/tango
-	install -p -m644\
-		$(CURDIR)/IPython/config/profile/tango/ipython_config.py\
-		$(CURDIR)/debian/tmp/usr/lib/python3/dist-packages/IPython/config/profile/tango
 	dh_numpy3
 
 override_dh_auto_install: $(PYTHON3:%=install-python%)

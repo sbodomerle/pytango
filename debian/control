@@ -33,7 +33,6 @@ Section: python
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          ${python:Depends},
-         ipython
 Provides: ${python:Provides}
 Description: API for the TANGO control system (Python 2)
  TANGO is an object oriented distributed control system using CORBA,
@@ -50,7 +49,6 @@ Section: python
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          ${python3:Depends},
-         ipython3
 Provides: ${python3:Provides}
 Description: API for the TANGO control system (Python 3)
  TANGO is an object oriented distributed control system using CORBA,
