@@ -29,10 +29,20 @@ X-Python3-Version: >= 3.2
 
 Package: python-pytango
 Architecture: any
+Section: oldlibs
+Depends: ${misc:Depends},
+         python-tango
+Pre-Depends: ${misc:Pre-Depends}
+Description: transitional dummy package for python-tango
+ This is a transitional package to ease upgrades to the
+ python-tango package. It can be safely removed.
+
+Package: python-tango
+Architecture: any
 Section: python
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         ${python:Depends},
+         ${python:Depends}
 Provides: ${python:Provides}
 Description: API for the TANGO control system (Python 2)
  TANGO is an object oriented distributed control system using CORBA,
@@ -45,10 +55,20 @@ Description: API for the TANGO control system (Python 2)
 
 Package: python3-pytango
 Architecture: any
+Section: oldlibs
+Depends: ${misc:Depends},
+         python3-tango
+Pre-Depends: ${misc:Pre-Depends}
+Description: transitional dummy package for python3-tango
+ This is a transitional package to ease upgrades to the
+ python3-tango package. It can be safely removed.
+
+Package: python3-tango
+Architecture: any
 Section: python
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         ${python3:Depends},
+         ${python3:Depends}
 Provides: ${python3:Provides}
 Description: API for the TANGO control system (Python 3)
  TANGO is an object oriented distributed control system using CORBA,
@@ -59,7 +79,7 @@ Description: API for the TANGO control system (Python 3)
  .
  This is the Python 3 version of the package.
 
-Package: python-pytango-doc
+Package: python-tango-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends},
@@ -71,5 +91,4 @@ Description: API for the TANGO control system
  With PyTango, you can write TANGO device servers and TANGO applications
  (scripts, CLIs, GUIs) that access TANGO device servers in pure Python.
  .
- This package contains the documentation for the python-pytango library.
-
+ This package contains the documentation for the python-tango library.

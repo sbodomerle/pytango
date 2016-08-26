@@ -14,7 +14,7 @@ override_dh_auto_build: $(PYTHON3:%=build-python%)
 
 
 install-python%:
-	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb --install-html=$(CURDIR)/debian/python-pytango-doc/usr/share/doc/python-pytango-doc/html
+	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb --install-html=$(CURDIR)/debian/python-tango-doc/usr/share/doc/python-tango-doc/html
 	dh_numpy3
 
 override_dh_auto_install: $(PYTHON3:%=install-python%)
@@ -23,9 +23,9 @@ override_dh_auto_install: $(PYTHON3:%=install-python%)
 
 override_dh_installdocs:
 	dh_installdocs
-ifneq (,$(filter python-pytango-doc, $(shell dh_listpackages)))
+ifneq (,$(filter python-tango-doc, $(shell dh_listpackages)))
 	# add the - for backport where dh_sphinxdoc is not available
-	-dh_sphinxdoc -ppython-pytango-doc
+	-dh_sphinxdoc -ppython-tango-doc
 endif
 
 override_dh_auto_clean:
