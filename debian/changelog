@@ -1,3 +1,24 @@
+pytango (9.2.0-1~exp1) experimental; urgency=medium
+
+  * Imported Upstream version 9.2.0
+    - Filter out sourceless binary executable: examples/many/many_client
+  * debian/patch
+    - Drop unnecessary patch 0001-Fix-syntax-error-in-python-3.patch
+    - Add 0001-Fix-syntax-error-in-python-3.patch - spelling fix
+    - 0002-Use-jquery-from-the-archive.patch - fix jquery reference
+  * debian/control
+    - Update build depends:
+      - add: python-six, python-gevent, python-concurrent.futures, libtango-dev
+    - Rename package pytango=>tango; add transitional packages
+    - Standards-Version bump to 3.9.8 (nothing to do)
+    - Updated the Vcs-X (git -> https)
+  * Drop itango deps for now - until a separate itango package is made
+  * debian/rules
+    - Build with pybuild
+  * Add myself to uploaders
+
+ -- Sandor Bodo-Merle <sbodomerle@gmail.com>  Fri, 26 Aug 2016 11:15:20 +0200
+
 pytango (8.1.8-2) unstable; urgency=medium
 
   * debian/patches
