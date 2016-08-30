@@ -3,12 +3,12 @@ Upstream-Name: Tiago Coutinho
 Upstream-Contact: tcoutinho@cells.es
 Source: http://pypi.python.org/packages/source/P/PyTango
 
-Files: debian/*
-Copyright: © 2006-2011, Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
-License: LGPL-3+
-
 Files: *
 Copyright: © 2010-2012, CELLS / ALBA Synchrotron, Bellaterra, Spain
+License: LGPL-3+
+
+Files: debian/*
+Copyright: © 2006-2011, Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 License: LGPL-3+
 
 Files: doc/_static/jssor*
