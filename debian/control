@@ -1,6 +1,7 @@
 Source: pytango
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
-Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>
+Uploaders: Picca Frédéric-Emmanuel <picca@debian.org>,
+           Sandor Bodo-Merle <sbodomerle@gmail.com>
 Section: science
 Priority: extra
 Build-Depends: debhelper (>= 9),
