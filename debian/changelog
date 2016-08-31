@@ -12,6 +12,8 @@ pytango (9.2.0-1~exp1) experimental; urgency=medium
     - Rename package pytango=>tango; add transitional packages
     - Standards-Version bump to 3.9.8 (nothing to do)
     - Updated the Vcs-X (git -> https)
+  * Ship extra pydist files so dependent packages will use the correct
+    python-tango dependency
   * Drop itango deps for now - until a separate itango package is made
   * debian/rules
     - Build with pybuild
