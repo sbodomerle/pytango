@@ -1,3 +1,11 @@
+pytango (9.2.0-1~exp2) experimental; urgency=medium
+
+  * Fixed d/rules to call --with sphinxdoc only when building arch-all
+    packages.
+  * Updated the d/copyright (Add the ESRF)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 04 Sep 2016 11:22:02 +0200
+
 pytango (9.2.0-1~exp1) experimental; urgency=medium
 
   * Imported Upstream version 9.2.0
