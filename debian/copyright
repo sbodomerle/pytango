@@ -5,6 +5,7 @@ Source: http://pypi.python.org/packages/source/P/PyTango
 
 Files: *
 Copyright: © 2010-2012, CELLS / ALBA Synchrotron, Bellaterra, Spain
+           © 2013-2016, European Synchrotron Radiation Facility, Grenoble, France
 License: LGPL-3+
 
 Files: debian/*
