@@ -3,8 +3,11 @@
 export PYBUILD_NAME=tango
 export PYBUILD_INSTALL_ARGS_python2=--install-html=$(CURDIR)/debian/python-tango-doc/usr/share/doc/python-tango-doc/html
 
+# sphinxdoc is available only when building the arch-all packages
+WITH_SPHINXDOC = $(shell if [ -x /usr/bin/dh_sphinxdoc ]; then echo "--with sphinxdoc"; fi)
+
 %:
-	dh $@ --with python2,python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python2,python3 $(WITH_SPHINXDOC) --buildsystem=pybuild
 
 override_dh_auto_install:
 	dh_auto_install -O--buildsystem=pybuild
